@@ -139,7 +139,7 @@ void getModbusCRC16(unsigned char *_pBuf, unsigned short int _usLen)
     *(_pBuf + _usLen + 1) = CRCValue & 0x00FF;			// CRC 校验码低位
     return;            
 } 
-
+//串口中断函数
 void USART1_IRQHandler(void)
 {
 	static uint8_t RxState = 0;

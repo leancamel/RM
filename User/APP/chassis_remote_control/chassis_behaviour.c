@@ -1,18 +1,18 @@
 /**
-  ****************************RM Warrior 2023****************************
+  ****************************(C) COPYRIGHT 2016 DJI****************************
   * @file       chassis_behaviour.c/h
-  * @brief      Íê³Éµ×ÅÌĞĞÎªÈÎÎñ¡£
+  * @brief      å®Œæˆåº•ç›˜è¡Œä¸ºä»»åŠ¡ã€‚
   * @note       
   * @history
   *  Version    Date            Author          Modification
-  *  V1.0.0     2023-1-1        pxx             1. Íê³É
+  *  V1.0.0     Dec-26-2018     RM              1. å®Œæˆ
   *
   @verbatim
   ==============================================================================
 
   ==============================================================================
   @endverbatim
-  ****************************RM Warrior 2023****************************
+  ****************************(C) COPYRIGHT 2016 DJI****************************
   */
 #include "chassis_behaviour.h"
 #include "chassis_remote_control.h"
@@ -22,75 +22,75 @@
 #include "gimbal_behaviour.h"
 
 /**
-  * @brief          µ×ÅÌÎŞÁ¦µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇraw£¬¹Ê¶øÉè¶¨Öµ»áÖ±½Ó·¢ËÍµ½can×ÜÏßÉÏ¹Ê¶ø½«Éè¶¨Öµ¶¼ÉèÖÃÎª0
+  * @brief          åº•ç›˜æ— åŠ›çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯rawï¼Œæ•…è€Œè®¾å®šå€¼ä¼šç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Šæ•…è€Œå°†è®¾å®šå€¼éƒ½è®¾ç½®ä¸º0
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      wz_setĞı×ªµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      wz_setæ—‹è½¬çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *wz_can_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
-  * @brief          µ×ÅÌ²»ÒÆ¶¯µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ²»¸úËæ½Ç¶È£¬
+  * @brief          åº•ç›˜ä¸ç§»åŠ¨çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯ä¸è·Ÿéšè§’åº¦ï¼Œ
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setĞı×ªµÄËÙ¶È£¬Ğı×ªËÙ¶ÈÊÇ¿ØÖÆµ×ÅÌµÄµ×ÅÌ½ÇËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setæ—‹è½¬çš„é€Ÿåº¦ï¼Œæ—‹è½¬é€Ÿåº¦æ˜¯æ§åˆ¶åº•ç›˜çš„åº•ç›˜è§’é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
-  * @brief          µ×ÅÌ¸úËæÔÆÌ¨µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ¸úËæÔÆÌ¨½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶È»á¸ù¾İ½Ç¶È²î¼ÆËãµ×ÅÌĞı×ªµÄ½ÇËÙ¶È
+  * @brief          åº•ç›˜è·Ÿéšäº‘å°çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯è·Ÿéšäº‘å°è§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ä¼šæ ¹æ®è§’åº¦å·®è®¡ç®—åº•ç›˜æ—‹è½¬çš„è§’é€Ÿåº¦
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      angle_setµ×ÅÌÓëÔÆÌ¨¿ØÖÆµ½µÄÏà¶Ô½Ç¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      angle_setåº•ç›˜ä¸äº‘å°æ§åˆ¶åˆ°çš„ç›¸å¯¹è§’åº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
-  * @brief          µ×ÅÌ¸úËæµ×ÅÌyawµÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ¸úËæµ×ÅÌ½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶È»á¸ù¾İ½Ç¶È²î¼ÆËãµ×ÅÌĞı×ªµÄ½ÇËÙ¶È
+  * @brief          åº•ç›˜è·Ÿéšåº•ç›˜yawçš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯è·Ÿéšåº•ç›˜è§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ä¼šæ ¹æ®è§’åº¦å·®è®¡ç®—åº•ç›˜æ—‹è½¬çš„è§’é€Ÿåº¦
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      angle_setµ×ÅÌÉèÖÃµÄyaw£¬·¶Î§ -PIµ½PI
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      angle_setåº•ç›˜è®¾ç½®çš„yawï¼ŒèŒƒå›´ -PIåˆ°PI
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
-  * @brief          µ×ÅÌ²»¸úËæ½Ç¶ÈµÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ²»¸úËæ½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶ÈÓÉ²ÎÊıÖ±½ÓÉè¶¨
+  * @brief          åº•ç›˜ä¸è·Ÿéšè§’åº¦çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯ä¸è·Ÿéšè§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ç”±å‚æ•°ç›´æ¥è®¾å®š
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setµ×ÅÌÉèÖÃµÄĞı×ªËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setåº•ç›˜è®¾ç½®çš„æ—‹è½¬é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
-  * @brief          µ×ÅÌ¿ª»·µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇrawÔ­Éú×´Ì¬£¬¹Ê¶øÉè¶¨Öµ»áÖ±½Ó·¢ËÍµ½can×ÜÏßÉÏ
+  * @brief          åº•ç›˜å¼€ç¯çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯rawåŸç”ŸçŠ¶æ€ï¼Œæ•…è€Œè®¾å®šå€¼ä¼šç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setµ×ÅÌÉèÖÃµÄĞı×ªËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setåº•ç›˜è®¾ç½®çš„æ—‹è½¬é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
-//µ×ÅÌĞĞÎª×´Ì¬»ú
+//åº•ç›˜è¡Œä¸ºçŠ¶æ€æœº
 static chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
 
 void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
@@ -100,7 +100,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
         return;
     }
 
-    //Ò£¿ØÆ÷ÉèÖÃĞĞÎªÄ£Ê½
+    //é¥æ§å™¨è®¾ç½®è¡Œä¸ºæ¨¡å¼
     if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
     {
         chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
@@ -114,42 +114,42 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
         chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
     }
 
-    //ÔÆÌ¨½øÈëÄ³Ğ©×´Ì¬µÄÊ±ºò£¬µ×ÅÌ±£³Ö²»¶¯
+    //äº‘å°è¿›å…¥æŸäº›çŠ¶æ€çš„æ—¶å€™ï¼Œåº•ç›˜ä¿æŒä¸åŠ¨
     if (gimbal_cmd_to_chassis_stop())
     {
         chassis_behaviour_mode = CHASSIS_NO_MOVE;
     }
 
-    //¸ù¾İĞĞÎª×´Ì¬»úÑ¡Ôñµ×ÅÌ×´Ì¬»ú
+    //æ ¹æ®è¡Œä¸ºçŠ¶æ€æœºé€‰æ‹©åº•ç›˜çŠ¶æ€æœº
     if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; //µ±ĞĞÎªÊÇµ×ÅÌÎŞÁ¦£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª raw£¬Ô­Éú×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; //å½“è¡Œä¸ºæ˜¯åº•ç›˜æ— åŠ›ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º rawï¼ŒåŸç”ŸçŠ¶æ€æœºã€‚
     }
     else if (chassis_behaviour_mode == CHASSIS_NO_MOVE)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW; //µ±ĞĞÎªÊÇµ×ÅÌ²»ÒÆ¶¯£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª µ×ÅÌ²»¸úËæ½Ç¶È ×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW; //å½“è¡Œä¸ºæ˜¯åº•ç›˜ä¸ç§»åŠ¨ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º åº•ç›˜ä¸è·Ÿéšè§’åº¦ çŠ¶æ€æœºã€‚
     }
     else if (chassis_behaviour_mode == CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW; //µ±ĞĞÎªÊÇÕı³£²½±ø¸úËæÔÆÌ¨£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª µ×ÅÌ¸úËæÔÆÌ¨½Ç¶È ×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW; //å½“è¡Œä¸ºæ˜¯æ­£å¸¸æ­¥å…µè·Ÿéšäº‘å°ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º åº•ç›˜è·Ÿéšäº‘å°è§’åº¦ çŠ¶æ€æœºã€‚
     }
     else if (chassis_behaviour_mode == CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW; //µ±ĞĞÎªÊÇ¹¤³Ì¸úËæµ×ÅÌ½Ç¶È£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª µ×ÅÌ¸úËæµ×ÅÌ½Ç¶È ×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW; //å½“è¡Œä¸ºæ˜¯å·¥ç¨‹è·Ÿéšåº•ç›˜è§’åº¦ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º åº•ç›˜è·Ÿéšåº•ç›˜è§’åº¦ çŠ¶æ€æœºã€‚
     }
     else if (chassis_behaviour_mode == CHASSIS_NO_FOLLOW_YAW)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW; //µ±ĞĞÎªÊÇµ×ÅÌ²»¸úËæ½Ç¶È£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª µ×ÅÌ²»¸úËæ½Ç¶È ×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW; //å½“è¡Œä¸ºæ˜¯åº•ç›˜ä¸è·Ÿéšè§’åº¦ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º åº•ç›˜ä¸è·Ÿéšè§’åº¦ çŠ¶æ€æœºã€‚
     }
     else if (chassis_behaviour_mode == CHASSIS_OPEN)
     {
 
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; //µ±ĞĞÎªÊÇµ×ÅÌ¿ª»·£¬ÔòÉèÖÃµ×ÅÌ×´Ì¬»úÎª µ×ÅÌÔ­Éúraw ×´Ì¬»ú¡£
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; //å½“è¡Œä¸ºæ˜¯åº•ç›˜å¼€ç¯ï¼Œåˆ™è®¾ç½®åº•ç›˜çŠ¶æ€æœºä¸º åº•ç›˜åŸç”Ÿraw çŠ¶æ€æœºã€‚
     }
 }
 
@@ -188,13 +188,13 @@ void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, 
 }
 
 /**
-  * @brief          µ×ÅÌÎŞÁ¦µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇraw£¬¹Ê¶øÉè¶¨Öµ»áÖ±½Ó·¢ËÍµ½can×ÜÏßÉÏ¹Ê¶ø½«Éè¶¨Öµ¶¼ÉèÖÃÎª0
+  * @brief          åº•ç›˜æ— åŠ›çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯rawï¼Œæ•…è€Œè®¾å®šå€¼ä¼šç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Šæ•…è€Œå°†è®¾å®šå€¼éƒ½è®¾ç½®ä¸º0
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      wz_setĞı×ªµÄËÙ¶È Éè¶¨Öµ½«Ö±½Ó·¢ËÍµ½can×ÜÏßÉÏ
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      wz_setæ—‹è½¬çš„é€Ÿåº¦ è®¾å®šå€¼å°†ç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *wz_can_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -208,13 +208,13 @@ static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 
     *wz_can_set = 0.0f;
 }
 /**
-  * @brief          µ×ÅÌ²»ÒÆ¶¯µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ²»¸úËæ½Ç¶È£¬
+  * @brief          åº•ç›˜ä¸ç§»åŠ¨çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯ä¸è·Ÿéšè§’åº¦ï¼Œ
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setĞı×ªµÄËÙ¶È£¬Ğı×ªËÙ¶ÈÊÇ¿ØÖÆµ×ÅÌµÄµ×ÅÌ½ÇËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setæ—‹è½¬çš„é€Ÿåº¦ï¼Œæ—‹è½¬é€Ÿåº¦æ˜¯æ§åˆ¶åº•ç›˜çš„åº•ç›˜è§’é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -229,13 +229,13 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, ch
 }
 
 /**
-  * @brief          µ×ÅÌ¸úËæÔÆÌ¨µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ¸úËæÔÆÌ¨½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶È»á¸ù¾İ½Ç¶È²î¼ÆËãµ×ÅÌĞı×ªµÄ½ÇËÙ¶È
+  * @brief          åº•ç›˜è·Ÿéšäº‘å°çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯è·Ÿéšäº‘å°è§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ä¼šæ ¹æ®è§’åº¦å·®è®¡ç®—åº•ç›˜æ—‹è½¬çš„è§’é€Ÿåº¦
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      angle_setµ×ÅÌÓëÔÆÌ¨¿ØÖÆµ½µÄÏà¶Ô½Ç¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      angle_setåº•ç›˜ä¸äº‘å°æ§åˆ¶åˆ°çš„ç›¸å¯¹è§’åº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -247,20 +247,20 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
 
     chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
 
-    //Ò¡°Ú½Ç¶ÈÊÇÀûÓÃsinº¯ÊıÉú³É£¬swing_time ÊÇsinº¯ÊıµÄÊäÈëÖµ
+    //æ‘‡æ‘†è§’åº¦æ˜¯åˆ©ç”¨sinå‡½æ•°ç”Ÿæˆï¼Œswing_time æ˜¯sinå‡½æ•°çš„è¾“å…¥å€¼
     static fp32 swing_time = 0.0f;
-    //swing_time ÊÇ¼ÆËã³öÀ´µÄ½Ç¶È
+    //swing_time æ˜¯è®¡ç®—å‡ºæ¥çš„è§’åº¦
     static fp32 swing_angle = 0.0f;
-    //max_angle ÊÇsinº¯ÊıµÄ·ùÖµ
+    //max_angle æ˜¯sinå‡½æ•°çš„å¹…å€¼
     static fp32 max_angle = SWING_NO_MOVE_ANGLE;
-    //add_time ÊÇÒ¡°Ú½Ç¶È¸Ä±äµÄ¿ìÂı£¬×î´óÔ½¿ì
+    //add_time æ˜¯æ‘‡æ‘†è§’åº¦æ”¹å˜çš„å¿«æ…¢ï¼Œæœ€å¤§è¶Šå¿«
     static fp32 const add_time = PI / 250.0f;
-    //Ê¹ÄÜÒ¡°Ú±êÖ¾Î»
+    //ä½¿èƒ½æ‘‡æ‘†æ ‡å¿—ä½
     static uint8_t swing_flag = 0;
 
-    //¼ÆËãÒ£¿ØÆ÷µÄÔ­Ê¼ÊäÈëĞÅºÅ
+    //è®¡ç®—é¥æ§å™¨çš„åŸå§‹è¾“å…¥ä¿¡å·
 
-    //ÅĞ¶ÏÊÇ·ñÒªÒ¡°Ú
+    //åˆ¤æ–­æ˜¯å¦è¦æ‘‡æ‘†
     if (chassis_move_rc_to_vector->chassis_RC->key.v & SWING_KEY)
     {
         if (swing_flag == 0)
@@ -274,7 +274,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
         swing_flag = 0;
     }
 
-    //ÅĞ¶Ï¼üÅÌÊäÈëÊÇ²»ÊÇÔÚ¿ØÖÆµ×ÅÌÔË¶¯£¬µ×ÅÌÔÚÔË¶¯¼õĞ¡Ò¡°Ú½Ç¶È
+    //åˆ¤æ–­é”®ç›˜è¾“å…¥æ˜¯ä¸æ˜¯åœ¨æ§åˆ¶åº•ç›˜è¿åŠ¨ï¼Œåº•ç›˜åœ¨è¿åŠ¨å‡å°æ‘‡æ‘†è§’åº¦
     if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY || chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_BACK_KEY ||
         chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_LEFT_KEY || chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_RIGHT_KEY)
     {
@@ -284,7 +284,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
     {
         max_angle = SWING_NO_MOVE_ANGLE;
     }
-    //sinº¯ÊıÉú³É¿ØÖÆ½Ç¶È
+    //sinå‡½æ•°ç”Ÿæˆæ§åˆ¶è§’åº¦
     if (swing_flag)
     {
         swing_angle = max_angle * arm_sin_f32(swing_time);
@@ -294,7 +294,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
     {
         swing_angle = 0.0f;
     }
-    //sinº¯Êı²»³¬¹ı2pi
+    //sinå‡½æ•°ä¸è¶…è¿‡2pi
     if (swing_time > 2 * PI)
     {
         swing_time -= 2 * PI;
@@ -304,13 +304,13 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
 }
 
 /**
-  * @brief          µ×ÅÌ¸úËæµ×ÅÌyawµÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ¸úËæµ×ÅÌ½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶È»á¸ù¾İ½Ç¶È²î¼ÆËãµ×ÅÌĞı×ªµÄ½ÇËÙ¶È
+  * @brief          åº•ç›˜è·Ÿéšåº•ç›˜yawçš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯è·Ÿéšåº•ç›˜è§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ä¼šæ ¹æ®è§’åº¦å·®è®¡ç®—åº•ç›˜æ—‹è½¬çš„è§’é€Ÿåº¦
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      angle_setµ×ÅÌÉèÖÃµÄyaw£¬·¶Î§ -PIµ½PI
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      angle_setåº•ç›˜è®¾ç½®çš„yawï¼ŒèŒƒå›´ -PIåˆ°PI
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -326,13 +326,13 @@ static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_s
 }
 
 /**
-  * @brief          µ×ÅÌ²»¸úËæ½Ç¶ÈµÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇ²»¸úËæ½Ç¶È£¬µ×ÅÌĞı×ªËÙ¶ÈÓÉ²ÎÊıÖ±½ÓÉè¶¨
+  * @brief          åº•ç›˜ä¸è·Ÿéšè§’åº¦çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯ä¸è·Ÿéšè§’åº¦ï¼Œåº•ç›˜æ—‹è½¬é€Ÿåº¦ç”±å‚æ•°ç›´æ¥è®¾å®š
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setµ×ÅÌÉèÖÃµÄĞı×ªËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setåº•ç›˜è®¾ç½®çš„æ—‹è½¬é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -347,13 +347,13 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
 }
 
 /**
-  * @brief          µ×ÅÌ¿ª»·µÄĞĞÎª×´Ì¬»úÏÂ£¬µ×ÅÌÄ£Ê½ÊÇrawÔ­Éú×´Ì¬£¬¹Ê¶øÉè¶¨Öµ»áÖ±½Ó·¢ËÍµ½can×ÜÏßÉÏ
+  * @brief          åº•ç›˜å¼€ç¯çš„è¡Œä¸ºçŠ¶æ€æœºä¸‹ï¼Œåº•ç›˜æ¨¡å¼æ˜¯rawåŸç”ŸçŠ¶æ€ï¼Œæ•…è€Œè®¾å®šå€¼ä¼šç›´æ¥å‘é€åˆ°canæ€»çº¿ä¸Š
   * @author         RM
-  * @param[in]      vx_setÇ°½øµÄËÙ¶È
-  * @param[in]      vy_set×óÓÒµÄËÙ¶È
-  * @param[in]      wz_setµ×ÅÌÉèÖÃµÄĞı×ªËÙ¶È
-  * @param[in]      chassis_move_rc_to_vectorµ×ÅÌÊı¾İ
-  * @retval         ·µ»Ø¿Õ
+  * @param[in]      vx_setå‰è¿›çš„é€Ÿåº¦
+  * @param[in]      vy_setå·¦å³çš„é€Ÿåº¦
+  * @param[in]      wz_setåº•ç›˜è®¾ç½®çš„æ—‹è½¬é€Ÿåº¦
+  * @param[in]      chassis_move_rc_to_vectoråº•ç›˜æ•°æ®
+  * @retval         è¿”å›ç©º
   */
 
 static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)

@@ -1,3 +1,19 @@
+/**
+  ****************************(C) COPYRIGHT 2016 DJI****************************
+  * @file       chassis.c/h
+  * @brief      å®Œæˆåº•ç›˜æŽ§åˆ¶ä»»åŠ¡ã€‚
+  * @note       
+  * @history
+  *  Version    Date            Author          Modification
+  *  V1.0.0     Dec-26-2018     RM              1. å®Œæˆ
+  *
+  @verbatim
+  ==============================================================================
+
+  ==============================================================================
+  @endverbatim
+  ****************************(C) COPYRIGHT 2016 DJI****************************
+  */
 #ifndef CHASSIS_REMOTE_CONTROL_H
 #define CHASSIS_REMOTE_CONTROL_H
 #include "main.h"
@@ -11,25 +27,25 @@
 #include "pid.h"
 
 
-//ÈÎÎñ¿ªÊ¼¿ÕÏÐÒ»¶ÎÊ±¼ä
+//ä»»åŠ¡å¼€å§‹ç©ºé—²ä¸€æ®µæ—¶é—´
 #define CHASSIS_TASK_INIT_TIME 357
 
-//Ç°ºóµÄÒ£¿ØÆ÷Í¨µÀºÅÂë
+//å‰åŽçš„é¥æŽ§å™¨é€šé“å·ç 
 #define CHASSIS_X_CHANNEL 1
-//×óÓÒµÄÒ£¿ØÆ÷Í¨µÀºÅÂë
+//å·¦å³çš„é¥æŽ§å™¨é€šé“å·ç 
 #define CHASSIS_Y_CHANNEL 0
-//ÔÚÌØÊâÄ£Ê½ÏÂ£¬¿ÉÒÔÍ¨¹ýÒ£¿ØÆ÷¿ØÖÆÐý×ª
+//åœ¨ç‰¹æ®Šæ¨¡å¼ä¸‹ï¼Œå¯ä»¥é€šè¿‡é¥æŽ§å™¨æŽ§åˆ¶æ—‹è½¬
 #define CHASSIS_WZ_CHANNEL 2
 
-//Ñ¡Ôñµ×ÅÌ×´Ì¬ ¿ª¹ØÍ¨µÀºÅ
+//é€‰æ‹©åº•ç›˜çŠ¶æ€ å¼€å…³é€šé“å·
 #define MODE_CHANNEL 0
-//Ò£¿ØÆ÷Ç°½øÒ¡¸Ë£¨max 660£©×ª»¯³É³µÌåÇ°½øËÙ¶È£¨m/s£©µÄ±ÈÀý
+//é¥æŽ§å™¨å‰è¿›æ‘‡æ†ï¼ˆmax 660ï¼‰è½¬åŒ–æˆè½¦ä½“å‰è¿›é€Ÿåº¦ï¼ˆm/sï¼‰çš„æ¯”ä¾‹
 #define CHASSIS_VX_RC_SEN 0.004f
-//Ò£¿ØÆ÷×óÓÒÒ¡¸Ë£¨max 660£©×ª»¯³É³µÌå×óÓÒËÙ¶È£¨m/s£©µÄ±ÈÀý
+//é¥æŽ§å™¨å·¦å³æ‘‡æ†ï¼ˆmax 660ï¼‰è½¬åŒ–æˆè½¦ä½“å·¦å³é€Ÿåº¦ï¼ˆm/sï¼‰çš„æ¯”ä¾‹
 #define CHASSIS_VY_RC_SEN 0.003f
-//¸úËæµ×ÅÌyawÄ£Ê½ÏÂ£¬Ò£¿ØÆ÷µÄyawÒ£¸Ë£¨max 660£©Ôö¼Óµ½³µÌå½Ç¶ÈµÄ±ÈÀý
+//è·Ÿéšåº•ç›˜yawæ¨¡å¼ä¸‹ï¼Œé¥æŽ§å™¨çš„yawé¥æ†ï¼ˆmax 660ï¼‰å¢žåŠ åˆ°è½¦ä½“è§’åº¦çš„æ¯”ä¾‹
 #define CHASSIS_ANGLE_Z_RC_SEN 0.000002f
-//²»¸úËæÔÆÌ¨µÄÊ±ºò Ò£¿ØÆ÷µÄyawÒ£¸Ë£¨max 660£©×ª»¯³É³µÌåÐý×ªËÙ¶ÈµÄ±ÈÀý
+//ä¸è·Ÿéšäº‘å°çš„æ—¶å€™ é¥æŽ§å™¨çš„yawé¥æ†ï¼ˆmax 660ï¼‰è½¬åŒ–æˆè½¦ä½“æ—‹è½¬é€Ÿåº¦çš„æ¯”ä¾‹
 #define CHASSIS_WZ_RC_SEN 0.007f
 
 #define CHASSIS_ACCEL_X_NUM 0.1666666667f
@@ -43,48 +59,48 @@
 
 #define MOTOR_DISTANCE_TO_CENTER 0.2f
 
-//µ×ÅÌÈÎÎñ¿ØÖÆ¼ä¸ô 2ms
+//åº•ç›˜ä»»åŠ¡æŽ§åˆ¶é—´éš” 2ms
 #define CHASSIS_CONTROL_TIME_MS 2
-//µ×ÅÌÈÎÎñ¿ØÖÆ¼ä¸ô 0.002s
+//åº•ç›˜ä»»åŠ¡æŽ§åˆ¶é—´éš” 0.002s
 #define CHASSIS_CONTROL_TIME 0.002
-//µ×ÅÌÈÎÎñ¿ØÖÆÆµÂÊ£¬ÉÐÎ´Ê¹ÓÃÕâ¸öºê
+//åº•ç›˜ä»»åŠ¡æŽ§åˆ¶é¢‘çŽ‡ï¼Œå°šæœªä½¿ç”¨è¿™ä¸ªå®
 #define CHASSIS_CONTROL_FREQUENCE 500.0f
-//µ×ÅÌ3508×î´ócan·¢ËÍµçÁ÷Öµ
+//åº•ç›˜3508æœ€å¤§canå‘é€ç”µæµå€¼
 #define MAX_MOTOR_CAN_CURRENT 16000.0f
-//µ×ÅÌÒ¡°Ú°´¼ü
+//åº•ç›˜æ‘‡æ‘†æŒ‰é”®
 #define SWING_KEY KEY_PRESSED_OFFSET_CTRL
-//µ×ÅÌÇ°ºó×óÓÒ¿ØÖÆ°´¼ü
+//åº•ç›˜å‰åŽå·¦å³æŽ§åˆ¶æŒ‰é”®
 #define CHASSIS_FRONT_KEY KEY_PRESSED_OFFSET_W
 #define CHASSIS_BACK_KEY KEY_PRESSED_OFFSET_S
 #define CHASSIS_LEFT_KEY KEY_PRESSED_OFFSET_A
 #define CHASSIS_RIGHT_KEY KEY_PRESSED_OFFSET_D
 
-//m3508×ª»¯³Éµ×ÅÌËÙ¶È(m/s)µÄ±ÈÀý£¬×öÁ½¸öºê ÊÇÒòÎª¿ÉÄÜ»»µç»úÐèÒª¸ü»»±ÈÀý
+//m3508è½¬åŒ–æˆåº•ç›˜é€Ÿåº¦(m/s)çš„æ¯”ä¾‹ï¼Œåšä¸¤ä¸ªå® æ˜¯å› ä¸ºå¯èƒ½æ¢ç”µæœºéœ€è¦æ›´æ¢æ¯”ä¾‹
 #define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f
 #define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_RPM_TO_VECTOR
 
-//µ×ÅÌµç»ú×î´óËÙ¶È
+//åº•ç›˜ç”µæœºæœ€å¤§é€Ÿåº¦
 #define MAX_WHEEL_SPEED 4.0f
-//µ×ÅÌÔË¶¯¹ý³Ì×î´óÇ°½øËÙ¶È
+//åº•ç›˜è¿åŠ¨è¿‡ç¨‹æœ€å¤§å‰è¿›é€Ÿåº¦
 #define NORMAL_MAX_CHASSIS_SPEED_X 3.0f
-//µ×ÅÌÔË¶¯¹ý³Ì×î´óÆ½ÒÆËÙ¶È
+//åº•ç›˜è¿åŠ¨è¿‡ç¨‹æœ€å¤§å¹³ç§»é€Ÿåº¦
 #define NORMAL_MAX_CHASSIS_SPEED_Y 2.9f
-//µ×ÅÌÉèÖÃÐý×ªËÙ¶È£¬ÉèÖÃÇ°ºó×óÓÒÂÖ²»Í¬Éè¶¨ËÙ¶ÈµÄ±ÈÀý·ÖÈ¨ 0ÎªÔÚ¼¸ºÎÖÐÐÄ£¬²»ÐèÒª²¹³¥
+//åº•ç›˜è®¾ç½®æ—‹è½¬é€Ÿåº¦ï¼Œè®¾ç½®å‰åŽå·¦å³è½®ä¸åŒè®¾å®šé€Ÿåº¦çš„æ¯”ä¾‹åˆ†æƒ 0ä¸ºåœ¨å‡ ä½•ä¸­å¿ƒï¼Œä¸éœ€è¦è¡¥å¿
 #define CHASSIS_WZ_SET_SCALE 0.1f
 
-//Ò¡°ÚÔ­µØ²»¶¯Ò¡°Ú×î´ó½Ç¶È(rad)
+//æ‘‡æ‘†åŽŸåœ°ä¸åŠ¨æ‘‡æ‘†æœ€å¤§è§’åº¦(rad)
 #define SWING_NO_MOVE_ANGLE 0.7f
-//Ò¡°Ú¹ý³Ìµ×ÅÌÔË¶¯×î´ó½Ç¶È(rad)
+//æ‘‡æ‘†è¿‡ç¨‹åº•ç›˜è¿åŠ¨æœ€å¤§è§’åº¦(rad)
 #define SWING_MOVE_ANGLE 0.31415926535897932384626433832795f
 
-//µ×ÅÌµç»úËÙ¶È»·PID
+//åº•ç›˜ç”µæœºé€Ÿåº¦çŽ¯PID
 #define M3505_MOTOR_SPEED_PID_KP 12000.0f
 #define M3505_MOTOR_SPEED_PID_KI 8.0f
 #define M3505_MOTOR_SPEED_PID_KD 0.0f
 #define M3505_MOTOR_SPEED_PID_MAX_OUT MAX_MOTOR_CAN_CURRENT
 #define M3505_MOTOR_SPEED_PID_MAX_IOUT 2000.0f
 
-//µ×ÅÌÐý×ª¸úËæPID
+//åº•ç›˜æ—‹è½¬è·ŸéšPID
 #define CHASSIS_FOLLOW_GIMBAL_PID_KP 10.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.15f
@@ -93,16 +109,16 @@
 
 typedef enum
 {
-  CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   //¸úËæÔÆÌ¨Ä£Ê½
-  CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW,  //µ×ÅÌÊ¸Á¿¸úËæµ×ÅÌÆ«º½
-  CHASSIS_VECTOR_NO_FOLLOW_YAW,       //µ×ÅÌÊ¸Á¿ÎÞ¸úËæÆ«º½
-  CHASSIS_VECTOR_RAW,                 //µ×ÅÌÊ¸Á¿raw£¨Ô­Ê¼µÄ£©£¬ÊÜÒ£¿ØÆ÷¿ØÖÆ·½Ïò
+  CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   
+  CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW,  
+  CHASSIS_VECTOR_NO_FOLLOW_YAW,       
+  CHASSIS_VECTOR_RAW,                 
 
-  //  CHASSIS_AUTO,                    //µ×ÅÌ×Ô¶¯
-  //  CHASSIS_FOLLOW_YAW,              //µ×ÅÌ¸úËæÆ«º½
-  //  CHASSIS_ENCODER,                 //µ×ÅÌ±àÂëÆ÷
-  //  CHASSIS_NO_ACTION,               //µ×ÅÌÎÞ¶¯×÷
-  //  CHASSIS_RELAX,                   //µ×ÅÌ·ÅËÉ
+  //  CHASSIS_AUTO,                    
+  //  CHASSIS_FOLLOW_YAW,              
+  //  CHASSIS_ENCODER,                 
+  //  CHASSIS_NO_ACTION,               
+  //  CHASSIS_RELAX,                   
 } chassis_mode_e;
 
 typedef struct
@@ -116,36 +132,36 @@ typedef struct
 
 typedef struct
 {
-  const RC_ctrl_t *chassis_RC;               //µ×ÅÌÊ¹ÓÃµÄÒ£¿ØÆ÷Ö¸Õë
-  const Gimbal_Motor_t *chassis_yaw_motor;   //µ×ÅÌÊ¹ÓÃµ½yawÔÆÌ¨µç»úµÄÏà¶Ô½Ç¶ÈÀ´¼ÆËãµ×ÅÌµÄÅ·À­½Ç
-  const Gimbal_Motor_t *chassis_pitch_motor; //µ×ÅÌÊ¹ÓÃµ½pitchÔÆÌ¨µç»úµÄÏà¶Ô½Ç¶ÈÀ´¼ÆËãµ×ÅÌµÄÅ·À­½Ç
-  const fp32 *chassis_INS_angle;             //»ñÈ¡ÍÓÂÝÒÇ½âËã³öµÄÅ·À­½ÇÖ¸Õë
-  chassis_mode_e chassis_mode;               //µ×ÅÌ¿ØÖÆ×´Ì¬»ú
-  chassis_mode_e last_chassis_mode;          //µ×ÅÌÉÏ´Î¿ØÖÆ×´Ì¬»ú
-  Chassis_Motor_t motor_chassis[4];          //µ×ÅÌµç»úÊý¾Ý
-  PidTypeDef motor_speed_pid[4];             //µ×ÅÌµç»úËÙ¶Èpid
-  PidTypeDef chassis_angle_pid;              //µ×ÅÌ¸úËæ½Ç¶Èpid
+  const RC_ctrl_t *chassis_RC;               //åº•ç›˜ä½¿ç”¨çš„é¥æŽ§å™¨æŒ‡é’ˆ
+  const Gimbal_Motor_t *chassis_yaw_motor;   //åº•ç›˜ä½¿ç”¨åˆ°yawäº‘å°ç”µæœºçš„ç›¸å¯¹è§’åº¦æ¥è®¡ç®—åº•ç›˜çš„æ¬§æ‹‰è§’
+  const Gimbal_Motor_t *chassis_pitch_motor; //åº•ç›˜ä½¿ç”¨åˆ°pitchäº‘å°ç”µæœºçš„ç›¸å¯¹è§’åº¦æ¥è®¡ç®—åº•ç›˜çš„æ¬§æ‹‰è§’
+  const fp32 *chassis_INS_angle;             //èŽ·å–é™€èžºä»ªè§£ç®—å‡ºçš„æ¬§æ‹‰è§’æŒ‡é’ˆ
+  chassis_mode_e chassis_mode;               //åº•ç›˜æŽ§åˆ¶çŠ¶æ€æœº
+  chassis_mode_e last_chassis_mode;          //åº•ç›˜ä¸Šæ¬¡æŽ§åˆ¶çŠ¶æ€æœº
+  Chassis_Motor_t motor_chassis[4];          //åº•ç›˜ç”µæœºæ•°æ®
+  PidTypeDef motor_speed_pid[4];             //åº•ç›˜ç”µæœºé€Ÿåº¦pid
+  PidTypeDef chassis_angle_pid;              //åº•ç›˜è·Ÿéšè§’åº¦pid
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;
   first_order_filter_type_t chassis_cmd_slow_set_vy;
 
-  fp32 vx;                         //µ×ÅÌËÙ¶È Ç°½ø·½Ïò Ç°ÎªÕý£¬µ¥Î» m/s
-  fp32 vy;                         //µ×ÅÌËÙ¶È ×óÓÒ·½Ïò ×óÎªÕý  µ¥Î» m/s
-  fp32 wz;                         //µ×ÅÌÐý×ª½ÇËÙ¶È£¬ÄæÊ±ÕëÎªÕý µ¥Î» rad/s
-  fp32 vx_set;                     //µ×ÅÌÉè¶¨ËÙ¶È Ç°½ø·½Ïò Ç°ÎªÕý£¬µ¥Î» m/s
-  fp32 vy_set;                     //µ×ÅÌÉè¶¨ËÙ¶È ×óÓÒ·½Ïò ×óÎªÕý£¬µ¥Î» m/s
-  fp32 wz_set;                     //µ×ÅÌÉè¶¨Ðý×ª½ÇËÙ¶È£¬ÄæÊ±ÕëÎªÕý µ¥Î» rad/s
-  fp32 chassis_relative_angle;     //µ×ÅÌÓëÔÆÌ¨µÄÏà¶Ô½Ç¶È£¬µ¥Î» rad/s
-  fp32 chassis_relative_angle_set; //ÉèÖÃÏà¶ÔÔÆÌ¨¿ØÖÆ½Ç¶È
+  fp32 vx;                         //åº•ç›˜é€Ÿåº¦ å‰è¿›æ–¹å‘ å‰ä¸ºæ­£ï¼Œå•ä½ m/s
+  fp32 vy;                         //åº•ç›˜é€Ÿåº¦ å·¦å³æ–¹å‘ å·¦ä¸ºæ­£  å•ä½ m/s
+  fp32 wz;                         //åº•ç›˜æ—‹è½¬è§’é€Ÿåº¦ï¼Œé€†æ—¶é’ˆä¸ºæ­£ å•ä½ rad/s
+  fp32 vx_set;                     //åº•ç›˜è®¾å®šé€Ÿåº¦ å‰è¿›æ–¹å‘ å‰ä¸ºæ­£ï¼Œå•ä½ m/s
+  fp32 vy_set;                     //åº•ç›˜è®¾å®šé€Ÿåº¦ å·¦å³æ–¹å‘ å·¦ä¸ºæ­£ï¼Œå•ä½ m/s
+  fp32 wz_set;                     //åº•ç›˜è®¾å®šæ—‹è½¬è§’é€Ÿåº¦ï¼Œé€†æ—¶é’ˆä¸ºæ­£ å•ä½ rad/s
+  fp32 chassis_relative_angle;     //åº•ç›˜ä¸Žäº‘å°çš„ç›¸å¯¹è§’åº¦ï¼Œå•ä½ rad/s
+  fp32 chassis_relative_angle_set; //è®¾ç½®ç›¸å¯¹äº‘å°æŽ§åˆ¶è§’åº¦
   fp32 chassis_yaw_set;
 
-  fp32 vx_max_speed;  //Ç°½ø·½Ïò×î´óËÙ¶È µ¥Î»m/s
-  fp32 vx_min_speed;  //Ç°½ø·½Ïò×îÐ¡ËÙ¶È µ¥Î»m/s
-  fp32 vy_max_speed;  //×óÓÒ·½Ïò×î´óËÙ¶È µ¥Î»m/s
-  fp32 vy_min_speed;  //×óÓÒ·½Ïò×îÐ¡ËÙ¶È µ¥Î»m/s
-  fp32 chassis_yaw;   //ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄyaw½Ç¶È
-  fp32 chassis_pitch; //ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄpitch½Ç¶È
-  fp32 chassis_roll;  //ÍÓÂÝÒÇºÍÔÆÌ¨µç»úµþ¼ÓµÄroll½Ç¶È
+  fp32 vx_max_speed;  //å‰è¿›æ–¹å‘æœ€å¤§é€Ÿåº¦ å•ä½m/s
+  fp32 vx_min_speed;  //å‰è¿›æ–¹å‘æœ€å°é€Ÿåº¦ å•ä½m/s
+  fp32 vy_max_speed;  //å·¦å³æ–¹å‘æœ€å¤§é€Ÿåº¦ å•ä½m/s
+  fp32 vy_min_speed;  //å·¦å³æ–¹å‘æœ€å°é€Ÿåº¦ å•ä½m/s
+  fp32 chassis_yaw;   //é™€èžºä»ªå’Œäº‘å°ç”µæœºå åŠ çš„yawè§’åº¦
+  fp32 chassis_pitch; //é™€èžºä»ªå’Œäº‘å°ç”µæœºå åŠ çš„pitchè§’åº¦
+  fp32 chassis_roll;  //é™€èžºä»ªå’Œäº‘å°ç”µæœºå åŠ çš„rollè§’åº¦
 
 } chassis_move_t;
 
@@ -153,19 +169,19 @@ typedef struct
 extern void chassis_task(void *pvParameters);
 extern void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *chassis_move_rc_to_vector);
 
-//µ×ÅÌ³õÊ¼»¯£¬Ö÷ÒªÊÇpid³õÊ¼»¯
+//åº•ç›˜åˆå§‹åŒ–ï¼Œä¸»è¦æ˜¯pidåˆå§‹åŒ–
 extern void chassis_init(chassis_move_t *chassis_move_init);
-//µ×ÅÌ×´Ì¬»úÑ¡Ôñ£¬Í¨¹ýÒ£¿ØÆ÷µÄ¿ª¹Ø
+//åº•ç›˜çŠ¶æ€æœºé€‰æ‹©ï¼Œé€šè¿‡é¥æŽ§å™¨çš„å¼€å…³
 extern void chassis_set_mode(chassis_move_t *chassis_move_mode);
-//µ×ÅÌÊý¾Ý¸üÐÂ
+//åº•ç›˜æ•°æ®æ›´æ–°
 extern void chassis_feedback_update(chassis_move_t *chassis_move_update);
-//µ×ÅÌ×´Ì¬¸Ä±äºó´¦Àí¿ØÖÆÁ¿µÄ¸Ä±ästatic
+//åº•ç›˜çŠ¶æ€æ”¹å˜åŽå¤„ç†æŽ§åˆ¶é‡çš„æ”¹å˜static
 void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit);
-//µ×ÅÌÉèÖÃ¸ù¾ÝÒ£¿ØÆ÷¿ØÖÆÁ¿
+//åº•ç›˜è®¾ç½®æ ¹æ®é¥æŽ§å™¨æŽ§åˆ¶é‡
 extern void chassis_set_contorl(chassis_move_t *chassis_move_control);
-//µ×ÅÌPID¼ÆËãÒÔ¼°ÔË¶¯·Ö½â
+//åº•ç›˜PIDè®¡ç®—ä»¥åŠè¿åŠ¨åˆ†è§£
 extern void chassis_control_loop(chassis_move_t *chassis_move_control_loop);
 
-//·µ»Øµ×ÅÌ¿ØÖÆ±äÁ¿£¬Í¨¹ýÖ¸Õë´«µÝ·½Ê½´«µÝÐÅÏ¢
+//èŽ·å–åº•ç›˜ç»“æž„ä½“æŒ‡é’ˆ
 const chassis_move_t *get_chassis_control_point(void);
 #endif
