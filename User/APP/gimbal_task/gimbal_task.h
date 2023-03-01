@@ -26,8 +26,8 @@
 #include "remote_control.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_KP 1000.0f
-#define PITCH_SPEED_PID_KI 10.0f
+#define PITCH_SPEED_PID_KP 8000.0f
+#define PITCH_SPEED_PID_KI 30.0f
 #define PITCH_SPEED_PID_KD 0.0f
 #define PITCH_SPEED_PID_MAX_OUT 30000.0f
 #define PITCH_SPEED_PID_MAX_IOUT 3000.0f
