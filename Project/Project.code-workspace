@@ -1,0 +1,15 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "chassis_behaviour.h": "c",
+            "chassis_remote_control.h": "c",
+            "serial.h": "c"
+        }
+    },
+    "extensions": {}
+}
