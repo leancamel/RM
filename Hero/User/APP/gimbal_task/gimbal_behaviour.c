@@ -25,6 +25,8 @@
 
 #include "user_lib.h"
 
+#include "relays.h"
+
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
@@ -161,11 +163,16 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     //云台行为状态机设置
     gimbal_behavour_set(gimbal_mode_set);
 
+    if (gimbal_behaviour != GIMBAL_ZERO_FORCE)
+    {
+        Relays_On();
+    }
     //根据云台行为状态机设置电机状态机
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE)
     {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+        Relays_Off();
     }
     else if (gimbal_behaviour == GIMBAL_INIT)
     {

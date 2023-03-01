@@ -741,6 +741,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\hardware\adc.c</FilePath>
             </File>
+            <File>
+              <FileName>relays.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\hardware\relays.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

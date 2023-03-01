@@ -22,6 +22,7 @@
 #include "CAN_receive.h"
 
 #include "ROS_Receive.h"
+#include "relays.h"
 
 void BSP_Init(void);
 
@@ -87,5 +88,8 @@ void BSP_Init(void)
 
 	//将接收ROS发送的结构体清零
 	ROS_Msg_Init();
+
+	//云台继电器初始化
+	Relays_Init();
 }
 
