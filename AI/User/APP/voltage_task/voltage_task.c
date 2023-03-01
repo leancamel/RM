@@ -24,6 +24,7 @@
 
 #include "adc.h"
 #include "user_lib.h"
+#include "buzzer.h"
 
 #define FULL_BATTER_VOLTAGE     25.2f
 #define LOW_BATTER_VOLTAGE      22.2f   //about 20% 
