@@ -173,7 +173,7 @@ void USART1_IRQHandler(void)
 					ROS_Response.response = 0xFF;
 				}
 				RxState = 0;
-				Msg_Response();
+				Msg_Response(); 
 			}
 		}
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
