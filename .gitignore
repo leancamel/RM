@@ -1,2 +1,2 @@
-Project/*
-!Project/*.uvprojx
+*/Project/*
+!*/Project/*.uvprojx
