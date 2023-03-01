@@ -5,12 +5,9 @@
 #include <stdarg.h>
 
 #define CRC_Len 2		// CRC 校验位长度
-#define Packet_Len 14	//接收数据包长，12位数据位 + 2位 CRC 校验位
+#define Packet_Len 8	//接收数据包长，6位数据位 + 2位 CRC 校验位
 #define Start_Byte 0xFF	//接收起始帧
-#define Response_Start_Byte_1 0x55	//发送起始帧1
-#define Response_Start_Byte_2 0xAA	//发送起始帧2
 ROS_Msg_Struct ROS_Msg;
-ROS_Response_Struct ROS_Response;
 
 uint8_t Serial_RxPacket[Packet_Len];
 
@@ -24,11 +21,6 @@ void ROS_Msg_Init(void)
 	ROS_Msg.gimbal_x = 0;
 	ROS_Msg.gimbal_y = 0;
 	ROS_Msg.gimbal_z = 0;
-	ROS_Msg.vx_set = 0;
-	ROS_Msg.vy_set = 0;
-	ROS_Msg.wz_set = 0;
-
-	ROS_Response.response = 0x00;
 	return;
 }
 /**
@@ -50,23 +42,7 @@ void Pack_Msg(void)
 	ROS_Msg.gimbal_x = Byte_To_Float(CRC_Data,0);
 	ROS_Msg.gimbal_y = Byte_To_Float(CRC_Data,2);
 	ROS_Msg.gimbal_z = Byte_To_Float(CRC_Data,4);
-	ROS_Msg.vx_set = Byte_To_Float(CRC_Data,6);
-	ROS_Msg.vy_set = Byte_To_Float(CRC_Data,8);
-	ROS_Msg.wz_set = Byte_To_Float(CRC_Data,10);
 	return;
-}
-/**
- * @brief	获取接受到的底盘速度信息
- * @param	vx_set	m/s
- * @param	vy_set	m/s
- * @param	wz_set	rad/s
- * @return	void
- */
-void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *wz_set)
-{
-	*vx_set = ROS_Msg.vx_set;
-	*vy_set = ROS_Msg.vy_set;
-	*wz_set = ROS_Msg.wz_set;
 }
 /**
  * @brief	获取接受到的云台控制信息
@@ -80,34 +56,6 @@ void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
 	*gimbal_x = ROS_Msg.gimbal_x;
 	*gimbal_y = ROS_Msg.gimbal_y;
 	*gimbal_z = ROS_Msg.gimbal_z;
-}
-/**
- * @brief	将待发送数据封装进结构体
- * @param	vx	m/s
- * @param	vy	m/s
- * @param	wz	rad/s
- * @return	void
- */
-void Pack_Response(fp32 vx,fp32 vy,fp32 wz)
-{
-	ROS_Response.vx = vx;
-	ROS_Response.vy = vy;
-	ROS_Response.wz = wz;
-	return;
-}
-/**
- * @brief	将 ROS_Response 结构体内的数据发出
- * @return	void
- */
-void Msg_Response(void)
-{
-	Serial_SendByte(Response_Start_Byte_1);
-	Serial_SendByte(Response_Start_Byte_2);
-	printf("%f",ROS_Response.vx);
-	printf("%f",ROS_Response.vy);
-	printf("%f",ROS_Response.wz);
-	Serial_SendByte(ROS_Response.response);
-	return;
 }
 /**
  * @brief	计算 CRC 校验码
@@ -163,17 +111,16 @@ void USART1_IRQHandler(void)
 			if (pRxPacket >= Packet_Len)
 			{
 				getModbusCRC16(CRC_Data,Packet_Len - CRC_Len);
-				if((CRC_Data[12] == Serial_RxPacket[12]) && (CRC_Data[13] == Serial_RxPacket[13]))
+				if((CRC_Data[6] == Serial_RxPacket[6]) && (CRC_Data[7] == Serial_RxPacket[7]))
 				{
 					Pack_Msg();
-					ROS_Response.response = 0x00;
+					Serial_SendByte(0x00);//正确接收发送 0x00
 				}
 				else
 				{
-					ROS_Response.response = 0xFF;
+					Serial_SendByte(0xFF);//错误接收发送 0xFF
 				}
 				RxState = 0;
-				// Msg_Response();
 			}
 		}
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);

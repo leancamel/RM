@@ -11,24 +11,9 @@ typedef struct
 	fp32 gimbal_x;
 	fp32 gimbal_y;
 	fp32 gimbal_z;
-	fp32 vx_set;
-	fp32 vy_set;
-	fp32 wz_set;
 }ROS_Msg_Struct;
-/**
- * @brief	发送结构体，发送里程计信息，以及是否正确接收
- */
-typedef struct
-{
-	fp32 vx;				/*!< 电机反馈 vx 速度，单位 m/s */
-	fp32 vy;				/*!< 电机反馈 vy 速度，单位 m/s */
-	fp32 wz;				/*!< 电机反馈 wz 速度，单位 rad/s */
-	unsigned char response;/*!< 判断是否正确接收，正确接收为 0x00 ，错误为 0xFF */
-}ROS_Response_Struct;
 
 void ROS_Msg_Init(void);
-void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *wz_set);
 void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z);
-void Pack_Response(fp32 vx,fp32 vy,fp32 wz);
 
 #endif

@@ -22,8 +22,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "ROS_Receive.h"
-
 #define rc_deadline_limit(input, output, dealine)        \
     {                                                    \
         if ((input) > (dealine) || (input) < -(dealine)) \
@@ -96,8 +94,7 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
 
     //设置速度
     fp32 vx_set = 0.0f, vy_set = 0.0f, angle_set = 0.0f;
-    // chassis_behaviour_control_set(&vx_set, &vy_set, &angle_set, chassis_move_control);
-    Get_Chassis_Msg(&vx_set,&vy_set,&angle_set);
+    chassis_behaviour_control_set(&vx_set, &vy_set, &angle_set, chassis_move_control);
     //跟随云台模式
     if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW)
     {
@@ -279,7 +276,6 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     chassis_move_update->vx = (-chassis_move_update->motor_chassis[0].speed + chassis_move_update->motor_chassis[1].speed + chassis_move_update->motor_chassis[2].speed - chassis_move_update->motor_chassis[3].speed) * MOTOR_SPEED_TO_CHASSIS_SPEED_VX;
     chassis_move_update->vy = (-chassis_move_update->motor_chassis[0].speed - chassis_move_update->motor_chassis[1].speed + chassis_move_update->motor_chassis[2].speed + chassis_move_update->motor_chassis[3].speed) * MOTOR_SPEED_TO_CHASSIS_SPEED_VY;
     chassis_move_update->wz = (-chassis_move_update->motor_chassis[0].speed - chassis_move_update->motor_chassis[1].speed - chassis_move_update->motor_chassis[2].speed - chassis_move_update->motor_chassis[3].speed) * MOTOR_SPEED_TO_CHASSIS_SPEED_WZ / MOTOR_DISTANCE_TO_CENTER;
-    Pack_Response(chassis_move_update->vx,chassis_move_update->vy,chassis_move_update->wz);
     //计算底盘姿态角度, 如果底盘上有陀螺仪请更改这部分代码
     chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + INS_YAW_ADDRESS_OFFSET) - chassis_move_update->chassis_yaw_motor->relative_angle);
     chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + INS_PITCH_ADDRESS_OFFSET) - chassis_move_update->chassis_pitch_motor->relative_angle);
