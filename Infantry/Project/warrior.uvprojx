@@ -816,6 +816,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\APP\ROS_Receive\ROS_Receive.c</FilePath>
             </File>
+            <File>
+              <FileName>rc_handoff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\APP\remote_control\rc_handoff.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
