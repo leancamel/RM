@@ -31,7 +31,9 @@
 #include "INS_Task.h"
 #include "gimbal_task.h"
 #include "chassis_remote_control.h"
-#include "ROS_Receive.h"
+#include "remote_control.h"
+#include "rc_handoff.h"
+
 //#define user_is_error() toe_is_error(errorListLength)
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -42,6 +44,7 @@ uint32_t UserTaskStack;
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
 const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
+const RC_ctrl_t* local_rc_ctrl;
 
 extern int8_t temp_set;
 
@@ -55,6 +58,8 @@ void UserTask(void *pvParameters)
     local_gimbal_control = get_gimbal_control_point();
     //获取底盘控制结构体指针
     local_chassis_move = get_chassis_control_point();
+    //获取遥控器结构体指针
+    local_rc_ctrl = get_remote_control_point();
     while (1)
     {
         Tcount++;
@@ -82,16 +87,27 @@ void UserTask(void *pvParameters)
         // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 
         //云台pitch电机pid调参
-        // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_pitch_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_pitch_motor.relative_angle_set * 57.3f,
-        // local_gimbal_control->gimbal_pitch_motor.motor_gyro * 10, local_gimbal_control->gimbal_pitch_motor.motor_gyro_set * 10);
+        printf("%.2f, %.2f, %.2f, %.2f\n", 
+        local_gimbal_control->gimbal_pitch_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_pitch_motor.relative_angle_set * 57.3f,
+        local_gimbal_control->gimbal_pitch_motor.motor_gyro * 10, local_gimbal_control->gimbal_pitch_motor.motor_gyro_set * 10);
 
         //底盘跟随云台角度pid调参
         // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
-        init_vrefint_reciprocal();
+        // init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
+
+        uint8_t temp = rc_ch4_data_process(local_rc_ctrl->rc.ch[4]);
+        if(temp == SWITCH_UP)
+        {
+            led_green_toggle();
+        }
+        else if(temp == SWITCH_DOWN)
+        {
+            led_red_toggle();
+        }
+        
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

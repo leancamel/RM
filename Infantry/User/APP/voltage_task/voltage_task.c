@@ -23,15 +23,24 @@
 #include "task.h"
 
 #include "adc.h"
+#include "buzzer.h"
+#include "led.h"
 #include "user_lib.h"
+#include "remote_control.h"
+#include "gimbal_behaviour.h"
 
 #define FULL_BATTER_VOLTAGE     25.2f
 #define LOW_BATTER_VOLTAGE      22.2f   //about 20% 
 
 #define VOLTAGE_DROP            0.00f
 
+#define VOLTAGE_BUZZER_CYCLE_TIME 2  //蜂鸣器断续发声周期时间 *100ms
+#define VOLTAGE_BUZZER_PAUSE_TIME 1 //蜂鸣器断续发声停声时间
+#define voltage_start_buzzer() buzzer_on(70, 20) //蜂鸣器报警 电源电压不足
+#define voltage_buzzer_off() buzzer_off()
 
 static fp32 calc_battery_percentage(float voltage);
+void voltage_low_warning(void);
 
 
 fp32 battery_voltage;//电源电压
@@ -51,6 +60,7 @@ void battery_voltage_task(void* pvParameters)
     {
         battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
         electricity_percentage = calc_battery_percentage(battery_voltage);
+        // voltage_low_warning();
         vTaskDelay(100);
     }
 }
@@ -120,4 +130,49 @@ uint16_t get_battery_percentage(void)
     return (uint16_t)(electricity_percentage * 100.0f);
 }
 
+//电量过低，蜂鸣器报警，led亮红灯
+void voltage_low_warning(void)
+{
+    static uint8_t buzzer_time = 0;
+    static uint8_t flag_led = 1;
+    static uint8_t rc_ctrl_no_move = 1;
+
+
+    //电源电量低，led红灯
+    if(electricity_percentage < 0.2f && flag_led == 1)
+    {
+        led_green_off();
+        led_red_on();
+        flag_led = 0;
+    }
+    else if(electricity_percentage > 0.2f && flag_led == 0)
+    {
+        led_red_off();
+        led_green_on();
+        flag_led = 1;
+    }
+
+    //步兵无力时，蜂鸣器可以报警提醒电量过低
+    rc_ctrl_no_move = gimbal_cmd_to_voltage_warning_stop();
+
+    if(electricity_percentage < 0.2f && rc_ctrl_no_move == 1)
+    {
+        voltage_start_buzzer();
+    }
+
+    if(rc_ctrl_no_move == 1)
+    {
+        buzzer_time++;
+    }
+
+    //蜂鸣器断续发声
+    if (buzzer_time > VOLTAGE_BUZZER_CYCLE_TIME && rc_ctrl_no_move == 1)
+    {
+        buzzer_time = 0;
+    }
+    if (buzzer_time > VOLTAGE_BUZZER_PAUSE_TIME && rc_ctrl_no_move == 1)
+    {
+        voltage_buzzer_off();
+    }
+}
 

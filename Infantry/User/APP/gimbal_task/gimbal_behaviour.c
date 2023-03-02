@@ -1,5 +1,5 @@
 /**
-  ****************************RM Warrior 2023****************************
+  ********************************RM Warrior 2023*******************************
   * @file       gimbal_task.c/h
   * @brief      完成云台控制任务，由于云台使用陀螺仪解算出的角度，其范围在（-pi,pi）
   *             故而设置目标角度均为范围，存在许多对角度计算的函数。云台主要分为2种
@@ -15,7 +15,7 @@
 
   ==============================================================================
   @endverbatim
-  ****************************RM Warrior 2023****************************
+  ********************************RM Warrior 2023*******************************
   */
 
 #include "gimbal_behaviour.h"
@@ -274,10 +274,27 @@ bool_t gimbal_cmd_to_chassis_stop(void)
   * @param[in]      void
   * @retval         返回空
   */
-
 bool_t gimbal_cmd_to_shoot_stop(void)
 {
     if (gimbal_behaviour == GIMBAL_INIT || gimbal_behaviour == GIMBAL_CALI || gimbal_behaviour == GIMBAL_ZERO_FORCE)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+/**
+  * @brief          云台在无力时，蜂鸣器提醒电源电量
+  * @param[in]      void
+  * @retval         1：云台无力
+  */
+
+bool_t gimbal_cmd_to_voltage_warning_stop()
+{
+    if(gimbal_behaviour == GIMBAL_ZERO_FORCE)
     {
         return 1;
     }
