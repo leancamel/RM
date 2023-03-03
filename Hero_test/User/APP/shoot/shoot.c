@@ -271,6 +271,9 @@ static void shoot_set_mode(void)
   */
 static void shoot_feedback_update(void)
 {
+    //得到电机反馈速度
+    shoot_control.speed = shoot_control.shoot_motor_measure->speed_rpm * MOTOR_RPM_TO_SPEED;
+
     //电机圈数重置， 因为输出轴旋转187圈， 电机轴旋转 3591圈，将电机轴数据处理成输出轴数据，用于控制输出轴角度
     if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd > HALF_ECD_RANGE)
     {
