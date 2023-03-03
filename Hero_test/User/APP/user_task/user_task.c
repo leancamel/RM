@@ -34,6 +34,10 @@
 #include "ROS_Receive.h"
 //#define user_is_error() toe_is_error(errorListLength)
 
+#include "shoot.h"
+
+extern shoot_control_t shoot_control;
+
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
 #endif
@@ -90,8 +94,10 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
-        init_vrefint_reciprocal();
+        // init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
+
+        printf("%.2f, %d\n", shoot_control.speed, shoot_control.given_current);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

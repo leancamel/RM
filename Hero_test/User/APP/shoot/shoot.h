@@ -63,16 +63,16 @@
 #define SWITCH_TRIGGER_OFF          1       //子弹未到达限位开关
 
 //卡单时间 以及反转时间
-#define BLOCK_TRIGGER_SPEED         0.5f    //判断为卡弹的最低速度
+#define BLOCK_TRIGGER_SPEED         1.0f    //判断为卡弹的最低速度
 #define BLOCK_TIME                  500     //判断为卡弹的时长限制
-#define REVERSE_TIME                200
+#define REVERSE_TIME                100
 #define REVERSE_SPEED_SET           1.0f    //设置倒转速度
 #define REVERSE_SPEED_LIMIT         13.0f
 
 #define PI_FOUR                     0.78539816339744830961566084581988f
 #define PI_TEN                      0.314f
 #define PI_FIFTY                    0.0628f
-#define PI_SIX                      0.52359877559829887307710723054658f
+#define PI_SIX                      0.47759877559829887307710723054658f
 
 
 //拨弹轮电机PID
@@ -87,8 +87,8 @@
 #define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
 #define TRIGGER_BULLET_PID_MAX_IOUT 4000.0f
 
-#define TRIGGER_READY_PID_MAX_OUT   3000.0f
-#define TRIGGER_READY_PID_MAX_IOUT  1000.0f
+#define TRIGGER_READY_PID_MAX_OUT   8000.0f
+#define TRIGGER_READY_PID_MAX_IOUT  4000.0f
 
 #define TRIGGER_ANGER_PID_MAX_OUT   10000.0f
 #define TRIGGER_ANGER_PID_MAX_IOUT  7000.0f

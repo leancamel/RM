@@ -64,10 +64,10 @@ static void shoot_bullet_on_reset(void);
 
 /**
   * @brief          堵转判断，如果判断为堵转，改变状态
-  * @param[in]      void
+  * @param[in]      uint16_t
   * @retval         void
   */
-static void is_stuck_bullet(int16_t block_time_set);
+static void is_stuck_bullet(uint16_t block_time_set);
 
 /**
   * @brief          已经判断为堵转，进行倒转操作
@@ -363,10 +363,10 @@ static void shoot_feedback_update(void)
 
 /**
   * @brief          堵转判断，如果判断为堵转，改变状态
-  * @param[in]      int16_t
+  * @param[in]      uint16_t
   * @retval         void
   */
-static void is_stuck_bullet(int16_t block_time_set)
+static void is_stuck_bullet(uint16_t block_time_set)
 {
     //设置速度，开始电机的转动
     shoot_control.speed_set = shoot_control.trigger_speed_set;
@@ -377,7 +377,8 @@ static void is_stuck_bullet(int16_t block_time_set)
     }
     else if (shoot_control.block_time == block_time_set)
     {
-        //子弹上膛，或者卡弹，改变拨弹轮运动模式
+        //子弹上膛，或者卡弹，改变拨弹轮运动模式，将停止拨弹
+        shoot_control.trigger_speed_set = 0;
         shoot_control.move_flag = Is_stuck_Bullet;
         shoot_control.block_time = 0;
         //设置倒转时间
@@ -396,10 +397,14 @@ static void is_stuck_bullet(int16_t block_time_set)
   */
 static void stuck_bullet(void)
 {
+    //设置速度
+    shoot_control.speed_set = shoot_control.trigger_speed_set;
+
+    //进行反转一段时间
     if( shoot_control.reverse_time > 0)
     {
         //使波弹轮倒转
-        shoot_control.speed_set = -REVERSE_SPEED_SET;
+        shoot_control.trigger_speed_set = -REVERSE_SPEED_SET;
         shoot_control.reverse_time--;
     }
     else if(shoot_control.reverse_time <= 0)
@@ -427,24 +432,24 @@ static void shoot_bullet_control(void)
     }
     else if(shoot_control.move_flag == Start_Shoot_bullet)
     {
-        // //PID闭环角度
-        // PID_Calc(&shoot_control.trigger_anger_pid,shoot_control.angle,shoot_control.set_angle);
-        // //给定速度
-        // shoot_control.speed_set = shoot_control.trigger_speed_set;
-
         //设置速度，拨动拨弹轮电机
         shoot_control.trigger_speed_set = TRIGGER_SPEED;
-        // //达到控制角度后，改变状态，已经发射完成
-        // if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.05f)
-        // {
-        //     //到达设定角度，停止电机
-        //     shoot_control.speed_set = 0.0f;
-        //     //达到设定角度，切换模式
-        //     shoot_control.shoot_mode = SHOOT_DONE;
-        //     shoot_control.move_flag = power_on_init;
-        // }
+        //达到控制角度后，改变状态，已经发射完成
+        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.05f)
+        {
+            //到达设定角度，停止电机
+            shoot_control.speed_set = 0.0f;
+            //达到设定角度，切换模式
+            shoot_control.shoot_mode = SHOOT_DONE;
+            shoot_control.move_flag = power_on_init;
+        }
         //堵转判断
-        is_stuck_bullet(1000);
+        is_stuck_bullet(300);
+    }
+    else if (shoot_control.move_flag == Is_stuck_Bullet)
+    {
+        //进行反转
+        stuck_bullet();
     }
 
     if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.05f)
@@ -453,7 +458,7 @@ static void shoot_bullet_control(void)
         shoot_control.speed_set = 0.0f;
         //达到设定角度，切换模式
         shoot_control.shoot_mode = SHOOT_DONE;
-        shoot_control.move_flag = power_on_init;
+        shoot_control.move_flag = Bullet_Alraedy;
     }
 
 }
@@ -468,21 +473,16 @@ static void shoot_bullet_on_reset(void)
     //刚上电，控制转动一定的角度，通过堵转来判断子弹是否上膛
     if (shoot_control.move_flag == power_on_init)
     {
-        shoot_control.set_angle = rad_format(shoot_control.angle + PI_SIX);
+        shoot_control.set_angle = rad_format(shoot_control.angle + 0.2);
         //进入准备上膛阶段，开始子弹上膛
         shoot_control.move_flag = Enter_the_init_state;
     }
     else if(shoot_control.move_flag == Enter_the_init_state)
     {
-        // //PID闭环角度
-        // PID_Calc(&shoot_control.trigger_anger_pid,shoot_control.angle,shoot_control.set_angle);
-        // //给定速度
-        // shoot_control.speed_set = shoot_control.trigger_speed_set;
-
         //设置速度，拨动拨弹轮电机
         shoot_control.trigger_speed_set = TRIGGER_SPEED;
         //达到控制角度，上膛初始化
-        if (rad_format(shoot_control.set_angle - shoot_control.angle)< 0.05f)
+        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.02f)
         {
             //到达设定角度，停止电机
             shoot_control.trigger_speed_set = 0.0f;
@@ -491,7 +491,7 @@ static void shoot_bullet_on_reset(void)
         }
 
         //堵转判断
-        is_stuck_bullet(100);
+        is_stuck_bullet(200);
     }
     else if(shoot_control.move_flag == Is_stuck_Bullet)
     {
