@@ -96,6 +96,18 @@ void Pack_Response(fp32 vx,fp32 vy,fp32 wz)
 	return;
 }
 /**
+ * @brief	将 float 数据乘 1000 转换为 short 数据发出
+ * @param 	msg	待发送的 float 数据
+ * @return 	void
+ */
+void Send_Float(fp32 msg)
+{
+	short temp_short = msg * 1000;
+	Serial_SendByte((temp_short & 0xFF00) >> 8);
+	Serial_SendByte(temp_short & 0x00FF);
+	return;
+}
+/**
  * @brief	将 ROS_Response 结构体内的数据发出
  * @return	void
  */
@@ -103,9 +115,9 @@ void Msg_Response(void)
 {
 	Serial_SendByte(Response_Start_Byte_1);
 	Serial_SendByte(Response_Start_Byte_2);
-	printf("%f",ROS_Response.vx);
-	printf("%f",ROS_Response.vy);
-	printf("%f",ROS_Response.wz);
+	Send_Float(ROS_Response.vx);
+	Send_Float(ROS_Response.vy);
+	Send_Float(ROS_Response.wz);
 	Serial_SendByte(ROS_Response.response);
 	return;
 }
