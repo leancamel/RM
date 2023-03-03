@@ -105,8 +105,8 @@ void GIMBAL_task(void *pvParameters)
     //等待陀螺仪任务更新陀螺仪数据
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
     //云台初始化
-    GIMBAL_Init(&gimbal_control);
     gimbal_offset_init();
+    GIMBAL_Init(&gimbal_control);
     //射击初始化
     shoot_init();
     
@@ -421,12 +421,20 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
                                                                                           gimbal_feedback_update->gimbal_pitch_motor.offset_ecd);
     gimbal_feedback_update->gimbal_pitch_motor.motor_gyro = *(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_Y_ADDRESS_OFFSET);
 
+#if PITCH_TURN
+    gimbal_feedback_update->gimbal_pitch_motor.relative_angle = -gimbal_feedback_update->gimbal_pitch_motor.relative_angle;
+#endif
+
     gimbal_feedback_update->gimbal_yaw_motor.absolute_angle = *(gimbal_feedback_update->gimbal_INT_angle_point + INS_YAW_ADDRESS_OFFSET);
     gimbal_feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
                                                                                         gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
 
     gimbal_feedback_update->gimbal_yaw_motor.motor_gyro = arm_cos_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_Z_ADDRESS_OFFSET))
                                                         - arm_sin_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_X_ADDRESS_OFFSET));
+    
+#if YAW_TURN
+    gimbal_feedback_update->gimbal_yaw_motor.relative_angle = -gimbal_feedback_update->gimbal_yaw_motor.relative_angle;
+#endif
 }
 //计算相对角度
 static fp32 motor_ecd_to_angle_change(uint16_t ecd, uint16_t offset_ecd)
@@ -667,13 +675,13 @@ const Gimbal_Control_t *get_gimbal_control_point(void)
 
 void gimbal_offset_init(void)
 {
-    gimbal_control.gimbal_yaw_motor.offset_ecd = 7319;
-    gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/2;
-    gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/2;
+    gimbal_control.gimbal_yaw_motor.offset_ecd = 1680;
+    gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
+    gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 
-    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;//1450
-    gimbal_control.gimbal_pitch_motor.max_relative_angle = 0.65;
-    gimbal_control.gimbal_pitch_motor.min_relative_angle = -0.45;
+    gimbal_control.gimbal_pitch_motor.offset_ecd = 5510;
+    gimbal_control.gimbal_pitch_motor.max_relative_angle = 0.69;
+    gimbal_control.gimbal_pitch_motor.min_relative_angle = -0.30;
 }
 
 
