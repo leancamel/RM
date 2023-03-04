@@ -77,9 +77,9 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
 
         //云台yaw电机角度环串速度环pid调参
-        // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
-        // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
+        printf("%.2f, %.2f, %.2f, %.2f\n", 
+        local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
+        local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 
         //云台pitch电机pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 

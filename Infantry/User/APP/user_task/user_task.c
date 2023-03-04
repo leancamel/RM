@@ -109,7 +109,7 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
         //拨弹轮电机PID调参
-        printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
+        // printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
 
         uint8_t temp = rc_ch4_data_process(local_rc_ctrl->rc.ch[4]);
         if(temp == SWITCH_UP)
@@ -134,7 +134,8 @@ void UserTask(void *pvParameters)
             }
         }
         float new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
-        printf("%f, %f\n",power,new_power);
+        // printf("%f, %f\n", power, new_power);
+        printf("%d\n", 0);
         
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
