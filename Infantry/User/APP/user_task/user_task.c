@@ -35,6 +35,9 @@
 #include "rc_handoff.h"
 #include "shoot.h"
 
+#include "voltage_task.h"
+#include "Kalman_Filter.h"
+
 //#define user_is_error() toe_is_error(errorListLength)
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -47,6 +50,7 @@ const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
 const RC_ctrl_t* local_rc_ctrl;
 const shoot_control_t* local_shoot;
+KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
 
@@ -64,6 +68,8 @@ void UserTask(void *pvParameters)
     local_rc_ctrl = get_remote_control_point();
     //获取射击结构体指针
     local_shoot = get_shoot_control_point();
+    //初始化卡尔曼滤波结构体
+    Kalman_Filter_Init(&Power_KalmanInfo_Structure);
     while (1)
     {
         Tcount++;
@@ -114,8 +120,22 @@ void UserTask(void *pvParameters)
         {
             led_red_toggle();
         }
+        //计算底盘功率
+        fp32 battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
+        fp32 power = 0;
+        if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
+        {
+            for(int i=0;i<4;i++)
+            {
+                fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].give_current / 1000.0f / 1.732f;
+                if(temp_current < 0.0f)
+                    temp_current = -temp_current;
+                power += battery_voltage * temp_current;
+            }
+        }
+        float new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
+        printf("%f, %f\n",power,new_power);
         
-
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

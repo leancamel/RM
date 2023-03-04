@@ -20,6 +20,8 @@
 #define VOLTAGE_TASK_H
 #include "main.h"
 
+#define VOLTAGE_DROP            0.00f
+
 extern void battery_voltage_task(void* pvParameters);
 extern uint16_t get_battery_percentage(void);
 
