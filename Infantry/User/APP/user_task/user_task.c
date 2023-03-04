@@ -120,7 +120,7 @@ void UserTask(void *pvParameters)
         {
             for(int i=0;i<4;i++)
             {
-                fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].give_current / 1000 / 1.732;
+                fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].give_current / 1000.0f / 1.732f;
                 if(temp_current < 0.0f)
                     temp_current = -temp_current;
                 power += battery_voltage * temp_current;
