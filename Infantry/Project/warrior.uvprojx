@@ -886,6 +886,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\user_lib\user_lib.c</FilePath>
             </File>
+            <File>
+              <FileName>Kalman_Filter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\user_lib\Kalman_Filter.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
