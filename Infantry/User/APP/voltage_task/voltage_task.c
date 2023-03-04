@@ -32,8 +32,6 @@
 #define FULL_BATTER_VOLTAGE     25.2f
 #define LOW_BATTER_VOLTAGE      22.2f   //about 20% 
 
-#define VOLTAGE_DROP            0.00f
-
 #define VOLTAGE_BUZZER_CYCLE_TIME 2  //蜂鸣器断续发声周期时间 *100ms
 #define VOLTAGE_BUZZER_PAUSE_TIME 1 //蜂鸣器断续发声停声时间
 #define voltage_start_buzzer() buzzer_on(70, 20) //蜂鸣器报警 电源电压不足
