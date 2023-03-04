@@ -29,6 +29,8 @@
 #include "pid.h"
 // #include "detect_task.h"
 
+#include "rc_handoff.h"
+
 #define shoot_fric1_on(pwm) fric1_on((pwm))
 #define shoot_fric2_on(pwm) fric2_on((pwm))
 #define shoot_fric_off()    fric_off()     
@@ -37,7 +39,7 @@
 // #define shoot_laser_off()   laser_off()
 // #define BUTTEN_TRIG_PIN HAL_GPIO_ReadPin(BUTTON_TRIG_GPIO_Port, BUTTON_TRIG_Pin)  //微动开关IO
 
-
+#define int_abs(x) ((x) > 0 ? (x) : (-x))
 
 /**
   * @brief          射击状态机设置，遥控器上拨一次开启，再上拨关闭，下拨1次发射1颗，一直处在下，则持续发射，用于3min准备时间清理子弹
@@ -189,7 +191,8 @@ int16_t shoot_control_loop(void)
     shoot_control.fric_pwm2 = (uint16_t)(shoot_control.fric2_ramp.out);
     shoot_fric1_on(shoot_control.fric_pwm1);
     shoot_fric2_on(shoot_control.fric_pwm2);
-    
+
+
     return shoot_control.given_current;
 }
 
@@ -302,18 +305,24 @@ static void shoot_set_mode(void)
 static void shoot_feedback_update(void)
 {
 
-    static fp32 speed_fliter_1 = 0.0f;
-    static fp32 speed_fliter_2 = 0.0f;
-    static fp32 speed_fliter_3 = 0.0f;
+    // static fp32 speed_fliter_1 = 0.0f;
+    // static fp32 speed_fliter_2 = 0.0f;
+    // static fp32 speed_fliter_3 = 0.0f;
 
-    //拨弹轮电机速度滤波一下
-    static const fp32 fliter_num[3] = {1.725709860247969f, -0.75594777109163436f, 0.030237910843665373f};
+    // //拨弹轮电机速度滤波一下
+    // static const fp32 fliter_num[3] = {1.725709860247969f, -0.75594777109163436f, 0.030237910843665373f};
 
-    //二阶低通滤波
-    speed_fliter_1 = speed_fliter_2;
-    speed_fliter_2 = speed_fliter_3;
-    speed_fliter_3 = speed_fliter_2 * fliter_num[0] + speed_fliter_1 * fliter_num[1] + (shoot_control.shoot_motor_measure->speed_rpm * MOTOR_RPM_TO_SPEED) * fliter_num[2];
-    shoot_control.speed = speed_fliter_3;
+    // //二阶低通滤波
+    // speed_fliter_1 = speed_fliter_2;
+    // speed_fliter_2 = speed_fliter_3;
+    // speed_fliter_3 = speed_fliter_2 * fliter_num[0] + speed_fliter_1 * fliter_num[1] + (shoot_control.shoot_motor_measure->speed_rpm * MOTOR_RPM_TO_SPEED) * fliter_num[2];
+    // shoot_control.speed = speed_fliter_3;
+
+    shoot_control.speed = shoot_control.shoot_motor_measure->speed_rpm * MOTOR_RPM_TO_SPEED;
+
+#if TRIGGER_TURN
+    shoot_control.speed = -shoot_control.speed;
+#endif
 
     //电机圈数重置， 因为输出轴旋转一圈， 电机轴旋转 36圈，将电机轴数据处理成输出轴数据，用于控制输出轴角度
     if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd > HALF_ECD_RANGE)
@@ -476,3 +485,9 @@ void fric_loop(void)
     fric1_on((uint16_t)compare);
     fric2_on((uint16_t)compare);
 }
+
+const shoot_control_t *get_shoot_control_point(void)
+{
+    return &shoot_control;
+}
+

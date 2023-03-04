@@ -25,7 +25,6 @@
 #include "user_lib.h"
 
 
-
 //射击发射开关通道数据
 #define SHOOT_RC_MODE_CHANNEL       1
 //云台模式使用的开关通道
@@ -72,8 +71,8 @@
 #define PI_TEN                      0.314f
 
 //拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        800.0f
-#define TRIGGER_ANGLE_PID_KI        0.5f
+#define TRIGGER_ANGLE_PID_KP        80.0f
+#define TRIGGER_ANGLE_PID_KI        1.0f
 #define TRIGGER_ANGLE_PID_KD        0.0f
 
 #define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
@@ -139,4 +138,6 @@ extern void shoot_init(void);
 extern int16_t shoot_control_loop(void);
 
 void fric_loop(void);
+const shoot_control_t *get_shoot_control_point(void);
 #endif
+
