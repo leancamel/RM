@@ -51,7 +51,7 @@
 #define ECD_RANGE                   8191
 //电机rmp 变化成 旋转速度的比例
 #define MOTOR_RPM_TO_SPEED          0.00290888208665721596153948461415f       // 2PI/60/19
-#define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*180)
+#define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*18)
 #define FULL_COUNT                  18  //  36/2
 //拨弹速度
 #define TRIGGER_SPEED               10.0f
