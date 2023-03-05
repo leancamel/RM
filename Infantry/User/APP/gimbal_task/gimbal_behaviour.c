@@ -357,7 +357,6 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
         if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
             !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]) )//&& !toe_is_error(DBUSTOE))
         {
-            buzzer_off();
             return;
         }
         else
