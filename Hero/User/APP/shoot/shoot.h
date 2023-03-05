@@ -50,10 +50,10 @@
 #define HALF_ECD_RANGE              4096
 #define ECD_RANGE                   8191
 //电机rmp 变化成 旋转速度的比例
-#define MOTOR_RPM_TO_SPEED          0.00290888208665721596153948461415f       // 2PI/60/19
-#define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*18)
-#define FULL_COUNT                  18  //  36/2
-//拨弹速度
+#define MOTOR_RPM_TO_SPEED          0.00545324260857041989782339471524f       // 2PI/60/(3591/187)
+#define MOTOR_ECD_TO_ANGLE          0.000019970370880995190055505595881022f   // PI / (8192*3591/187)
+#define FULL_COUNT                  1975                                      // 3591/2
+//拨弹速度+
 #define TRIGGER_SPEED               10.0f
 #define CONTINUE_TRIGGER_SPEED      15.0f
 #define READY_TRIGGER_SPEED         5.0f
@@ -63,24 +63,29 @@
 #define SWITCH_TRIGGER_OFF          1       //子弹未到达限位开关
 
 //卡单时间 以及反转时间
-#define BLOCK_TRIGGER_SPEED         1.0f
-#define BLOCK_TIME                  700
-#define REVERSE_TIME                500
+#define BLOCK_TRIGGER_SPEED         1.0f    //判断为卡弹的最低速度
+#define BLOCK_TIME                  500     //判断为卡弹的时长限制
+#define REVERSE_TIME                10
+#define REVERSE_SPEED_SET           -1.5f    //设置倒转速度
 #define REVERSE_SPEED_LIMIT         13.0f
 
 #define PI_FOUR                     0.78539816339744830961566084581988f
 #define PI_TEN                      0.314f
+#define PI_FIFTY                    0.0628f
+#define PI_SIX                      0.47759877559829887307710723054658f
+
 
 //拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        800.0f
-#define TRIGGER_ANGLE_PID_KI        0.5f
-#define TRIGGER_ANGLE_PID_KD        0.0f
+#define TRIGGER_SPEED_PID_KP        1000.0f
+#define TRIGGER_SPEED_PID_KI        0.0f
+#define TRIGGER_SPEED_PID_KD        1.0f
 
-#define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
-#define TRIGGER_BULLET_PID_MAX_IOUT 9000.0f
+#define TRIGGER_BULLET_PID_MAX_OUT  12000.0f
+#define TRIGGER_BULLET_PID_MAX_IOUT 2000.0f
 
-#define TRIGGER_READY_PID_MAX_OUT   10000.0f
-#define TRIGGER_READY_PID_MAX_IOUT  7000.0f
+#define TRIGGER_READY_PID_MAX_OUT   8000.0f
+#define TRIGGER_READY_PID_MAX_IOUT  2000.0f
+
 
 
 #define SHOOT_HEAT_REMAIN_VALUE     80
@@ -96,6 +101,16 @@ typedef enum
     SHOOT_DONE,
 } shoot_mode_e;
 
+typedef enum
+{
+    power_on_init = 0,      //上电拨弹轮准备初始化
+    Enter_the_init_state,   //进入初始化状态，进行子弹上膛
+    Finish_the_init_state,  //完成初始化，子弹已经上膛
+    Is_stuck_Bullet,        //判断为已经卡弹，或者子弹已经上膛
+    Bullet_Alraedy,         //倒转完成，子弹已经就位，可以准备发射了
+    Start_Shoot_bullet,     //开始射击
+} power_on_mode_e;
+
 
 typedef struct
 {
@@ -107,13 +122,14 @@ typedef struct
     ramp_function_source_t fric2_ramp;
     uint16_t fric_pwm2;
     PidTypeDef trigger_motor_pid;
+    PidTypeDef trigger_anger_pid;
     fp32 trigger_speed_set;
     fp32 speed;
     fp32 speed_set;
     fp32 angle;
     fp32 set_angle;
     int16_t given_current;
-    int8_t ecd_count;//电机轴转动圈数
+    int16_t ecd_count;//电机轴转动圈数
 
     bool_t press_l;
     bool_t press_r;
@@ -125,9 +141,8 @@ typedef struct
 
     uint16_t block_time;
     uint16_t reverse_time;
-    bool_t move_flag;
+    power_on_mode_e move_flag;
 
-    bool_t key;         //微动开关
     uint8_t key_time;
 
     uint16_t heat_limit;

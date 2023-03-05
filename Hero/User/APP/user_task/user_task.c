@@ -33,6 +33,7 @@
 #include "chassis_remote_control.h"
 #include "ROS_Receive.h"
 //#define user_is_error() toe_is_error(errorListLength)
+#include "shoot.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -44,6 +45,7 @@ const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
 
 extern int8_t temp_set;
+extern shoot_control_t shoot_control;
 
 void UserTask(void *pvParameters)
 {
@@ -77,9 +79,9 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
 
         //云台yaw电机角度环串速度环pid调参
-        printf("%.2f, %.2f, %.2f, %.2f\n", 
-        local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
-        local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
+        // printf("%.2f, %.2f, %.2f, %.2f\n", 
+        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
+        // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 
         //云台pitch电机pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
@@ -92,6 +94,8 @@ void UserTask(void *pvParameters)
         //imu 温度控制PID
         init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
+
+        printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
