@@ -92,9 +92,9 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
 
         //云台yaw电机角度环串速度环pid调参
-        printf("%.2f, %.2f, %.2f, %.2f\n", 
-        local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
-        local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
+        // printf("%.2f, %.2f, %.2f, %.2f\n", 
+        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
+        // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 
         //云台pitch电机pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
@@ -123,18 +123,19 @@ void UserTask(void *pvParameters)
         //计算底盘功率
         fp32 battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
         fp32 power = 0;
-        if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
-        {
+        // if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
+        // {
             for(int i=0;i<4;i++)
             {
-                fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].give_current / 1000.0f / 1.732f;
+                fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].chassis_motor_measure->given_current / 1000.0f / 2.75f;
                 if(temp_current < 0.0f)
                     temp_current = -temp_current;
-                power += battery_voltage * temp_current;
+                power += battery_voltage * temp_current / 1.414f;
             }
-        }
+        // }
         float new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
         // printf("%f, %f\n", power, new_power);
+        printf("%f, %f\n", new_power, (fp32)local_chassis_move->motor_chassis[3].chassis_motor_measure->given_current / 1000.0f / 2.75f);
         
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

@@ -72,6 +72,7 @@ void chassis_task(void *pvParameters)
 
 		//can发送底盘数据
 		CAN_CMD_CHASSIS(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current, chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
+		// CAN_CMD_CHASSIS(0,0,0,chassis_move.motor_chassis[3].give_current);
 
         vTaskDelay(2);
     }

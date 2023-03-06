@@ -131,17 +131,17 @@ void CAN_CMD_CHASSIS_RESET_ID(void)
     TxMessage.Data[6] = 0;
     TxMessage.Data[7] = 0;
 
-    CAN_Transmit(CAN2, &TxMessage);
+    CAN_Transmit(CAN1, &TxMessage);
 }
 
 //发送底盘电机控制命令
 /**
   * @brief          发送转矩电流到底盘电机
   * @author         pxx
-  * @param[in]      motor1：0x201(M3507)   [-16384:16384]
-  * @param[in]      motor2：0x202(M3507)   [-16384:16384]
-  * @param[in]      motor3：0x203(M3507)   [-16384:16384]
-  * @param[in]      motor4：0x204(M3507)   [-16384:16384]
+  * @param[in]      motor1：0x201(M3508)   [-16384:16384]
+  * @param[in]      motor2：0x202(M3508)   [-16384:16384]
+  * @param[in]      motor3：0x203(M3508)   [-16384:16384]
+  * @param[in]      motor4：0x204(M3508)   [-16384:16384]
   * @retval         返回空
   */
 void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
