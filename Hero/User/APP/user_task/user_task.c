@@ -37,6 +37,7 @@
 
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
+#include "uart1.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -104,7 +105,10 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
         // printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
-        printf("%f\n",Power_Calc());
+        //底盘功率显示
+        // printf("%f\n",Power_Calc());
+
+        //蓝牙测试
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

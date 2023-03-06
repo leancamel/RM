@@ -54,7 +54,7 @@
 #define YAW_SPEED_PID_MAX_IOUT 5000.0f
 
 //yaw 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
-#define YAW_GYRO_ABSOLUTE_PID_KP 18.0f
+#define YAW_GYRO_ABSOLUTE_PID_KP 15.0f
 #define YAW_GYRO_ABSOLUTE_PID_KI 0.0f
 #define YAW_GYRO_ABSOLUTE_PID_KD 0.4f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_OUT 12.0f
