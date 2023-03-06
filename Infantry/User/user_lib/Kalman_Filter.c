@@ -8,7 +8,8 @@ void Kalman_Filter_Init(KalmanInfo *KalmanInfo_Structure)
     KalmanInfo_Structure->out = 0.0f;
     KalmanInfo_Structure->Kg = 0.0f;
     KalmanInfo_Structure->Q = 0.001f;
-    KalmanInfo_Structure->R = 0.543f;
+    // KalmanInfo_Structure->R = 0.543f;
+    KalmanInfo_Structure->R = 2.0f;
     return;
 }
 /**
