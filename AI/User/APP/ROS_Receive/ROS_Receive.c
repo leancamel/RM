@@ -82,7 +82,7 @@ void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
 	*gimbal_z = ROS_Msg.gimbal_z;
 }
 /**
- * @brief	将待发送数据封装进结构体
+ * @brief	将待发送数据封装进结构体,若传入的数据大于等于10,则不进行更新
  * @param	vx	m/s
  * @param	vy	m/s
  * @param	wz	rad/s
@@ -90,9 +90,12 @@ void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
  */
 void Pack_Response(fp32 vx,fp32 vy,fp32 wz)
 {
-	ROS_Response.vx = vx;
-	ROS_Response.vy = vy;
-	ROS_Response.wz = wz;
+	if(vx < 10)
+		ROS_Response.vx = vx;
+	if(vy < 10)
+		ROS_Response.vy = vy;
+	if(wz < 10)
+		ROS_Response.wz = wz;
 	return;
 }
 /**

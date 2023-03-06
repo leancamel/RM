@@ -40,7 +40,7 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "ROS_Receive.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t INSTaskStack;
@@ -231,7 +231,8 @@ void INSTask(void *pvParameters)
 
         accel_fliter_3[2] = accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
 
-
+        //发送给ROS
+        Pack_Response(100,100,INS_gyro[2]);
         AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
         get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
 

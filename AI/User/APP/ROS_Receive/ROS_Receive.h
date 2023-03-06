@@ -30,5 +30,5 @@ void ROS_Msg_Init(void);
 void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *wz_set);
 void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z);
 void Pack_Response(fp32 vx,fp32 vy,fp32 wz);
-
+extern ROS_Response_Struct ROS_Response;
 #endif
