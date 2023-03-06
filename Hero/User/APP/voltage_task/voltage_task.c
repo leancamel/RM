@@ -28,7 +28,7 @@
 #define FULL_BATTER_VOLTAGE     25.2f
 #define LOW_BATTER_VOLTAGE      22.2f   //about 20% 
 
-#define VOLTAGE_DROP            0.00f
+
 
 
 static fp32 calc_battery_percentage(float voltage);

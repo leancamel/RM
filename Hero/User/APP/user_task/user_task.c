@@ -35,6 +35,9 @@
 //#define user_is_error() toe_is_error(errorListLength)
 #include "shoot.h"
 
+#include "voltage_task.h"
+#include "Kalman_Filter.h"
+
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
 #endif
@@ -43,9 +46,12 @@ uint32_t UserTaskStack;
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
 const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
+KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
 extern shoot_control_t shoot_control;
+
+fp32 Power_Calc(void);
 
 void UserTask(void *pvParameters)
 {
@@ -57,6 +63,8 @@ void UserTask(void *pvParameters)
     local_gimbal_control = get_gimbal_control_point();
     //获取底盘控制结构体指针
     local_chassis_move = get_chassis_control_point();
+    //初始化卡尔曼滤波结构体
+    Kalman_Filter_Init(&Power_KalmanInfo_Structure);
     while (1)
     {
         Tcount++;
@@ -95,11 +103,30 @@ void UserTask(void *pvParameters)
         init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
-        printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
-
+        // printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
+        printf("%f\n",Power_Calc());
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
 #endif
     }
+}
+
+//计算底盘功率
+fp32 Power_Calc(void)
+{
+    fp32 battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
+    fp32 power = 0;
+    if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
+    {
+        for(int i=0;i<4;i++)
+        {
+            fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].chassis_motor_measure->given_current / 1000.0f / 2.75f;
+            if(temp_current < 0.0f)
+                temp_current = -temp_current;
+            power += battery_voltage * temp_current / 1.414f;
+        }
+    }
+    fp32 new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
+    return new_power;
 }

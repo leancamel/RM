@@ -96,7 +96,7 @@ void serial_sent_Android_receive(char *string, ...)
                     }
                     break;
                 case 'f':
-                    b = va_arg(ap, fp32);
+                    b = va_arg(ap, float);
                     for (int i = 0; i < 4; i++)
                     {
                         temp_buff = m[i];
