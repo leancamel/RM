@@ -62,7 +62,11 @@ void Serial_SendByte(uint8_t Byte)
     USART_SendData(USART1, Byte);
     while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 }
-
+/**
+ * @brief   通过蓝牙向手机发送数据
+ * @param   string  将要发送的所有数据写入，中间不能有空
+ * @return  void
+ */
 void serial_sent_Android_receive(char *string, ...)
 {
     Serial_SendByte(0XA5);      //发送数据包头
