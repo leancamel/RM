@@ -454,16 +454,6 @@ static void shoot_bullet_control(void)
         //进行反转
         stuck_bullet();
     }
-
-    // if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.05f)
-    // {
-    //     //到达设定角度，停止电机
-    //     shoot_control.speed_set = 0.0f;
-    //     //达到设定角度，切换模式
-    //     shoot_control.shoot_mode = SHOOT_DONE;
-    //     shoot_control.move_flag = Bullet_Alraedy;
-    // }
-
 }
 
 /**
@@ -506,16 +496,4 @@ static void shoot_bullet_on_reset(void)
         //子弹上膛完毕，射击准备
         shoot_control.shoot_mode = SHOOT_READY;
     }
-}
-
-//测试摩擦轮电机用
-void fric_loop(void)
-{
-    static double compare = 1000;
-    if(compare < 1400)
-    {
-        compare += 0.1;
-    }
-    fric1_on((uint16_t)compare);
-    fric2_on((uint16_t)compare);
 }

@@ -65,7 +65,7 @@
 //卡单时间 以及反转时间
 #define BLOCK_TRIGGER_SPEED         1.0f    //判断为卡弹的最低速度
 #define BLOCK_TIME                  500     //判断为卡弹的时长限制
-#define REVERSE_TIME                10
+#define REVERSE_TIME                200
 #define REVERSE_SPEED_SET           -1.5f    //设置倒转速度
 #define REVERSE_SPEED_LIMIT         13.0f
 
@@ -153,5 +153,4 @@ typedef struct
 extern void shoot_init(void);
 extern int16_t shoot_control_loop(void);
 
-void fric_loop(void);
 #endif
