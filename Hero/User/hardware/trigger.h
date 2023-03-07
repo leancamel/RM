@@ -2,8 +2,8 @@
 #define TRIGGER_H
 #include "main.h"
 
-#define FRIC_UP 1480
-#define FRIC_DOWN 1400
+#define FRIC_UP 1680
+#define FRIC_DOWN 1680
 #define FRIC_OFF 1000
 
 void trigger_PWM_Init(void);
