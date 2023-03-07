@@ -102,7 +102,7 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
-        init_vrefint_reciprocal();
+        // init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
         // printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
@@ -110,7 +110,9 @@ void UserTask(void *pvParameters)
         // printf("%f\n",Power_Calc());
 
         //蓝牙测试
-        Bluetooth_Send("%f",Power_Calc());
+        Bluetooth_Send("%f%f%f",shoot_control.angle,shoot_control.set_angle,shoot_control.speed);
+
+
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
