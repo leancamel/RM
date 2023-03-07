@@ -53,8 +53,8 @@
 #define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*180)
 #define FULL_COUNT                  18  //  36/2
 //拨弹速度
-#define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      15.0f
+#define TRIGGER_SPEED               7.0f
+#define CONTINUE_TRIGGER_SPEED      12.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
