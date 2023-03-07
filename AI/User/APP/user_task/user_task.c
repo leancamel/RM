@@ -93,7 +93,7 @@ void UserTask(void *pvParameters)
         init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
-        printf("%f\n",ROS_Response.wz);
+        // printf("%f\n",ROS_Response.wz);
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
