@@ -37,7 +37,7 @@
 
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
-
+#include "bluetooth.h"
 //#define user_is_error() toe_is_error(errorListLength)
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -124,7 +124,7 @@ void UserTask(void *pvParameters)
             led_red_toggle();
         }
         //计算底盘功率
-        printf("%f\n",Power_Calc());
+        Bluetooth_Send("%f",Power_Calc());
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
