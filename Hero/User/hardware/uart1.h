@@ -6,6 +6,5 @@
 
 void UART1_Init(void);
 void Serial_SendByte(uint8_t Byte);
-void serial_sent_Android_receive(char *string, ...);
 
 #endif

@@ -160,8 +160,7 @@ void GIMBAL_task(void *pvParameters)
         J_scope_gimbal_test();
 #endif
 
-        TickType_t GIMBAL_LastWakeTime = xTaskGetTickCount();
-        vTaskDelayUntil(&GIMBAL_LastWakeTime,GIMBAL_CONTROL_TIME);
+        vTaskDelay(GIMBAL_CONTROL_TIME);
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         gimbal_high_water = uxTaskGetStackHighWaterMark(NULL);

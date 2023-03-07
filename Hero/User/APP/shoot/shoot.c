@@ -104,7 +104,7 @@ void shoot_init(void)
     shoot_control.fric_pwm1 = FRIC_OFF;
     shoot_control.fric_pwm2 = FRIC_OFF;
     shoot_control.ecd_count = 0;
-    shoot_control.angle = shoot_control.shoot_motor_measure->ecd * MOTOR_ECD_TO_ANGLE;
+    shoot_control.angle = rad_format(shoot_control.shoot_motor_measure->ecd * MOTOR_ECD_TO_ANGLE);
     shoot_control.given_current = 0;
     shoot_control.move_flag = power_on_init;
     shoot_control.set_angle = shoot_control.angle;
@@ -150,6 +150,19 @@ int16_t shoot_control_loop(void)
         //开始射击子弹
         shoot_bullet_control();
     }
+    else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+    {
+        //设置拨弹轮的拨动速度
+        shoot_control.trigger_speed_set = CONTINUE_TRIGGER_SPEED;
+        //判断是否堵转
+        is_stuck_bullet(300);
+        if(shoot_control.move_flag == Is_stuck_Bullet)
+        {
+            //判断为堵转，进行反转
+            stuck_bullet();
+        }
+    }
+
 
 
     if(shoot_control.shoot_mode == SHOOT_STOP)
@@ -296,7 +309,7 @@ static void shoot_feedback_update(void)
     }
 
     //计算输出轴角度
-    shoot_control.angle = (shoot_control.ecd_count * ECD_RANGE + shoot_control.shoot_motor_measure->ecd) * MOTOR_ECD_TO_ANGLE;
+    shoot_control.angle = rad_format((shoot_control.ecd_count * ECD_RANGE + shoot_control.shoot_motor_measure->ecd) * MOTOR_ECD_TO_ANGLE);
      
     //鼠标按键
     shoot_control.last_press_l = shoot_control.press_l;
@@ -438,7 +451,7 @@ static void shoot_bullet_control(void)
         //设置速度，拨动拨弹轮电机
         shoot_control.trigger_speed_set = TRIGGER_SPEED;
         //达到控制角度后，改变状态，已经发射完成
-        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.05f)
+        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.08f)
         {
             //到达设定角度，停止电机
             shoot_control.speed_set = 0.0f;
@@ -467,6 +480,7 @@ static void shoot_bullet_on_reset(void)
     if (shoot_control.move_flag == power_on_init)
     {
         shoot_control.set_angle = rad_format(shoot_control.angle - 0.2f);
+        // if()
         //进入准备上膛阶段，开始子弹上膛
         shoot_control.move_flag = Enter_the_init_state;
     }
@@ -475,7 +489,7 @@ static void shoot_bullet_on_reset(void)
         //设置速度，拨动拨弹轮电机
         shoot_control.trigger_speed_set = TRIGGER_SPEED;
         //达到控制角度，上膛初始化
-        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.02f)
+        if (fabs(rad_format(shoot_control.set_angle - shoot_control.angle))< 0.08f)
         {
             //到达设定角度，停止电机
             shoot_control.trigger_speed_set = 0.0f;
