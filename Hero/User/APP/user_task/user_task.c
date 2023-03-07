@@ -38,6 +38,7 @@
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
 #include "uart1.h"
+#include "bluetooth.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -109,6 +110,7 @@ void UserTask(void *pvParameters)
         // printf("%f\n",Power_Calc());
 
         //蓝牙测试
+        Bluetooth_Send("%f",Power_Calc());
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

@@ -746,6 +746,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\hardware\relays.c</FilePath>
             </File>
+            <File>
+              <FileName>bluetooth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\hardware\bluetooth.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
