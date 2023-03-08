@@ -54,8 +54,8 @@
 #define MOTOR_ECD_TO_ANGLE          0.000019970370880995190055505595881022f   // PI / (8192*3591/187)
 #define FULL_COUNT                  1975                                      // 3591/2
 //拨弹速度+
-#define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      15.0f
+#define TRIGGER_SPEED               13.0f
+#define CONTINUE_TRIGGER_SPEED      10.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -65,7 +65,7 @@
 //卡单时间 以及反转时间
 #define BLOCK_TRIGGER_SPEED         1.0f    //判断为卡弹的最低速度
 #define BLOCK_TIME                  500     //判断为卡弹的时长限制
-#define REVERSE_TIME                10
+#define REVERSE_TIME                200
 #define REVERSE_SPEED_SET           -1.5f    //设置倒转速度
 #define REVERSE_SPEED_LIMIT         13.0f
 
@@ -76,7 +76,7 @@
 
 
 //拨弹轮电机PID
-#define TRIGGER_SPEED_PID_KP        1000.0f
+#define TRIGGER_SPEED_PID_KP        1500.0f
 #define TRIGGER_SPEED_PID_KI        0.0f
 #define TRIGGER_SPEED_PID_KD        1.0f
 
@@ -153,5 +153,4 @@ typedef struct
 extern void shoot_init(void);
 extern int16_t shoot_control_loop(void);
 
-void fric_loop(void);
 #endif

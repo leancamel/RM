@@ -102,7 +102,7 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
-        init_vrefint_reciprocal();
+        // init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
         // printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
@@ -111,6 +111,8 @@ void UserTask(void *pvParameters)
 
         //蓝牙测试
         Bluetooth_Send("%f",Power_Calc());
+
+
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
@@ -123,8 +125,8 @@ fp32 Power_Calc(void)
 {
     fp32 battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
     fp32 power = 0;
-    if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
-    {
+    // if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
+    // {
         for(int i=0;i<4;i++)
         {
             fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].chassis_motor_measure->given_current / 1000.0f / 2.75f;
@@ -132,7 +134,7 @@ fp32 Power_Calc(void)
                 temp_current = -temp_current;
             power += battery_voltage * temp_current / 1.414f;
         }
-    }
+    // }
     fp32 new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
     return new_power;
 }
