@@ -125,16 +125,13 @@ fp32 Power_Calc(void)
 {
     fp32 battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
     fp32 power = 0;
-    // if((local_chassis_move->vx_set != 0) || (local_chassis_move->vy_set != 0) || (local_chassis_move->wz_set != 0))
-    // {
-        for(int i=0;i<4;i++)
-        {
-            fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].chassis_motor_measure->given_current / 1000.0f / 2.75f;
-            if(temp_current < 0.0f)
-                temp_current = -temp_current;
-            power += battery_voltage * temp_current / 1.414f;
-        }
-    // }
+    for(int i=0;i<4;i++)
+    {
+        fp32 temp_current = (fp32)local_chassis_move->motor_chassis[i].chassis_motor_measure->given_current / 1000.0f / 2.75f;
+        if(temp_current < 0.0f)
+            temp_current = -temp_current;
+        power += battery_voltage * temp_current / 1.414f;
+    }
     fp32 new_power = Kalman_Filter_Fun(&Power_KalmanInfo_Structure,power);
     return new_power;
 }
