@@ -598,7 +598,7 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, Gimbal_Control
     {
         return;
     }
-    *yaw = 0;
+    *yaw = 0.0f;
     //不需要处理，
 }
 /**

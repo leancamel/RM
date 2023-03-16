@@ -77,6 +77,7 @@ void BSP_Init(void)
 
 	//串口1初始化
 	UART1_Init();
+	ROS_Init();
 
 	//CAN通信初始化
 	CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
@@ -84,8 +85,5 @@ void BSP_Init(void)
 
 	//上电校准，flash读取函数，把校准值放回对应参数
     // cali_param_init();
-
-	//将接收ROS发送的结构体清零
-	ROS_Msg_Init();
 }
 

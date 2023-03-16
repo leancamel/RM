@@ -124,13 +124,14 @@ void UserTask(void *pvParameters)
             led_red_toggle();
         }
         //计算底盘功率
-        Bluetooth_Send("%f",Power_Calc());
+        // Bluetooth_Send("%f",Power_Calc());
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
 #endif
     }
 }
+
 //计算底盘功率
 fp32 Power_Calc(void)
 {
