@@ -35,7 +35,7 @@ void Bluetooth_Send(char *string, ...)
                     }
                     break;
                 case 'f':
-                    float_data = va_arg(ap, float);
+                    float_data = va_arg(ap, double);
                     for (int i = 0; i < 4; i++)
                     {
                         sum_buff = float_buff[i];

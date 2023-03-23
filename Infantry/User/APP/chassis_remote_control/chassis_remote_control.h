@@ -111,15 +111,9 @@
 typedef enum
 {
   CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   
-  CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW,  
   CHASSIS_VECTOR_NO_FOLLOW_YAW,       
   CHASSIS_VECTOR_RAW,                 
 
-  //  CHASSIS_AUTO,                    
-  //  CHASSIS_FOLLOW_YAW,              
-  //  CHASSIS_ENCODER,                 
-  //  CHASSIS_NO_ACTION,               
-  //  CHASSIS_RELAX,                   
 } chassis_mode_e;
 
 typedef struct
