@@ -354,7 +354,7 @@ static void cali_data_write(void)
     uint8_t i = 0;
     uint16_t offset = 0;
     const uint16_t len = (sizeof(head_cali_t) + sizeof(gimbal_cali_t) + sizeof(imu_cali_t) * 3) / 4 + 5;
-    uint8_t buf[len * 4];
+    uint8_t buf[4 * len];
     for (i = 0; i < CALI_LIST_LENGHT; i++)
     {
         //复制设备前部参数，例如名字， 数据大小

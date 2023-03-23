@@ -204,7 +204,7 @@ void set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset
   * @param[in]      pitch 最大相对角度 指针
   * @param[in]      pitch 最小相对角度 指针
   * @retval         返回1 代表成功校准完毕， 返回0 代表未校准完
-  * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
+  * @waring         这个函数使用到 gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch)
 {

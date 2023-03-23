@@ -124,7 +124,7 @@ void UserTask(void *pvParameters)
             led_red_toggle();
         }
         //计算底盘功率
-        // Bluetooth_Send("%f",Power_Calc());
+        Bluetooth_Send("%hd",5);
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
