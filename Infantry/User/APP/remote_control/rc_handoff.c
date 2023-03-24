@@ -16,13 +16,13 @@ uint8_t rc_ch4_data_process(int16_t ch)
     {
         flag = 1;
         // ch4_process = ch > 0 ? AUTO_ON : AUTO_OFF;
-        return (ch > 0 ? SWITCH_DOWN : SWITCH_UP);
+        return (ch > 0 ? CH4_SWITCH_DOWN : CH4_SWITCH_UP);
     }
     else if (int_abs(ch) < CH4_LOW_VALUE && flag == 1)
     {
         flag = 0;
     }
 
-    return NO_ACTION;
+    return CH4_NO_ACTION;
 }
 

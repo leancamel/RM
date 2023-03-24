@@ -42,4 +42,12 @@ typedef double fp64;
 #define PI 3.14159265358979f
 #endif
 
+#ifndef true
+#define true 1
+#endif
+
+#ifndef false
+#define false 0
+#endif
+
 #endif /* __MAIN_H */
