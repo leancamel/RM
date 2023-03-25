@@ -19,6 +19,7 @@
   */
 
 #include "gimbal_behaviour.h"
+#include "chassis_behaviour.h"
 #include "arm_math.h"
 #include "buzzer.h"
 // #include "Detect_Task.h"
@@ -379,6 +380,15 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+    }
+
+    //底盘小陀螺需要GIMBAL_ABSOLUTE_ANGLE
+    if(rotation_cmd_gimbal_absolute())
+    {
+        // gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+        
+        // 导电滑环暂时未安装，使用相对角度控制模式
+        gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
     }
 
     // if( toe_is_error(DBUSTOE))

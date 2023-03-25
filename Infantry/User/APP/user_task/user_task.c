@@ -92,6 +92,10 @@ void UserTask(void *pvParameters)
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        
+        //小陀螺测试
+        // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);
+        printf("%f, %f\n", local_chassis_move->wz, local_chassis_move->wz_set);
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
@@ -113,18 +117,8 @@ void UserTask(void *pvParameters)
         //拨弹轮电机PID调参
         // printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
 
-
-        uint8_t temp = rc_ch4_data_process(local_rc_ctrl->rc.ch[4]);
-        if(temp == SWITCH_UP)
-        {
-            led_green_toggle();
-        }
-        else if(temp == SWITCH_DOWN)
-        {
-            led_red_toggle();
-        }
         //计算底盘功率
-        Bluetooth_Send("%hd",5);
+        // Bluetooth_Send("%hd",5);
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

@@ -18,8 +18,18 @@
 #include "chassis_remote_control.h"
 
 #include "arm_math.h"
+#include "led.h"
 
 #include "gimbal_behaviour.h"
+#include "rc_handoff.h"
+
+/**
+  * @brief          底盘行为状态机设置，因为在小陀螺等模式下使用了return，故而再用了一个函数
+  * @author         RM
+  * @param[in]      底盘数据指针
+  * @retval         返回空
+  */
+void chassis_behavour_set(chassis_move_t *chassis_move_mode);
 
 /**
   * @brief          底盘无力的行为状态机下，底盘模式是raw，故而设定值会直接发送到can总线上故而将设定值都设置为0
@@ -78,8 +88,101 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
   */
 static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
+/**
+  * @brief          底盘小陀螺退出的行为状态机下，底盘模式是不跟随角度，底盘旋转速度由参数直接设定
+  * @author         RM
+  * @param[in]      vx_set前进的速度
+  * @param[in]      vy_set左右的速度
+  * @param[in]      wz_set底盘设置的旋转速度
+  * @param[in]      chassis_move_rc_to_vector底盘数据
+  * @retval         返回空
+  */
+
+static void chassis_rotation_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+
+/**
+  * @brief          底盘小陀螺的行为状态机下，底盘模式是不跟随角度，底盘旋转速度由参数直接设定
+  * @author         RM
+  * @param[in]      vx_set前进的速度
+  * @param[in]      vy_set左右的速度
+  * @param[in]      wz_set底盘设置的旋转速度
+  * @param[in]      chassis_move_rc_to_vector底盘数据
+  * @retval         返回空
+  */
+
+static void chassis_rotation_exit_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+
+
+
 //底盘行为状态机
 static chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
+
+/**
+  * @brief          底盘行为状态机设置，因为在小陀螺等模式下使用了return，故而再用了一个函数
+  * @author         RM
+  * @param[in]      底盘数据指针
+  * @retval         返回空
+  */
+void chassis_behavour_set(chassis_move_t *chassis_move_mode)
+{
+
+    if (chassis_move_mode == NULL)
+    {
+        return;
+    }
+
+    //底盘不移动状态机拥有最高优先级，return 不会设置其他模式
+    if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        //重新初始化超级模式通道的开关状态，防止从底盘不移动模式退出时，遥控器超级模式通道未还原造成的意外 不可删去！！！！
+        chassis_move_mode->last_super_channel = chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
+        chassis_behaviour_mode = CHASSIS_NO_MOVE;
+        led_red_off();
+        return;
+    }
+
+
+    {//判断进入小陀螺模式
+        if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(chassis_move_mode->last_super_channel) && chassis_behaviour_mode != CHASSIS_ROTATION)
+        {
+            led_red_on();
+            chassis_behaviour_mode = CHASSIS_ROTATION;
+        }
+        else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(chassis_move_mode->last_super_channel) && chassis_behaviour_mode == CHASSIS_ROTATION)
+        {
+            chassis_behaviour_mode = CHASSIS_ROTATION_EXIT;
+        }
+
+        if(chassis_behaviour_mode == CHASSIS_ROTATION)
+        {
+            return;
+        }
+    }
+
+    {//判断小陀螺模式退出完成
+        if (chassis_behaviour_mode == CHASSIS_ROTATION_EXIT)
+        {
+            if (chassis_move_mode->rotation_ramp_wz.out != 0)
+            {
+                return;
+            }
+            else
+            {
+                led_red_off();
+            }
+        }
+    }
+
+    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+    }
+    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+    }
+
+}
 
 void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 {
@@ -88,25 +191,21 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
         return;
     }
 
-    //遥控器设置行为模式
-    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
-    }
-    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_NO_MOVE;
-    }
-    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
-    }
+    // //遥控器设置行为模式
+    // if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    // {
+    //     chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+    // }
+    // else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    // {
+    //     chassis_behaviour_mode = CHASSIS_NO_MOVE;
+    // }
+    // else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    // {
+    //     chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+    // }
 
-    //云台进入某些状态的时候，底盘保持不动
-    if (gimbal_cmd_to_chassis_stop())
-    {
-        chassis_behaviour_mode = CHASSIS_NO_MOVE;
-    }
+    chassis_behavour_set(chassis_move_mode);
 
     //根据行为状态机选择底盘状态机
     if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE)
@@ -129,6 +228,16 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     {
         chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; //当行为是底盘开环，则设置底盘状态机为 底盘原生raw 状态机。
     }
+    else if (chassis_behaviour_mode == CHASSIS_ROTATION)
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_ROTATION;//当行为是底盘小陀螺，设置底盘状态机为 底盘小陀螺状态机。
+    }
+    else if (chassis_behaviour_mode == CHASSIS_ROTATION_EXIT)
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_ROTATION_EXIT;//当从小陀螺行文退出的时候，设置底盘状态机为 小陀螺退出状态机。
+    }
+
+    chassis_move_mode->last_super_channel = chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
 }
 
 void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
@@ -158,6 +267,14 @@ void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, 
     else if (chassis_behaviour_mode == CHASSIS_OPEN)
     {
         chassis_open_set_control(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
+    }
+    else if (chassis_behaviour_mode == CHASSIS_ROTATION)
+    {
+        chassis_rotation_control(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
+    }
+    else if (chassis_behaviour_mode == CHASSIS_ROTATION_EXIT)
+    {
+        chassis_rotation_exit_control(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
     }
 }
 
@@ -320,3 +437,64 @@ static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, c
     *wz_set = -chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL] * CHASSIS_OPEN_RC_SCALE;
     return;
 }
+
+
+/**
+  * @brief          底盘小陀螺的行为状态机下，底盘模式是不跟随角度，底盘旋转速度由参数直接设定
+  * @author         RM
+  * @param[in]      vx_set前进的速度
+  * @param[in]      vy_set左右的速度
+  * @param[in]      wz_set底盘设置的旋转速度
+  * @param[in]      chassis_move_rc_to_vector底盘数据
+  * @retval         返回空
+  */
+
+static void chassis_rotation_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+{
+    if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
+    {
+        return;
+    }
+
+    chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
+    //斜波函数得到小陀螺旋转的速度
+    ramp_calc(&chassis_move_rc_to_vector->rotation_ramp_wz, ROTATION_SPEED_ADD_VALUE);
+    *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+}
+
+/**
+  * @brief          底盘小陀螺退出的行为状态机下，底盘模式是不跟随角度，底盘旋转速度由参数直接设定
+  * @author         RM
+  * @param[in]      vx_set前进的速度
+  * @param[in]      vy_set左右的速度
+  * @param[in]      wz_set底盘设置的旋转速度
+  * @param[in]      chassis_move_rc_to_vector底盘数据
+  * @retval         返回空
+  */
+
+static void chassis_rotation_exit_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+{
+    if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
+    {
+        return;
+    }
+
+    chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
+    //斜波函数得到小陀螺旋转的速度
+    ramp_calc(&chassis_move_rc_to_vector->rotation_ramp_wz, -ROTATION_SPEED_ADD_VALUE);
+    *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+}
+
+//小陀螺模式需要云台从陀螺仪获取反馈量而不是编码器
+bool_t rotation_cmd_gimbal_absolute(void)
+{
+    if (chassis_behaviour_mode == CHASSIS_ROTATION)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
