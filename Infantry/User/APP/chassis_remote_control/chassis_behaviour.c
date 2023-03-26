@@ -132,7 +132,7 @@ void chassis_behavour_set(chassis_move_t *chassis_move_mode)
     }
 
     //底盘不移动状态机拥有最高优先级，return 不会设置其他模式
-    if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]) || gimbal_cmd_to_chassis_stop())
     {
         //重新初始化超级模式通道的开关状态，防止从底盘不移动模式退出时，遥控器超级模式通道未还原造成的意外 不可删去！！！！
         chassis_move_mode->last_super_channel = chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
