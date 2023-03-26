@@ -10,7 +10,7 @@
   ****************************RM Warrior 2023****************************
   */
  
-#include "chassis_remote_control.h"
+#include "chassis_task.h"
 #include "chassis_behaviour.h"
 
 #include "arm_math.h"
@@ -80,7 +80,7 @@ void chassis_task(void *pvParameters)
 
 /**
   * @brief          设置遥控器输入控制量
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_control    底盘结构体指针
   * @retval         void
   */
@@ -151,7 +151,7 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
 
 /**
   * @brief          底盘初始化
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_init   底盘结构体指针
   * @retval         void
   */
@@ -210,7 +210,7 @@ void chassis_init(chassis_move_t *chassis_move_init)
 
 /**
   * @brief          ͨ设置遥控器设置状态
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_mode   底盘结构体指针
   * @retval         void
   */
@@ -226,7 +226,7 @@ void chassis_set_mode(chassis_move_t *chassis_move_mode)
 
 /**
   * @brief          遥控器状态切换数据保存
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_transit    底盘结构体指针
   * @retval         void
   */
@@ -255,20 +255,20 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     //切入小陀螺模式
     else if((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_ROTATION)
     {
-        // if(chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION_EXIT)
+        if(chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION_EXIT)
+        {
+            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;//确保平稳进入小陀螺模式
+        }
+        // if (chassis_move_transit->wz > 0)
         // {
-        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;//确保平稳进入小陀螺模式
+        //     chassis_move_transit->rotation_ramp_wz.max_value = ROTATION_SPEED_MAX;
+        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
         // }
-        if (chassis_move_transit->wz > 0)
-        {
-            chassis_move_transit->rotation_ramp_wz.max_value = ROTATION_SPEED_MAX;
-            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
-        }
-        else
-        {
-            chassis_move_transit->rotation_ramp_wz.max_value = -ROTATION_SPEED_MAX;
-            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
-        }
+        // else
+        // {
+        //     chassis_move_transit->rotation_ramp_wz.max_value = -ROTATION_SPEED_MAX;
+        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
+        // }
     }
 
     chassis_move_transit->last_chassis_mode = chassis_move_transit->chassis_mode;
@@ -276,7 +276,7 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
 
 /**
   * @brief          底盘数据更新
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_update 底盘结构体指针
   * @retval         void
   */
@@ -307,7 +307,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
 
 /**
   * @brief          遥控器的数据处理成底盘的前进vx速度，vy速度
-  * @author         wzl
+  * @author         pxx
   * @param          vx_set  x轴前进速度设置，m/s
   * @param          vy_set  y轴前进速度设置，m/s
   * @param          chassis_move_rc_to_vector   底盘结构体指针
@@ -369,7 +369,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
 /**
   * @brief          麦轮运动分解
-  * @author         wzl
+  * @author         pxx
   * @param          vx_set  x轴前进速度设置，m/s
   * @param          vy_set  y轴前进速度设置，m/s
   * @param          wz_set  z轴旋转速度设置，rad/s
@@ -387,7 +387,7 @@ void chassis_vector_to_mecanum_wheel_speed(const fp32 vx_set, const fp32 vy_set,
 
 /**
   * @brief          底盘控制PID计算
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_control_loop   底盘结构体指针
   * @retval         void
   */

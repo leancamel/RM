@@ -30,7 +30,7 @@
 //#include "Detect_Task.h"
 #include "INS_Task.h"
 #include "gimbal_task.h"
-#include "chassis_remote_control.h"
+#include "chassis_task.h"
 #include "remote_control.h"
 #include "rc_handoff.h"
 #include "shoot.h"

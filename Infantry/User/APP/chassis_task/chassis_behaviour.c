@@ -15,7 +15,7 @@
   ****************************(C) COPYRIGHT 2016 DJI****************************
   */
 #include "chassis_behaviour.h"
-#include "chassis_remote_control.h"
+#include "chassis_task.h"
 
 #include "arm_math.h"
 #include "led.h"

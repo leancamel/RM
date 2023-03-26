@@ -14,8 +14,8 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2016 DJI****************************
   */
-#ifndef CHASSIS_REMOTE_CONTROL_H
-#define CHASSIS_REMOTE_CONTROL_H
+#ifndef CHASSIS_TASK_H
+#define CHASSIS_TASK_H
 #include "main.h"
 #include "remote_control.h"
 #include "pid.h"

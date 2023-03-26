@@ -293,7 +293,7 @@ bool_t gimbal_cmd_to_shoot_stop(void)
   * @retval         1：云台无力
   */
 
-bool_t gimbal_cmd_to_voltage_warning_stop()
+bool_t gimbal_cmd_to_voltage_warning_stop(void)
 {
     if(gimbal_behaviour == GIMBAL_ZERO_FORCE)
     {
