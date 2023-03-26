@@ -488,7 +488,7 @@ static void chassis_rotation_exit_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
 //小陀螺模式需要云台从陀螺仪获取反馈量而不是编码器
 bool_t rotation_cmd_gimbal_absolute(void)
 {
-    if (chassis_behaviour_mode == CHASSIS_ROTATION)
+    if (chassis_behaviour_mode == CHASSIS_ROTATION || chassis_behaviour_mode == CHASSIS_ROTATION_EXIT)
     {
         return 1;
     }
