@@ -383,7 +383,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     }
 
     //底盘小陀螺需要GIMBAL_ABSOLUTE_ANGLE
-    if(rotation_cmd_gimbal_absolute())
+    if(rotation_cmd_gimbal_absolute() && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
         // gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
         

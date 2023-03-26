@@ -255,9 +255,19 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     //切入小陀螺模式
     else if((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_ROTATION)
     {
-        if(chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION_EXIT)
+        // if(chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION_EXIT)
+        // {
+        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;//确保平稳进入小陀螺模式
+        // }
+        if (chassis_move_transit->wz > 0)
         {
-            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz_set;//确保平稳进入小陀螺模式
+            chassis_move_transit->rotation_ramp_wz.max_value = ROTATION_SPEED_MAX;
+            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
+        }
+        else
+        {
+            chassis_move_transit->rotation_ramp_wz.max_value = -ROTATION_SPEED_MAX;
+            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
         }
     }
 
