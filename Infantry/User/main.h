@@ -22,9 +22,10 @@ typedef double fp64;
 
 #define RC_NVIC 4
 #define SPI1_RX_NVIC 5
-#define CAN1_NVIC 4
-#define CAN2_NVIC 4
-#define ROS_NVIC 1
+#define CAN1_NVIC 3
+#define CAN2_NVIC 3
+#define ROS_NVIC 4
+#define REFEREE_NVIC 4
 #define IST8310_NVIC 5
 #define BMI088_NVIC 5
 #define SoftWare_NVIC 5
