@@ -234,7 +234,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     }
     else if (chassis_behaviour_mode == CHASSIS_ROTATION_EXIT)
     {
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_ROTATION_EXIT;//当从小陀螺行文退出的时候，设置底盘状态机为 小陀螺退出状态机。
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_ROTATION;//当从小陀螺行文退出的时候，设置底盘状态机为 小陀螺状态机。
     }
 
     chassis_move_mode->last_super_channel = chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
@@ -459,7 +459,14 @@ static void chassis_rotation_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, c
     chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
     //斜波函数得到小陀螺旋转的速度
     ramp_calc(&chassis_move_rc_to_vector->rotation_ramp_wz, ROTATION_SPEED_ADD_VALUE);
-    *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    if(chassis_move_rc_to_vector->rotation_diraction == 1)
+    {
+        *wz_set = -chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    }
+    else
+    {
+        *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    }
 }
 
 /**
@@ -482,7 +489,14 @@ static void chassis_rotation_exit_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
     chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
     //斜波函数得到小陀螺旋转的速度
     ramp_calc(&chassis_move_rc_to_vector->rotation_ramp_wz, -ROTATION_SPEED_ADD_VALUE);
-    *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    if(chassis_move_rc_to_vector->rotation_diraction == 1)
+    {
+        *wz_set = -chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    }
+    else
+    {
+        *wz_set = chassis_move_rc_to_vector->rotation_ramp_wz.out;
+    }
 }
 
 //小陀螺模式需要云台从陀螺仪获取反馈量而不是编码器

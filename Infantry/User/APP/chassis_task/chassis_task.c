@@ -138,15 +138,6 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
         chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
     }
-    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_ROTATION_EXIT)
-    {
-        chassis_move_control->wz_set = 0;
-        // 小陀螺退出模式下，角度设置的为 角速度
-        fp32 rotation_exit_wz = angle_set;
-        chassis_move_control->wz_set = rotation_exit_wz;
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
-    }
 }
 
 /**
@@ -255,20 +246,8 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     //切入小陀螺模式
     else if((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_ROTATION)
     {
-        if(chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION_EXIT)
-        {
-            chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;//确保平稳进入小陀螺模式
-        }
-        // if (chassis_move_transit->wz > 0)
-        // {
-        //     chassis_move_transit->rotation_ramp_wz.max_value = ROTATION_SPEED_MAX;
-        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
-        // }
-        // else
-        // {
-        //     chassis_move_transit->rotation_ramp_wz.max_value = -ROTATION_SPEED_MAX;
-        //     chassis_move_transit->rotation_ramp_wz.out = chassis_move_transit->wz;
-        // }
+        chassis_move_transit->rotation_ramp_wz.out = fabs(chassis_move_transit->wz);
+        chassis_move_transit->rotation_diraction = chassis_move_transit->wz < 0 ? 1 : 0;
     }
 
     chassis_move_transit->last_chassis_mode = chassis_move_transit->chassis_mode;

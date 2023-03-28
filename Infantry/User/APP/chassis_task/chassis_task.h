@@ -92,9 +92,10 @@
 #define CHASSIS_WZ_SET_SCALE 0.1f
 //底盘控制任务周期
 #define CHASSIS_CTL_TIME 2
+
 //小陀螺旋转速度
-#define ROTATION_SPEED_MAX 1.2f
-#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX/3
+#define ROTATION_SPEED_MAX 2.0f
+#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX
 
 
 //摇摆原地不动摇摆最大角度(rad)
@@ -123,7 +124,6 @@ typedef enum
   CHASSIS_VECTOR_RAW,                 //底盘开环控制
 
   CHASSIS_VECTOR_ROTATION,            //小陀螺旋转
-  CHASSIS_VECTOR_ROTATION_EXIT,
 } chassis_mode_e;
 
 typedef struct
@@ -149,7 +149,9 @@ typedef struct
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;
   first_order_filter_type_t chassis_cmd_slow_set_vy;
+
   ramp_function_source_t rotation_ramp_wz;   //小陀螺斜坡函数缓启动 停止
+  bool_t rotation_diraction;                 //小陀螺旋转的方向
 
   int8_t last_super_channel;                //上一次遥控器开关所在的位置
 
