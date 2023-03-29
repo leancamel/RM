@@ -31,11 +31,6 @@
 
 
 /**
-  * @brief          single byte upacked 
-  * @param[in]      void
-  * @retval         none
-  */
-/**
   * @brief          单字节解包
   * @param[in]      void
   * @retval         none
@@ -176,36 +171,68 @@ void referee_unpack_fifo_data(void)
 }
 
 
+// void USART6_IRQHandler(void)
+// {
+//     static volatile uint8_t res;
+//     if(USART6->SR & UART_FLAG_IDLE)
+//     {
+//         __HAL_UART_CLEAR_PEFLAG(&huart6);
+
+//         static uint16_t this_time_rx_len = 0;
+
+//         if ((huart6.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET)
+//         {
+//             __HAL_DMA_DISABLE(huart6.hdmarx);
+//             this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
+//             __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
+//             huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
+//             __HAL_DMA_ENABLE(huart6.hdmarx);
+//             fifo_s_puts(&referee_fifo, (char*)usart6_buf[0], this_time_rx_len);
+//             detect_hook(REFEREE_TOE);
+//         }
+//         else
+//         {
+//             __HAL_DMA_DISABLE(huart6.hdmarx);
+//             this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
+//             __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
+//             huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+//             __HAL_DMA_ENABLE(huart6.hdmarx);
+//             fifo_s_puts(&referee_fifo, (char*)usart6_buf[1], this_time_rx_len);
+//             detect_hook(REFEREE_TOE);
+//         }
+//     }
+// }
+
 void USART6_IRQHandler(void)
 {
-    // static volatile uint8_t res;
-    // if(USART6->SR & UART_FLAG_IDLE)
-    // {
-    //     __HAL_UART_CLEAR_PEFLAG(&huart6);
+    if(USART_GetITStatus(USART6, USART_IT_IDLE) != RESET)
+    {
+        USART_ReceiveData(USART6);
 
-    //     static uint16_t this_time_rx_len = 0;
+        static uint16_t this_time_rx_len = 0;
 
-    //     if ((huart6.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET)
-    //     {
-    //         __HAL_DMA_DISABLE(huart6.hdmarx);
-    //         this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
-    //         __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
-    //         huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
-    //         __HAL_DMA_ENABLE(huart6.hdmarx);
-    //         fifo_s_puts(&referee_fifo, (char*)usart6_buf[0], this_time_rx_len);
-    //         detect_hook(REFEREE_TOE);
-    //     }
-    //     else
-    //     {
-    //         __HAL_DMA_DISABLE(huart6.hdmarx);
-    //         this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
-    //         __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
-    //         huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
-    //         __HAL_DMA_ENABLE(huart6.hdmarx);
-    //         fifo_s_puts(&referee_fifo, (char*)usart6_buf[1], this_time_rx_len);
-    //         detect_hook(REFEREE_TOE);
-    //     }
-    // }
+        if (DMA_GetCurrentMemoryTarget(DMA2_Stream1) == 0)
+        {
+            DMA_Cmd(DMA1_Stream1, DISABLE);
+            this_time_rx_len = USART_RX_BUF_LENGHT - DMA_GetCurrDataCounter(DMA2_Stream1);
+            DMA_SetCurrDataCounter(DMA1_Stream1, USART_RX_BUF_LENGHT);
+            DMA2_Stream1->CR |= DMA_SxCR_CT;
+            fifo_s_puts(&referee_fifo, (char*)usart6_buf[0], this_time_rx_len);
+            DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1 | DMA_FLAG_HTIF1);
+            DMA_Cmd(DMA2_Stream1, ENABLE);
+            // detect_hook(REFEREE_TOE);
+        }
+        else
+        {
+            DMA_Cmd(DMA1_Stream1, DISABLE);
+            this_time_rx_len = USART_RX_BUF_LENGHT - DMA_GetCurrDataCounter(DMA2_Stream1);
+            DMA_SetCurrDataCounter(DMA1_Stream1, USART_RX_BUF_LENGHT);
+            DMA2_Stream1->CR &= ~(DMA_SxCR_CT);
+            fifo_s_puts(&referee_fifo, (char*)usart6_buf[1], this_time_rx_len);
+            DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1 | DMA_FLAG_HTIF1);
+            DMA_Cmd(DMA2_Stream1, ENABLE);
+            // detect_hook(REFEREE_TOE);
+        }
+    }
 }
-
 
