@@ -17,7 +17,7 @@
 #include "referee_usart_task.h"
 #include "main.h"
 
-// #include "bsp_usart.h"
+#include "referee_usart.h"
 // #include "detect_task.h"
 
 #include "CRC8_CRC16.h"
@@ -51,36 +51,28 @@ fifo_s_t referee_fifo;
 uint8_t referee_fifo_buf[REFEREE_FIFO_BUF_LENGTH];
 unpack_data_t referee_unpack_obj;
 
-/**
-  * @brief          referee task
-  * @param[in]      pvParameters: NULL
-  * @retval         none
-  */
+
 /**
   * @brief          裁判系统任务
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
-void referee_usart_task(void const * argument)
+void referee_usart_task(void *pvParameters)
 {
-    // init_referee_struct_data();
-    // fifo_s_init(&referee_fifo, referee_fifo_buf, REFEREE_FIFO_BUF_LENGTH);
-    // usart6_init(usart6_buf[0], usart6_buf[1], USART_RX_BUF_LENGHT);
+    init_referee_struct_data();
+    fifo_s_init(&referee_fifo, referee_fifo_buf, REFEREE_FIFO_BUF_LENGTH);
+    referee_init(usart6_buf[0], usart6_buf[1], USART_RX_BUF_LENGHT);
 
-    // while(1)
-    // {
+    while(1)
+    {
+        referee_unpack_fifo_data();
 
-    //     referee_unpack_fifo_data();
-    //     osDelay(10);
-    // }
+        vTaskDelay(10);
+    }
 }
 
 
-/**
-  * @brief          single byte upacked 
-  * @param[in]      void
-  * @retval         none
-  */
+
 /**
   * @brief          单字节解包
   * @param[in]      void
