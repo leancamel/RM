@@ -26,11 +26,12 @@
 
 #include "led.h"
 #include "adc.h"
+#include "buzzer.h"
 
 //#include "Detect_Task.h"
 #include "INS_Task.h"
 #include "gimbal_task.h"
-#include "chassis_remote_control.h"
+#include "chassis_task.h"
 #include "remote_control.h"
 #include "rc_handoff.h"
 #include "shoot.h"
@@ -92,6 +93,10 @@ void UserTask(void *pvParameters)
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        
+        //小陀螺测试
+        // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);
+        printf("%f, %f\n", local_chassis_move->wz, local_chassis_move->wz_set);
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
@@ -113,24 +118,59 @@ void UserTask(void *pvParameters)
         //拨弹轮电机PID调参
         // printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
 
-
-        uint8_t temp = rc_ch4_data_process(local_rc_ctrl->rc.ch[4]);
-        if(temp == SWITCH_UP)
-        {
-            led_green_toggle();
-        }
-        else if(temp == SWITCH_DOWN)
-        {
-            led_red_toggle();
-        }
         //计算底盘功率
+<<<<<<< HEAD
         // Bluetooth_Send("%d",5);
+=======
+        // Bluetooth_Send("%hd",5);
+>>>>>>> aada8dd4fe5641148897a3c1385b81471dda4d86
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);
 #endif
     }
 }
+
+
+/**
+  * @brief          蜂鸣器报警
+  * @param[in]      num:响声次数
+  * @retval         none
+  */
+void buzzer_warn(uint8_t num)
+{
+    static uint8_t show_num = 0;
+    static uint8_t stop_num = 100;
+    if(show_num == 0 && stop_num == 0)
+    {
+        show_num = num;
+        stop_num = 100;
+    }
+    else if(show_num == 0)
+    {
+        stop_num--;
+        buzzer_off();
+    }
+    else
+    {
+        static uint8_t tick = 0;
+        tick++;
+        if(tick < 50)
+        {
+            buzzer_off();
+        }
+        else if(tick < 100)
+        {
+            buzzer_on(64, 20);
+        }
+        else
+        {
+            tick = 0;
+            show_num--;
+        }
+    }
+}
+
 
 //计算底盘功率
 fp32 Power_Calc(void)

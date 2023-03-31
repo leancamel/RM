@@ -19,7 +19,7 @@
 #define CHASSIS_BEHAVIOUR_H
 #include "main.h"
 
-#include "chassis_remote_control.h"
+#include "chassis_task.h"
 
 typedef enum
 {
@@ -29,7 +29,8 @@ typedef enum
   CHASSIS_NO_FOLLOW_YAW,               //底盘不跟随角度，角度是开环的，但前后左右是有速度环
   CHASSIS_OPEN,                        //遥控器的值乘以比例直接发送到can总线上
 
-  
+  CHASSIS_ROTATION,                    //底盘小陀螺
+  CHASSIS_ROTATION_EXIT,               //小陀螺退出状态机
 } chassis_behaviour_e;
 
 #define CHASSIS_OPEN_RC_SCALE 10 //在chassis_open 模型下，遥控器乘以该比例发送到can上
@@ -38,4 +39,6 @@ extern void chassis_behaviour_mode_set(chassis_move_t* chassis_move_mode);
 
 extern void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
+//小陀螺控制云台模式为absolute
+extern bool_t rotation_cmd_gimbal_absolute(void);
 #endif

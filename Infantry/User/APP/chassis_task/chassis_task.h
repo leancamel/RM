@@ -14,8 +14,8 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2016 DJI****************************
   */
-#ifndef CHASSIS_REMOTE_CONTROL_H
-#define CHASSIS_REMOTE_CONTROL_H
+#ifndef CHASSIS_TASK_H
+#define CHASSIS_TASK_H
 #include "main.h"
 #include "remote_control.h"
 #include "pid.h"
@@ -37,8 +37,10 @@
 //在特殊模式下，可以通过遥控器控制旋转
 #define CHASSIS_WZ_CHANNEL 2
 
-//选择底盘状态 开关通道号
+//选择普通底盘状态 开关通道号
 #define MODE_CHANNEL 0
+//选择用户自定义模式状态 开关通道号
+#define SUPER_MODE_CHANNEL 1
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
 #define CHASSIS_VX_RC_SEN 0.006f
 //遥控器左右摇杆（max 660）转化成车体左右速度（m/s）的比例
@@ -88,6 +90,13 @@
 #define NORMAL_MAX_CHASSIS_SPEED_Y 3.9f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
 #define CHASSIS_WZ_SET_SCALE 0.1f
+//底盘控制任务周期
+#define CHASSIS_CTL_TIME 2
+
+//小陀螺旋转速度
+#define ROTATION_SPEED_MAX 2.0f
+#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX
+
 
 //摇摆原地不动摇摆最大角度(rad)
 #define SWING_NO_MOVE_ANGLE 0.7f
@@ -110,10 +119,11 @@
 
 typedef enum
 {
-  CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   
-  CHASSIS_VECTOR_NO_FOLLOW_YAW,       
-  CHASSIS_VECTOR_RAW,                 
+  CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   //底盘跟随云台
+  CHASSIS_VECTOR_NO_FOLLOW_YAW,       //底盘不跟随云台
+  CHASSIS_VECTOR_RAW,                 //底盘开环控制
 
+  CHASSIS_VECTOR_ROTATION,            //小陀螺旋转
 } chassis_mode_e;
 
 typedef struct
@@ -139,6 +149,11 @@ typedef struct
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;
   first_order_filter_type_t chassis_cmd_slow_set_vy;
+
+  ramp_function_source_t rotation_ramp_wz;   //小陀螺斜坡函数缓启动 停止
+  bool_t rotation_diraction;                 //小陀螺旋转的方向
+
+  int8_t last_super_channel;                //上一次遥控器开关所在的位置
 
   fp32 vx;                         //底盘速度 前进方向 前为正，单位 m/s
   fp32 vy;                         //底盘速度 左右方向 左为正  单位 m/s

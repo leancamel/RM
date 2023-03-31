@@ -26,7 +26,7 @@
 
 
 //射击发射开关通道数据
-#define SHOOT_RC_MODE_CHANNEL       1
+#define SHOOT_RC_MODE_CHANNEL       4
 //云台模式使用的开关通道
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
@@ -41,8 +41,8 @@
 #define SHOOT_DONE_KEY_OFF_TIME     15
 //鼠标长按判断
 #define PRESS_LONG_TIME             400
-//遥控器射击开关打下档一段时间后 连续发射子弹 用于清单
-#define RC_S_LONG_TIME              2000
+//遥控器射击开关打下档一段时间后 连续发射子弹 
+#define RC_S_LONG_TIME              200
 //摩擦轮高速 加速 时间
 #define UP_ADD_TIME                 80
 //电机反馈码盘值范围
@@ -53,13 +53,13 @@
 #define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*180)
 #define FULL_COUNT                  18  //  36/2
 //拨弹速度
-#define TRIGGER_SPEED               7.0f
+#define TRIGGER_SPEED               8.0f
 #define CONTINUE_TRIGGER_SPEED      12.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
-#define SWITCH_TRIGGER_ON           0       //子弹已到达限位开关
-#define SWITCH_TRIGGER_OFF          1       //子弹未到达限位开关
+// #define SWITCH_TRIGGER_ON           0       //子弹已到达限位开关
+// #define SWITCH_TRIGGER_OFF          1       //子弹未到达限位开关
 
 //卡单时间 以及反转时间
 #define BLOCK_TRIGGER_SPEED         1.0f
@@ -87,12 +87,10 @@
 typedef enum
 {
     SHOOT_STOP = 0,         //停止射击，摩擦轮停止转动
-    SHOOT_READY_FRIC,       //摩擦轮启动，直到达到指定转速，软件自动进入SHOOT_READY_BULLET
-    SHOOT_READY_BULLET,
-    SHOOT_READY,            //射击准备就绪
+    SHOOT_READY_FRIC,       //摩擦轮启动，直到达到指定转速，软件自动进入SHOOT_READY
+    SHOOT_READY,            //摩擦轮热身完毕 
     SHOOT_BULLET,           //射击
     SHOOT_CONTINUE_BULLET,  //持续射击
-    SHOOT_DONE,
 } shoot_mode_e;
 
 
@@ -126,9 +124,6 @@ typedef struct
     uint16_t reverse_time;
     bool_t move_flag;
 
-    bool_t key;         //微动开关
-    uint8_t key_time;
-
     uint16_t heat_limit;
     uint16_t heat;
 } shoot_control_t;
@@ -137,7 +132,6 @@ typedef struct
 extern void shoot_init(void);
 extern int16_t shoot_control_loop(void);
 
-void fric_loop(void);
 const shoot_control_t *get_shoot_control_point(void);
 #endif
 
