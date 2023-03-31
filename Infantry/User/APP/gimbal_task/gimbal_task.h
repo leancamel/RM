@@ -70,6 +70,8 @@
 
 //任务初始化 空闲一段时间
 #define GIMBAL_TASK_INIT_TIME 201
+//选择用户自定义模式状态 开关通道号
+#define SUPER_MODE_CHANNEL 1
 //yaw,pitch控制通道以及状态开关通道
 #define YawChannel 2
 #define PitchChannel 3
@@ -210,6 +212,8 @@ typedef struct
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
     Gimbal_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
+    
+    int8_t last_super_channel;          //上一次遥控器开关所在的位置
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);

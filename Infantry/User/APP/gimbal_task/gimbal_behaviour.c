@@ -24,6 +24,8 @@
 #include "buzzer.h"
 // #include "Detect_Task.h"
 
+#include "led.h"
+
 #include "user_lib.h"
 
 ////云台校准蜂鸣器响声
@@ -142,6 +144,17 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, Gimbal_Control
   */
 static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set);
 
+/**
+  * @brief          云台进入自瞄控制，电机是相对角度控制，
+  * @author         RM
+  * @param[in]      yaw轴角度控制，为角度的增量 单位 rad
+  * @param[in]      pitch轴角度控制，为角度的增量 单位 rad
+  * @param[in]      云台数据指针
+  * @retval         返回空
+  */
+static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set);
+
+
 //云台行为状态机
 static gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
 
@@ -193,6 +206,14 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
     }
+    else if (gimbal_behaviour == GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
+    }
+
+
+    gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }
 
 /**
@@ -244,6 +265,10 @@ void gimbal_behaviour_control_set(fp32 *add_yaw, fp32 *add_pitch, Gimbal_Control
     else if (gimbal_behaviour == GIMBAL_MOTIONLESS)
     {
         gimbal_motionless_control(&rc_add_yaw, &rc_add_pit, gimbal_control_set);
+    }
+    else if (gimbal_behaviour == GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_autoshoot_control(&rc_add_yaw, &rc_add_pit, gimbal_control_set);
     }
     //将控制增加量赋值
     *add_yaw = rc_add_yaw;
@@ -313,6 +338,8 @@ bool_t gimbal_cmd_to_voltage_warning_stop(void)
   */
 static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 {
+    static uint8_t countsuper = 0;//超级模式状态计数器
+
     if (gimbal_mode_set == NULL)
     {
         return;
@@ -372,6 +399,8 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     if (switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
         gimbal_behaviour = GIMBAL_ZERO_FORCE;
+        gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
+        countsuper = 0;
     }
     else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
@@ -382,13 +411,37 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
 
-    //底盘小陀螺需要GIMBAL_ABSOLUTE_ANGLE
-    if(rotation_cmd_gimbal_absolute()/* && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel])*/)
+    //超级模式判断进入
     {
-        // gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+        if(switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) 
+            && countsuper == 0 && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+        {
+            countsuper += 1;
+        }
+        else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) && countsuper == 1)
+        {
+            countsuper -= 1;
+        }
         
-        // 导电滑环暂时未安装，使用相对角度控制模式
-        gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+        // //底盘小陀螺
+        // if(rotation_cmd_gimbal_absolute() && countsuper < 2)
+        // {
+        //     countsuper += 2;
+        // }
+        // else if(countsuper >= 2)
+        // {
+        //     countsuper -= 2;
+        // }
+        if(countsuper == 0)
+        {
+            led_red_off();
+        }
+        else if(countsuper == 1)
+        {
+            led_red_on();
+            gimbal_behaviour = GIMBAL_AUTO_SHOOT;
+            return;
+        }
     }
 
     // if( toe_is_error(DBUSTOE))
@@ -628,3 +681,22 @@ static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *
     *yaw = 0.0f;
     *pitch = 0.0f;
 }
+
+/**
+  * @brief          云台进入自瞄控制，电机是相对角度控制，
+  * @author         RM
+  * @param[in]      yaw轴角度控制，为角度的增量 单位 rad
+  * @param[in]      pitch轴角度控制，为角度的增量 单位 rad
+  * @param[in]      云台数据指针
+  * @retval         返回空
+  */
+static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set)
+{
+    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL)
+    {
+        return;
+    }
+    *yaw = 0.0f;
+    *pitch = 0.0f;
+}
+
