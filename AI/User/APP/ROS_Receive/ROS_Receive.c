@@ -4,82 +4,29 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#define CRC_Len 2		// CRC 校验位长度
-#define Packet_Len 14	//接收数据包长，12位数据位 + 2位 CRC 校验位
-#define Start_Byte 0xFF	//接收起始帧
-#define Response_Start_Byte_1 0x55	//发送起始帧1
-#define Response_Start_Byte_2 0xAA	//发送起始帧2
-ROS_Msg_Struct ROS_Msg;
-ROS_Response_Struct ROS_Response;
+//ROS出错数据上限
+#define ROS_Receive_ERROR_VALUE 500
 
-uint8_t Serial_RxPacket[Packet_Len];
+static uint8_t ROS_rx_buf[2][ROS_RX_BUF_NUM];
+static ROS_Msg_t ROS_Msg;
 
-uint8_t CRC_Data[Packet_Len];
-/**
- * @brief	初始化发送、接收结构体数据初始化
- * @return	void
- */
-void ROS_Msg_Init(void)
+//将串口接收到的数据转化为ROS实际的数据
+void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg);
+//发送速度信息给ROS
+void ROS_Send_Msg(void);
+//初始化DMA，串口1
+void ROS_Init(void)
 {
-	ROS_Msg.gimbal_x = 0;
-	ROS_Msg.gimbal_y = 0;
-	ROS_Msg.gimbal_z = 0;
-	ROS_Msg.vx_set = 0;
-	ROS_Msg.vy_set = 0;
-	ROS_Msg.wz_set = 0;
-
-	ROS_Response.response = 0x00;
-	return;
-}
-/**
- * @brief	将接受到的 int 数据除以 1000 后转换需要的 float 数据
- * @param	p_Byte	传入的 Byte 数组指针
- * @return	转换后的 float 数据
- */
-float Byte_To_Float(unsigned char *p_Byte,unsigned char offest)
-{
-	short temp_int = (*(p_Byte + offest) << 8) | *(p_Byte + offest + 1);
-	return (float)temp_int / 1000;
-}
-/**
- * @brief	将接受到的数据封装进结构体
- * @return	void
- */
-void Pack_Msg(void)
-{
-	ROS_Msg.gimbal_x = Byte_To_Float(CRC_Data,0);
-	ROS_Msg.gimbal_y = Byte_To_Float(CRC_Data,2);
-	ROS_Msg.gimbal_z = Byte_To_Float(CRC_Data,4);
-	ROS_Msg.vx_set = Byte_To_Float(CRC_Data,6);
-	ROS_Msg.vy_set = Byte_To_Float(CRC_Data,8);
-	ROS_Msg.wz_set = Byte_To_Float(CRC_Data,10);
-	return;
-}
-/**
- * @brief	获取接受到的底盘速度信息
- * @param	vx_set	m/s
- * @param	vy_set	m/s
- * @param	wz_set	rad/s
- * @return	void
- */
-void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *wz_set)
-{
-	*vx_set = ROS_Msg.vx_set;
-	*vy_set = ROS_Msg.vy_set;
-	*wz_set = ROS_Msg.wz_set;
-}
-/**
- * @brief	获取接受到的云台控制信息
- * @param	vx_set	m/s
- * @param	vy_set	m/s
- * @param	wz_set	rad/s
- * @return	void
- */
-void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
-{
-	*gimbal_x = ROS_Msg.gimbal_x;
-	*gimbal_y = ROS_Msg.gimbal_y;
-	*gimbal_z = ROS_Msg.gimbal_z;
+    ROS_Receive_Init(ROS_rx_buf[0], ROS_rx_buf[1], ROS_RX_BUF_NUM);
+	ROS_Msg.vx_set.float_data = 0.0f;
+	ROS_Msg.vy_set.float_data = 0.0f;
+	ROS_Msg.wz_set.float_data = 0.0f;
+	ROS_Msg.yaw_add.float_data = 0.0f;
+	ROS_Msg.pitch_add.float_data = 0.0f;
+	ROS_Msg.mode = 0x00;
+	ROS_Msg.vx.float_data = 0.0f;
+	ROS_Msg.vy.float_data = 0.0f;
+	ROS_Msg.wz.float_data = 0.0f;
 }
 /**
  * @brief	将待发送数据封装进结构体,若传入的数据大于等于10,则不进行更新
@@ -91,37 +38,11 @@ void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
 void Pack_Response(fp32 vx,fp32 vy,fp32 wz)
 {
 	if(vx < 10)
-		ROS_Response.vx = vx;
+		ROS_Msg.vx.float_data = vx;
 	if(vy < 10)
-		ROS_Response.vy = vy;
+		ROS_Msg.vy.float_data = vy;
 	if(wz < 10)
-		ROS_Response.wz = wz;
-	return;
-}
-/**
- * @brief	将 float 数据乘 1000 转换为 short 数据发出
- * @param 	msg	待发送的 float 数据
- * @return 	void
- */
-void Send_Float(fp32 msg)
-{
-	short temp_short = msg * 1000;
-	Serial_SendByte((temp_short & 0xFF00) >> 8);
-	Serial_SendByte(temp_short & 0x00FF);
-	return;
-}
-/**
- * @brief	将 ROS_Response 结构体内的数据发出
- * @return	void
- */
-void Msg_Response(void)
-{
-	Serial_SendByte(Response_Start_Byte_1);
-	Serial_SendByte(Response_Start_Byte_2);
-	Send_Float(ROS_Response.vx);
-	Send_Float(ROS_Response.vy);
-	Send_Float(ROS_Response.wz);
-	Serial_SendByte(ROS_Response.response);
+		ROS_Msg.wz.float_data = wz;
 	return;
 }
 /**
@@ -153,44 +74,140 @@ void getModbusCRC16(unsigned char *_pBuf, unsigned short int _usLen)
     *(_pBuf + _usLen) = (CRCValue & 0xFF00) >> 8; 		// CRC 校验码高位
     *(_pBuf + _usLen + 1) = CRCValue & 0x00FF;			// CRC 校验码低位
     return;            
-} 
+}
 //串口中断函数
 void USART1_IRQHandler(void)
 {
-	static uint8_t RxState = 0;
-	static uint8_t pRxPacket = 0;
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+    {
+        USART_ReceiveData(USART1);
+    }
+    else if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
+    {
+        static uint16_t this_time_rx_len = 0;
+        USART_ReceiveData(USART1);
+
+        if(DMA_GetCurrentMemoryTarget(DMA2_Stream5) == 0)
+        {
+            //重新设置DMA
+            DMA_Cmd(DMA2_Stream5, DISABLE);
+            this_time_rx_len = ROS_RX_BUF_NUM - DMA_GetCurrDataCounter(DMA2_Stream5);
+            DMA_SetCurrDataCounter(DMA2_Stream5, ROS_RX_BUF_NUM);
+            DMA2_Stream5->CR |= DMA_SxCR_CT;
+            //清DMA中断标志
+            DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5 | DMA_FLAG_HTIF5);
+            DMA_Cmd(DMA2_Stream5, ENABLE);
+            if(this_time_rx_len == ROS_FRAME_LENGTH)
+            {
+                //处理ROS数据
+				UART_to_ROS_Msg(ROS_rx_buf[0], &ROS_Msg);
+            }
+        }
+        else
+        {
+            //重新设置DMA
+            DMA_Cmd(DMA2_Stream5, DISABLE);
+            this_time_rx_len = ROS_RX_BUF_NUM - DMA_GetCurrDataCounter(DMA2_Stream5); 
+            DMA_SetCurrDataCounter(DMA2_Stream5, ROS_RX_BUF_NUM);
+            DMA2_Stream5->CR &= ~(DMA_SxCR_CT);
+            //清DMA中断标志
+            DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5 | DMA_FLAG_HTIF5);
+            DMA_Cmd(DMA2_Stream5, ENABLE);
+            if(this_time_rx_len == ROS_FRAME_LENGTH)
+            {
+                //处理ROS数据
+				UART_to_ROS_Msg(ROS_rx_buf[1], &ROS_Msg);
+            }
+        }
+    }
+}
+
+void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
+{
+	if(uart_buf == NULL || ros_msg == NULL || uart_buf[0] != ROS_START_BYTE)
 	{
-		uint8_t RxData = USART_ReceiveData(USART1);
-		if (RxState == 0)
-		{
-			if (RxData == Start_Byte)
-			{
-				RxState = 1;
-				pRxPacket = 0;
-			}
-		}
-		else if (RxState == 1)
-		{
-			Serial_RxPacket[pRxPacket] = RxData;
-			CRC_Data[pRxPacket] = RxData;
-			pRxPacket ++;
-			if (pRxPacket >= Packet_Len)
-			{
-				getModbusCRC16(CRC_Data,Packet_Len - CRC_Len);
-				if((CRC_Data[12] == Serial_RxPacket[12]) && (CRC_Data[13] == Serial_RxPacket[13]))
-				{
-					Pack_Msg();
-					ROS_Response.response = 0x00;
-				}
-				else
-				{
-					ROS_Response.response = 0xFF;
-				}
-				RxState = 0;
-				Msg_Response(); 
-			}
-		}
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+		return;
+	}
+
+    uint8_t CRC1 = *(uart_buf + 22);
+    uint8_t CRC2 = *(uart_buf + 23);
+	getModbusCRC16(uart_buf + 1,21);
+
+	if(CRC1 == *(uart_buf + 22) && CRC2 == *(uart_buf + 23))
+    {
+        ros_msg->vx_set.byte_data[0] = *(uart_buf + 1);
+        ros_msg->vx_set.byte_data[1] = *(uart_buf + 2);
+        ros_msg->vx_set.byte_data[2] = *(uart_buf + 3);
+        ros_msg->vx_set.byte_data[3] = *(uart_buf + 4);
+
+		ros_msg->vy_set.byte_data[0] = *(uart_buf + 5);
+        ros_msg->vy_set.byte_data[1] = *(uart_buf + 6);
+        ros_msg->vy_set.byte_data[2] = *(uart_buf + 7);
+        ros_msg->vy_set.byte_data[3] = *(uart_buf + 8);
+
+		ros_msg->wz_set.byte_data[0] = *(uart_buf + 9);
+        ros_msg->wz_set.byte_data[1] = *(uart_buf + 10);
+        ros_msg->wz_set.byte_data[2] = *(uart_buf + 11);
+        ros_msg->wz_set.byte_data[3] = *(uart_buf + 12);
+
+		ros_msg->yaw_add.byte_data[0] = *(uart_buf + 13);
+		ros_msg->yaw_add.byte_data[1] = *(uart_buf + 14);
+		ros_msg->yaw_add.byte_data[2] = *(uart_buf + 15);
+		ros_msg->yaw_add.byte_data[3] = *(uart_buf + 16);
+
+		ros_msg->pitch_add.byte_data[0] = *(uart_buf + 17);
+		ros_msg->pitch_add.byte_data[1] = *(uart_buf + 18);
+		ros_msg->pitch_add.byte_data[2] = *(uart_buf + 19);
+		ros_msg->pitch_add.byte_data[3] = *(uart_buf + 20);
+
+		ros_msg->mode = *(uart_buf + 21);
+
+		ROS_Send_Msg();
+    }
+}
+
+void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *angle_set)
+{
+	*vx_set = ROS_Msg.vx_set.float_data;
+	*vy_set = ROS_Msg.vy_set.float_data;
+	*angle_set = ROS_Msg.wz_set.float_data;
+}
+
+void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
+{
+	*yaw_add = ROS_Msg.yaw_add.float_data;
+	*pitch_add = ROS_Msg.pitch_add.float_data;
+}
+
+// void Get_Mode_Msg()
+// {
+	
+// }
+
+void ROS_Send_Msg(void)
+{
+	Serial_SendByte(ROS_START_BYTE);
+	uint8_t CRC_Buff[14];
+
+	CRC_Buff[0] = ROS_Msg.vx.byte_data[0];
+	CRC_Buff[1] = ROS_Msg.vx.byte_data[1];
+	CRC_Buff[2] = ROS_Msg.vx.byte_data[2];
+	CRC_Buff[3] = ROS_Msg.vx.byte_data[3];
+
+	CRC_Buff[4] = ROS_Msg.vy.byte_data[0];
+	CRC_Buff[5] = ROS_Msg.vy.byte_data[1];
+	CRC_Buff[6] = ROS_Msg.vy.byte_data[2];
+	CRC_Buff[7] = ROS_Msg.vy.byte_data[3];
+
+	CRC_Buff[8] = ROS_Msg.wz.byte_data[0];
+	CRC_Buff[9] = ROS_Msg.wz.byte_data[1];
+	CRC_Buff[10] = ROS_Msg.wz.byte_data[2];
+	CRC_Buff[11] = ROS_Msg.wz.byte_data[3];
+
+	getModbusCRC16(CRC_Buff,12);
+
+	for(int i=0;i<14;i++)
+	{
+		Serial_SendByte(CRC_Buff[i]);
 	}
 }

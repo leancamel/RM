@@ -292,6 +292,9 @@ static void imu_cali_solve(fp32 gyro[3], fp32 accel[3], fp32 mag[3], bmi088_real
         accel[i] = bmi088->accel[0] * accel_scale_factor[i][0] + bmi088->accel[1] * accel_scale_factor[i][1] + bmi088->accel[2] * accel_scale_factor[i][2] + accel_offset[i];
         mag[i] = ist8310->mag[0] * mag_scale_factor[i][0] + ist8310->mag[1] * mag_scale_factor[i][1] + ist8310->mag[2] * mag_scale_factor[i][2] + mag_offset[i];
     }
+    // printf("%.5f, %.5f, %.5f, %.5f, %.5f, %.5f, %.5f\n",gyro[0],gyro[0],gyro[0],gyro[0],gyro[0],gyro[0],gyro[0]);
+    if(gyro[0] < 0.03f && gyro[0] > -0.03f)
+        gyro[0] = 0.0f;
 }
 
 /**

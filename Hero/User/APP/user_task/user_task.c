@@ -87,6 +87,7 @@ void UserTask(void *pvParameters)
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        printf("%.5f\n", angle_degree[0]);
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
@@ -110,7 +111,7 @@ void UserTask(void *pvParameters)
         // printf("%f\n",Power_Calc());
 
         //蓝牙测试
-        Bluetooth_Send("%f",Power_Calc());
+        // Bluetooth_Send("%f",Power_Calc());
 
 
         vTaskDelay(10);

@@ -11,6 +11,8 @@ void Bluetooth_Send(char *string, ...)
 {
     Serial_SendByte(0XA5);                      //发送数据包头
     char *ptr_string = string;                  //避免直接使用string，导致string指向的地址发生变化 
+    char *byte_data;
+    short *short_data;
     int int_data;
     float float_data;
     void* void_ptr = &float_data;
@@ -25,6 +27,24 @@ void Bluetooth_Send(char *string, ...)
         {
             switch(*++ptr_string)
             {
+                case 'c':
+                    byte_data = va_arg(ap,char*);
+                    sum_buff = *byte_data;
+                    sum += sum_buff;
+                    Serial_SendByte(sum_buff);
+                    break;
+                case 'h':
+                    if(*++ptr_string == 'd')
+                    {
+                        short_data = va_arg(ap,short*);
+                        for (int i = 0; i < 2; i++)
+                        {
+                            sum_buff = (uint16_t)*short_data & (0xFF << 8*i);
+                            sum += sum_buff;
+                            Serial_SendByte(sum_buff);
+                        }
+                    }
+                    break;
                 case 'd':
                     int_data = va_arg(ap, int);  //检索变量
                     for (int i = 0; i < 4; i++)
@@ -35,14 +55,13 @@ void Bluetooth_Send(char *string, ...)
                     }
                     break;
                 case 'f':
-                    float_data = va_arg(ap, float);
+                    float_data = va_arg(ap, double);
                     for (int i = 0; i < 4; i++)
                     {
                         sum_buff = float_buff[i];
                         sum += sum_buff;
                         Serial_SendByte(sum_buff);
                     }
-                    break;
                 default:
                     break;
             }
