@@ -161,8 +161,6 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 		ros_msg->pitch_add.byte_data[3] = *(uart_buf + 20);
 
 		ros_msg->mode = *(uart_buf + 21);
-
-		ROS_Send_Msg();
     }
 }
 
