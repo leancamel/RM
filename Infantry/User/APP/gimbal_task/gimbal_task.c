@@ -397,7 +397,7 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_pitch_motor.relative_angle_set = gimbal_init->gimbal_pitch_motor.relative_angle;
     gimbal_init->gimbal_pitch_motor.motor_gyro_set = gimbal_init->gimbal_pitch_motor.motor_gyro;
 
-
+    gimbal_init->last_super_channel = gimbal_init->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }
 
 static void GIMBAL_Set_Mode(Gimbal_Control_t *gimbal_set_mode)
@@ -679,7 +679,7 @@ void gimbal_offset_init(void)
     gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
     gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 
-    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;//1450
+    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;
     gimbal_control.gimbal_pitch_motor.max_relative_angle = 0.65;
     gimbal_control.gimbal_pitch_motor.min_relative_angle = -0.45;
 }
