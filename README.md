@@ -99,6 +99,11 @@
 * [x] ~~*解决底盘移动途中开启小陀螺的平稳过渡问题,需要重写斜坡函数*~~
 * [ ] 小陀螺退出后，有一段时间无响应
 * [ ] 底盘小陀螺状态机中，云台yaw电机引入前馈控制
+* [ ] 重写控制量设置函数
+  ```c
+  //陀螺仪 控制量限制
+  static void GIMBAL_absolute_angle_limit(Gimbal_Motor_t *gimbal_motor, fp32 add)
+  ```
 
 #### 任务2 自瞄
 

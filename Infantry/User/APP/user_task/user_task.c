@@ -119,11 +119,7 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
 
         //计算底盘功率
-<<<<<<< HEAD
-        // Bluetooth_Send("%d",5);
-=======
         // Bluetooth_Send("%hd",5);
->>>>>>> aada8dd4fe5641148897a3c1385b81471dda4d86
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

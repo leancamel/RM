@@ -62,9 +62,9 @@ static TaskHandle_t LEDTask_Handler;
 #define VOLTAGE_TASK_SIZE 128
 static TaskHandle_t VoltageTask_Handler;
 
-// #define CALIBRATE_TASK_PRIO 5
-// #define CALIBRATE_STK_SIZE 128
-// static TaskHandle_t CalibrateTask_Handler;
+#define CALIBRATE_TASK_PRIO 5
+#define CALIBRATE_STK_SIZE 128
+static TaskHandle_t CalibrateTask_Handler;
 
 // #define Detect_TASK_PRIO 10
 // #define Detect_STK_SIZE 128
@@ -123,12 +123,12 @@ void start_task(void *pvParameters)
                 (UBaseType_t)Chassis_TASK_PRIO,
                 (TaskHandle_t *)&ChassisTask_Handler);
     
-    // xTaskCreate((TaskFunction_t)calibrate_task,
-    //             (const char *)"CaliTask",
-    //             (uint16_t)CALIBRATE_STK_SIZE,
-    //             (void *)NULL,
-    //             (UBaseType_t)CALIBRATE_TASK_PRIO,
-    //             (TaskHandle_t *)&CalibrateTask_Handler);
+    xTaskCreate((TaskFunction_t)calibrate_task,
+                (const char *)"CaliTask",
+                (uint16_t)CALIBRATE_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)CALIBRATE_TASK_PRIO,
+                (TaskHandle_t *)&CalibrateTask_Handler);
 
     xTaskCreate((TaskFunction_t)battery_voltage_task,
                 (const char *)"VoltageTask",
