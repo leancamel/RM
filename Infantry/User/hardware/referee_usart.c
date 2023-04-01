@@ -35,10 +35,10 @@ void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 
     USART_DMACmd(USART6, USART_DMAReq_Rx, ENABLE);
 
-    // USART_ClearFlag(USART6, USART_FLAG_RXNE);
-    // USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
-    USART_ClearFlag(USART6, USART_IT_IDLE);
-    USART_ITConfig(USART6, USART_IT_IDLE, ENABLE);
+    USART_ClearFlag(USART6, USART_FLAG_RXNE);
+    USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
+    // USART_ClearFlag(USART6, USART_IT_IDLE);
+    // USART_ITConfig(USART6, USART_IT_IDLE, ENABLE);
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;
@@ -70,6 +70,7 @@ void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
     DMA_DoubleBufferModeConfig(DMA2_Stream1, (uint32_t)rx2_buf, DMA_Memory_0);//双缓冲模式
     DMA_DoubleBufferModeCmd(DMA2_Stream1, ENABLE);
     DMA_Cmd(DMA2_Stream1, ENABLE);
+
 }
 
 void referee_restart(uint16_t dma_buf_num)

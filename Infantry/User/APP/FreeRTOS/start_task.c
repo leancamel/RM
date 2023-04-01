@@ -32,6 +32,7 @@
 
 // #include "detect_task.h"
 #include "calibrate_task.h"
+#include "referee_usart_task.h"
 
 
 #define START_TASK_PRIO 1
@@ -69,6 +70,10 @@ static TaskHandle_t CalibrateTask_Handler;
 // #define Detect_TASK_PRIO 10
 // #define Detect_STK_SIZE 128
 // static TaskHandle_t DetectTask_Handler;
+
+#define REFEREE_TASK_PRIO 15
+#define REFEREE_STK_SIZE 128
+static TaskHandle_t RefreeTask_Handler;
 
 void LED_task(void *pvParameters)
 {
@@ -144,6 +149,12 @@ void start_task(void *pvParameters)
     //             (UBaseType_t)Detect_TASK_PRIO,
     //             (TaskHandle_t *)&DetectTask_Handler);
 
+	xTaskCreate((TaskFunction_t)referee_usart_task,
+                (const char *)"VoltageTask",
+                (uint16_t)REFEREE_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)REFEREE_TASK_PRIO,
+                (TaskHandle_t *)&RefreeTask_Handler);
 
     vTaskDelete(StartTask_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区
