@@ -80,7 +80,7 @@ void referee_restart(uint16_t dma_buf_num)
 
     USART_ClearFlag(USART6, USART_FLAG_IDLE);
 
-    DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF5);
+    DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1);
     DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
     DMA_Cmd(DMA2_Stream1, ENABLE);
     USART_Cmd(USART6, ENABLE);
