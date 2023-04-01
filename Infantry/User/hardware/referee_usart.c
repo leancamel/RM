@@ -1,20 +1,20 @@
 #include "referee_usart.h"
 #include "stm32f4xx.h"
 
-//UART6_Tx PG14    UART6_Rx PG8
+//UART6_Tx PG14    UART6_Rx PG9
 void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
 
-    GPIO_PinAFConfig(GPIOG, GPIO_PinSource8, GPIO_AF_USART6);
+    GPIO_PinAFConfig(GPIOG, GPIO_PinSource9, GPIO_AF_USART6);
     GPIO_PinAFConfig(GPIOG, GPIO_PinSource14, GPIO_AF_USART6);
     
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_14;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -35,10 +35,10 @@ void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 
     USART_DMACmd(USART6, USART_DMAReq_Rx, ENABLE);
 
-    USART_ClearFlag(USART6, USART_FLAG_RXNE);
-    USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
-    // USART_ClearFlag(USART6, USART_IT_IDLE);
-    // USART_ITConfig(USART6, USART_IT_IDLE, ENABLE);
+    // USART_ClearFlag(USART6, USART_FLAG_RXNE);
+    // USART_ITConfig(USART6, USART_IT_RXNE, ENABLE);
+    USART_ClearFlag(USART6, USART_IT_IDLE);
+    USART_ITConfig(USART6, USART_IT_IDLE, ENABLE);
 	
 	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;
