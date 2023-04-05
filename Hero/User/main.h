@@ -1,6 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdbool.h>
+
 typedef signed char int8_t;
 typedef signed short int int16_t;
 typedef signed int int32_t;
@@ -40,5 +42,6 @@ typedef double fp64;
 #ifndef PI
 #define PI 3.14159265358979f
 #endif
+
 
 #endif /* __MAIN_H */

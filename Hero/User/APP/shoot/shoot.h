@@ -27,7 +27,7 @@
 
 
 //射击发射开关通道数据
-#define SHOOT_RC_MODE_CHANNEL       1
+#define SHOOT_RC_MODE_CHANNEL       4
 //云台模式使用的开关通道
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
