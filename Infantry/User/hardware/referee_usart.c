@@ -1,20 +1,20 @@
 #include "referee_usart.h"
 #include "stm32f4xx.h"
 
-//UART6_Tx PG14    UART6_Rx PG8
+//UART6_Tx PG14    UART6_Rx PG9
 void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOG, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART6, ENABLE);
 
-    GPIO_PinAFConfig(GPIOG, GPIO_PinSource8, GPIO_AF_USART6);
+    GPIO_PinAFConfig(GPIOG, GPIO_PinSource9, GPIO_AF_USART6);
     GPIO_PinAFConfig(GPIOG, GPIO_PinSource14, GPIO_AF_USART6);
     
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_14;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_14;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -70,6 +70,7 @@ void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
     DMA_DoubleBufferModeConfig(DMA2_Stream1, (uint32_t)rx2_buf, DMA_Memory_0);//双缓冲模式
     DMA_DoubleBufferModeCmd(DMA2_Stream1, ENABLE);
     DMA_Cmd(DMA2_Stream1, ENABLE);
+
 }
 
 void referee_restart(uint16_t dma_buf_num)
@@ -80,7 +81,7 @@ void referee_restart(uint16_t dma_buf_num)
 
     USART_ClearFlag(USART6, USART_FLAG_IDLE);
 
-    DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF5);
+    DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1);
     DMA_ClearITPendingBit(DMA2_Stream1, DMA_IT_TCIF1);
     DMA_Cmd(DMA2_Stream1, ENABLE);
     USART_Cmd(USART6, ENABLE);
