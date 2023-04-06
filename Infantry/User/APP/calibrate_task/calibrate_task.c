@@ -222,7 +222,7 @@ static void RC_cmd_to_calibrate(void)
         CAN_CMD_CHASSIS_RESET_ID();
         CAN_CMD_CHASSIS_RESET_ID();
         CAN_CMD_CHASSIS_RESET_ID();
-        //cali_buzzer_off();
+        cali_buzzer_off();
     }
 
 

@@ -26,6 +26,11 @@
 #include "Gimbal_Task.h"
 #include "pid.h"
 
+/*底盘CAN_ID
+  4     3
+
+  1     2
+*/
 
 //任务开始空闲一段时间
 #define CHASSIS_TASK_INIT_TIME 357
