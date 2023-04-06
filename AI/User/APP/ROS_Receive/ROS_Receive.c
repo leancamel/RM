@@ -3,7 +3,7 @@
 #include "uart1.h"
 #include <stdio.h>
 #include <stdarg.h>
-
+#include "detect_task.h"
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
 
@@ -128,7 +128,6 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 	{
 		return;
 	}
-
     uint8_t CRC1 = *(uart_buf + 22);
     uint8_t CRC2 = *(uart_buf + 23);
 	getModbusCRC16(uart_buf + 1,21);
@@ -177,10 +176,45 @@ void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 	*pitch_add = ROS_Msg.pitch_add.float_data;
 }
 
-// void Get_Mode_Msg()
-// {
-	
-// }
+void Get_Mode_Msg(chassis_behaviour_e *chassis_behaviour_mode,gimbal_behaviour_e *gimbal_behaviour)
+{
+	if(chassis_behaviour_mode != NULL)
+	{
+		switch(ROS_Msg.mode & 0x03)
+		{
+			case 0x00:
+				*chassis_behaviour_mode = CHASSIS_NO_MOVE;
+				break;
+			case 0x01:
+				*chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+				break;
+			case 0x02:
+				*chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+				break;
+			default:
+				*chassis_behaviour_mode = CHASSIS_NO_MOVE;
+				break;
+		}
+	}
+	if(gimbal_behaviour != NULL)
+	{
+		switch(ROS_Msg.mode & 0x03)
+		{
+			case 0x00:
+				*gimbal_behaviour = GIMBAL_ZERO_FORCE;
+				break;
+			case 0x01:
+				*gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+				break;
+			case 0x02:
+				*gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+				break;
+			default:
+				*gimbal_behaviour = GIMBAL_ZERO_FORCE;
+				break;
+		}
+	}
+}
 
 void ROS_Send_Msg(void)
 {

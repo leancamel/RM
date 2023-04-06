@@ -35,7 +35,8 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "detect_task.h"
+#include "ROS_Receive.h"
 //电机编码值规整 0—8191
 #define ECD_Format(ecd)         \
     {                           \
@@ -105,8 +106,8 @@ void GIMBAL_task(void *pvParameters)
     //等待陀螺仪任务更新陀螺仪数据
     vTaskDelay(GIMBAL_TASK_INIT_TIME);
     //云台初始化
-    GIMBAL_Init(&gimbal_control);
     gimbal_offset_init();
+    GIMBAL_Init(&gimbal_control);
     //射击初始化
     shoot_init();
     
@@ -142,7 +143,8 @@ void GIMBAL_task(void *pvParameters)
         Shoot_Can_Set_Current = -Shoot_Can_Set_Current;
 #endif
 
-        CAN_CMD_GIMBAL(Yaw_Can_Set_Current, Pitch_Can_Set_Current, Shoot_Can_Set_Current, 0);
+        // CAN_CMD_GIMBAL(Yaw_Can_Set_Current, Pitch_Can_Set_Current, Shoot_Can_Set_Current, 0);
+        CAN_CMD_GIMBAL(Yaw_Can_Set_Current, Pitch_Can_Set_Current, 0, 0);
         
         //云台在遥控器掉线状态即relax 状态，can指令为0，不使用current设置为零的方法，是保证遥控器掉线一定使得云台停止
         // if (!(toe_is_error(YawGimbalMotorTOE) && toe_is_error(PitchGimbalMotorTOE) && toe_is_error(TriggerMotorTOE)))
@@ -204,7 +206,7 @@ void set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset
   * @param[in]      pitch 最大相对角度 指针
   * @param[in]      pitch 最小相对角度 指针
   * @retval         返回1 代表成功校准完毕， 返回0 代表未校准完
-  * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
+  * @waring         这个函数使用到 gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch)
 {
@@ -397,7 +399,7 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_pitch_motor.relative_angle_set = gimbal_init->gimbal_pitch_motor.relative_angle;
     gimbal_init->gimbal_pitch_motor.motor_gyro_set = gimbal_init->gimbal_pitch_motor.motor_gyro;
 
-
+    gimbal_init->last_super_channel = gimbal_init->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }
 
 static void GIMBAL_Set_Mode(Gimbal_Control_t *gimbal_set_mode)
@@ -421,12 +423,20 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
                                                                                           gimbal_feedback_update->gimbal_pitch_motor.offset_ecd);
     gimbal_feedback_update->gimbal_pitch_motor.motor_gyro = *(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_Y_ADDRESS_OFFSET);
 
+#if PITCH_TURN
+    gimbal_feedback_update->gimbal_pitch_motor.relative_angle = -gimbal_feedback_update->gimbal_pitch_motor.relative_angle;
+#endif
+
     gimbal_feedback_update->gimbal_yaw_motor.absolute_angle = *(gimbal_feedback_update->gimbal_INT_angle_point + INS_YAW_ADDRESS_OFFSET);
     gimbal_feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
                                                                                         gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
 
     gimbal_feedback_update->gimbal_yaw_motor.motor_gyro = arm_cos_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_Z_ADDRESS_OFFSET))
                                                         - arm_sin_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_X_ADDRESS_OFFSET));
+
+#if YAW_TURN
+    gimbal_feedback_update->gimbal_yaw_motor.relative_angle = -gimbal_feedback_update->gimbal_yaw_motor.relative_angle;
+#endif
 }
 //计算相对角度
 static fp32 motor_ecd_to_angle_change(uint16_t ecd, uint16_t offset_ecd)
@@ -494,7 +504,7 @@ static void GIMBAL_Set_Contorl(Gimbal_Control_t *gimbal_set_control)
     fp32 add_yaw_angle = 0.0f;
     fp32 add_pitch_angle = 0.0f;
 
-    gimbal_behaviour_control_set(&add_yaw_angle, &add_pitch_angle, gimbal_set_control);
+	gimbal_behaviour_control_set(&add_yaw_angle, &add_pitch_angle, gimbal_set_control);
     //yaw电机模式控制
     if (gimbal_set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW)
     {
@@ -667,11 +677,11 @@ const Gimbal_Control_t *get_gimbal_control_point(void)
 
 void gimbal_offset_init(void)
 {
-    gimbal_control.gimbal_yaw_motor.offset_ecd = 7319;
-    gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/2;
-    gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/2;
+    gimbal_control.gimbal_yaw_motor.offset_ecd = 160;
+    gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
+    gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 
-    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;//1450
+    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;
     gimbal_control.gimbal_pitch_motor.max_relative_angle = 0.65;
     gimbal_control.gimbal_pitch_motor.min_relative_angle = -0.45;
 }

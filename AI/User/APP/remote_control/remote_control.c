@@ -1,6 +1,6 @@
 #include "Remote_Control.h"
 #include "stm32f4xx.h"
-
+#include "detect_task.h"
 #include "rc.h"
 
 //#include "Detect_Task.h"
@@ -111,7 +111,7 @@ void USART3_IRQHandler(void)
                 //处理遥控器数据
                 SBUS_TO_RC(SBUS_rx_buf[0], &rc_ctrl);
                 //记录数据接收时间
-                //DetectHook(DBUSTOE);
+                detect_hook(DBUS_TOE);
             }
         }
         else
@@ -129,7 +129,7 @@ void USART3_IRQHandler(void)
                 //处理遥控器数据
                 SBUS_TO_RC(SBUS_rx_buf[1], &rc_ctrl);
                 //记录数据接收时间
-                //DetectHook(DBUSTOE);
+                detect_hook(DBUS_TOE);
             }
 
         }

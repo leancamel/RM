@@ -47,12 +47,6 @@ void UART1_Init(void)
     USART_Cmd(USART1, ENABLE);
 }
 
-void Serial_SendByte(uint8_t Byte)
-{
-    USART_SendData(USART1, Byte);
-    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
-}
-
 void ROS_Receive_Init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 {
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
@@ -111,3 +105,10 @@ void ROS_Receive_restart(uint16_t dma_buf_num)
     DMA_Cmd(DMA2_Stream5, ENABLE);
     USART_Cmd(USART1, ENABLE);
 }
+
+void Serial_SendByte(uint8_t Byte)
+{
+    USART_SendData(USART1, Byte);
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+}
+

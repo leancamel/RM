@@ -3,7 +3,7 @@
 #include "main.h"
 
 #define CHASSIS_CAN CAN2
-#define GIMBAL_CAN CAN1
+#define GIMBAL_CAN CAN2
 
 /* CAN send and receive ID */
 typedef enum

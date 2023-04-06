@@ -26,8 +26,8 @@
 #include "remote_control.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_KP 8000.0f
-#define PITCH_SPEED_PID_KI 30.0f
+#define PITCH_SPEED_PID_KP 3600.0f
+#define PITCH_SPEED_PID_KI 20.0f
 #define PITCH_SPEED_PID_KD 0.0f
 #define PITCH_SPEED_PID_MAX_OUT 30000.0f
 #define PITCH_SPEED_PID_MAX_IOUT 3000.0f
@@ -47,14 +47,14 @@
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_KP 2400.0f
+#define YAW_SPEED_PID_KP 3400.0f
 #define YAW_SPEED_PID_KI 15.0f
 #define YAW_SPEED_PID_KD 0.0f
 #define YAW_SPEED_PID_MAX_OUT 30000.0f
 #define YAW_SPEED_PID_MAX_IOUT 5000.0f
 
 //yaw 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
-#define YAW_GYRO_ABSOLUTE_PID_KP 18.0f
+#define YAW_GYRO_ABSOLUTE_PID_KP 15.0f
 #define YAW_GYRO_ABSOLUTE_PID_KI 0.0f
 #define YAW_GYRO_ABSOLUTE_PID_KD 0.4f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_OUT 12.0f
@@ -70,6 +70,8 @@
 
 //任务初始化 空闲一段时间
 #define GIMBAL_TASK_INIT_TIME 201
+//选择用户自定义模式状态 开关通道号
+#define SUPER_MODE_CHANNEL 1
 //yaw,pitch控制通道以及状态开关通道
 #define YawChannel 2
 #define PitchChannel 3
@@ -210,6 +212,8 @@ typedef struct
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
     Gimbal_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
+    
+    int8_t last_super_channel;          //上一次遥控器开关所在的位置
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);
