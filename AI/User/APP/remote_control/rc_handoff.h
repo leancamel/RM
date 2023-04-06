@@ -1,5 +1,5 @@
 #ifndef RC_HANDOFF_H
-#define RC_HANDODD_H
+#define RC_HANDOFF_H
 #include "main.h"
 
 uint8_t rc_ch4_data_process(int16_t ch);
