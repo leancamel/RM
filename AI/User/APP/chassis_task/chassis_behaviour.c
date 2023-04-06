@@ -213,6 +213,12 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 		Get_Chassis_Mode(&chassis_behaviour_mode);
 		led_red_on();
 	}
+    
+    if(gimbal_cmd_to_chassis_stop())
+    {
+        chassis_behaviour_mode = CHASSIS_NO_MOVE;
+    }
+
     // chassis_behavour_set(chassis_move_mode);
 
     //根据行为状态机选择底盘状态机
