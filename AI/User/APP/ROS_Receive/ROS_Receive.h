@@ -32,7 +32,8 @@ void ROS_Init(void);
 void Pack_Response(fp32 vx,fp32 vy,fp32 wz);
 void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *angle_set);
 void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add);
-void Get_Mode_Msg(chassis_behaviour_e *chassis_behaviour_mode,gimbal_behaviour_e *gimbal_behaviour);
+void Get_Chassis_Mode(chassis_behaviour_e *chassis_behaviour_mode);
+void Get_Gimbal_Mode(gimbal_behaviour_e *gimbal_behaviour);
 void ROS_Send_Msg(void);
 
 #endif

@@ -210,7 +210,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 	}
     else
 	{
-		Get_Mode_Msg(&chassis_behaviour_mode,NULL);
+		Get_Chassis_Mode(&chassis_behaviour_mode);
 		led_red_on();
 	}
     // chassis_behavour_set(chassis_move_mode);

@@ -430,7 +430,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 	}
     else
 	{
-		Get_Mode_Msg(NULL,gimbal_behaviour);
+		Get_Gimbal_Mode(&gimbal_behaviour);
 		led_red_on();
 	}
 

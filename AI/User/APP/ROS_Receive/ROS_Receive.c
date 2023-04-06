@@ -176,7 +176,7 @@ void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 	*pitch_add = ROS_Msg.pitch_add.float_data;
 }
 
-void Get_Mode_Msg(chassis_behaviour_e *chassis_behaviour_mode,gimbal_behaviour_e *gimbal_behaviour)
+void Get_Chassis_Mode(chassis_behaviour_e *chassis_behaviour_mode)
 {
 	if(chassis_behaviour_mode != NULL)
 	{
@@ -196,6 +196,10 @@ void Get_Mode_Msg(chassis_behaviour_e *chassis_behaviour_mode,gimbal_behaviour_e
 				break;
 		}
 	}
+}
+
+void Get_Gimbal_Mode(gimbal_behaviour_e *gimbal_behaviour)
+{
 	if(gimbal_behaviour != NULL)
 	{
 		switch(ROS_Msg.mode & 0x03)
