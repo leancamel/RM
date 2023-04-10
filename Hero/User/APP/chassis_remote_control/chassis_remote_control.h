@@ -39,6 +39,8 @@
 
 //选择底盘状态 开关通道号
 #define MODE_CHANNEL 0
+//选择用户自定义模式状态 开关通道号
+#define SUPER_MODE_CHANNEL 1
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
 #define CHASSIS_VX_RC_SEN 0.004f
 //遥控器左右摇杆（max 660）转化成车体左右速度（m/s）的比例
@@ -88,6 +90,13 @@
 #define NORMAL_MAX_CHASSIS_SPEED_Y 2.9f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
 #define CHASSIS_WZ_SET_SCALE 0.1f
+//底盘控制任务周期
+#define CHASSIS_CTL_TIME 2
+
+//小陀螺旋转速度
+#define ROTATION_SPEED_MAX 2.0f
+#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX
+
 
 //摇摆原地不动摇摆最大角度(rad)
 #define SWING_NO_MOVE_ANGLE 0.7f
@@ -102,7 +111,7 @@
 #define M3505_MOTOR_SPEED_PID_MAX_IOUT 2000.0f
 
 //底盘旋转跟随PID
-#define CHASSIS_FOLLOW_GIMBAL_PID_KP 15.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.15f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 5.0f
@@ -115,11 +124,7 @@ typedef enum
   CHASSIS_VECTOR_NO_FOLLOW_YAW,       
   CHASSIS_VECTOR_RAW,                 
 
-  //  CHASSIS_AUTO,                    
-  //  CHASSIS_FOLLOW_YAW,              
-  //  CHASSIS_ENCODER,                 
-  //  CHASSIS_NO_ACTION,               
-  //  CHASSIS_RELAX,                   
+  CHASSIS_VECTOR_ROTATION,            //小陀螺旋转                  
 } chassis_mode_e;
 
 typedef struct
@@ -145,6 +150,11 @@ typedef struct
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;
   first_order_filter_type_t chassis_cmd_slow_set_vy;
+
+  ramp_function_source_t rotation_ramp_wz;   //小陀螺斜坡函数缓启动 停止
+  bool_t rotation_diraction;                 //小陀螺旋转的方向
+
+  int8_t last_super_channel;                //上一次遥控器开关所在的位置
 
   fp32 vx;                         //底盘速度 前进方向 前为正，单位 m/s
   fp32 vy;                         //底盘速度 左右方向 左为正  单位 m/s

@@ -43,8 +43,8 @@ static void chassis_init(chassis_move_t *chassis_move_init);
 static void chassis_set_mode(chassis_move_t *chassis_move_mode);
 //底盘数据更新
 static void chassis_feedback_update(chassis_move_t *chassis_move_update);
-//底盘状态改变后处理控制量的改变static
-void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit);
+//底盘状态改变后处理控制量的改变
+static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit);
 //底盘设置根据遥控器控制量
 static void chassis_set_contorl(chassis_move_t *chassis_move_control);
 //底盘PID计算以及运动分解
@@ -80,7 +80,7 @@ void chassis_task(void *pvParameters)
 
 /**
   * @brief          设置遥控器输入控制量
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_control    底盘结构体指针
   * @retval         void
   */
@@ -112,19 +112,6 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
         chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
     }
-    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW)
-    {
-        fp32 delat_angle = 0.0f;
-        //放弃跟随云台
-        //设置底盘控制的角度
-        chassis_move_control->chassis_yaw_set = rad_format(angle_set);
-        delat_angle = rad_format(chassis_move_control->chassis_yaw_set - chassis_move_control->chassis_yaw);
-        //计算旋转的角速度
-        chassis_move_control->wz_set = PID_Calc(&chassis_move_control->chassis_angle_pid, 0.0f, delat_angle);
-        //设置底盘运动的速度
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
-    }
     else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
         //放弃跟随云台
@@ -142,11 +129,20 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
         chassis_move_control->chassis_cmd_slow_set_vx.out = 0.0f;
         chassis_move_control->chassis_cmd_slow_set_vy.out = 0.0f; 
     }
+    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_ROTATION)
+    {
+        chassis_move_control->wz_set = 0;
+        // 小陀螺模式下，角度设置的为 角速度
+        fp32 rotation_wz = angle_set;
+        chassis_move_control->wz_set = rotation_wz;
+        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
+        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
+    }
 }
 
 /**
   * @brief          底盘初始化
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_init   底盘结构体指针
   * @retval         void
   */
@@ -186,6 +182,8 @@ void chassis_init(chassis_move_t *chassis_move_init)
     //用一阶滤波代替斜波函数生成
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, chassis_x_order_filter);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, chassis_y_order_filter);
+    //小陀螺旋转 斜波函数缓启
+    ramp_init(&chassis_move_init->rotation_ramp_wz, CHASSIS_CTL_TIME * 0.001f, ROTATION_SPEED_MAX, 0);
 
     //最大 最小速度
     chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
@@ -194,13 +192,16 @@ void chassis_init(chassis_move_t *chassis_move_init)
     chassis_move_init->vy_max_speed = NORMAL_MAX_CHASSIS_SPEED_Y;
     chassis_move_init->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y;
 
+    //初始化超级模式通道的开关状态，防止开机时，遥控器未还原造成的意外 不可删去！！！！
+    chassis_move_init->last_super_channel = chassis_move_init->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
+
     //更新一下数据
     chassis_feedback_update(chassis_move_init);
 }
 
 /**
   * @brief          ͨ设置遥控器设置状态
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_mode   底盘结构体指针
   * @retval         void
   */
@@ -216,7 +217,7 @@ void chassis_set_mode(chassis_move_t *chassis_move_mode)
 
 /**
   * @brief          遥控器状态切换数据保存
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_transit    底盘结构体指针
   * @retval         void
   */
@@ -237,15 +238,16 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     {
         chassis_move_transit->chassis_relative_angle_set = 0.0f;
     }
-    //切入跟随底盘角度模式
-    else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW)
-    {
-        chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
-    }
     //切入不跟随云台模式
     else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_NO_FOLLOW_YAW) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
+    }
+    //切入小陀螺模式
+    else if((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_ROTATION) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_ROTATION)
+    {
+        chassis_move_transit->rotation_ramp_wz.out = fabs(chassis_move_transit->wz);
+        chassis_move_transit->rotation_diraction = chassis_move_transit->wz < 0 ? 1 : 0;
     }
 
     chassis_move_transit->last_chassis_mode = chassis_move_transit->chassis_mode;
@@ -253,7 +255,7 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
 
 /**
   * @brief          底盘数据更新
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_update 底盘结构体指针
   * @retval         void
   */
@@ -284,7 +286,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
 
 /**
   * @brief          遥控器的数据处理成底盘的前进vx速度，vy速度
-  * @author         wzl
+  * @author         pxx
   * @param          vx_set  x轴前进速度设置，m/s
   * @param          vy_set  y轴前进速度设置，m/s
   * @param          chassis_move_rc_to_vector   底盘结构体指针
@@ -346,7 +348,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
 /**
   * @brief          麦轮运动分解
-  * @author         wzl
+  * @author         pxx
   * @param          vx_set  x轴前进速度设置，m/s
   * @param          vy_set  y轴前进速度设置，m/s
   * @param          wz_set  z轴旋转速度设置，rad/s
@@ -364,7 +366,7 @@ void chassis_vector_to_mecanum_wheel_speed(const fp32 vx_set, const fp32 vy_set,
 
 /**
   * @brief          底盘控制PID计算
-  * @author         wzl
+  * @author         pxx
   * @param          chassis_move_control_loop   底盘结构体指针
   * @retval         void
   */
@@ -427,3 +429,4 @@ const chassis_move_t *get_chassis_control_point(void)
 {
     return &chassis_move;
 }
+
