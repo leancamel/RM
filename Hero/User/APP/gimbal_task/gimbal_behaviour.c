@@ -19,6 +19,7 @@
   */
 
 #include "gimbal_behaviour.h"
+#include "chassis_behaviour.h"
 #include "arm_math.h"
 #include "buzzer.h"
 // #include "Detect_Task.h"
@@ -198,6 +199,12 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
+    }
+    
+    if(rotation_cmd_gimbal_absolute())
+    {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
     }
 }
 
@@ -390,7 +397,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 
     //判断进入motionless状态机
     static uint16_t motionless_time = 0;
-    if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE)
+    if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE && !rotation_cmd_gimbal_absolute())
     {
         //遥控器 键盘均无输入，进入motionless状态
         if (int_abs(gimbal_mode_set->gimbal_rc_ctrl->rc.ch[0]) < GIMBAL_MOTIONLESS_RC_DEADLINE && int_abs(gimbal_mode_set->gimbal_rc_ctrl->rc.ch[1]) < GIMBAL_MOTIONLESS_RC_DEADLINE && int_abs(gimbal_mode_set->gimbal_rc_ctrl->rc.ch[2]) < GIMBAL_MOTIONLESS_RC_DEADLINE && int_abs(gimbal_mode_set->gimbal_rc_ctrl->rc.ch[3]) < GIMBAL_MOTIONLESS_RC_DEADLINE && int_abs(gimbal_mode_set->gimbal_rc_ctrl->mouse.x) < GIMBAL_MOTIONLESS_RC_DEADLINE && int_abs(gimbal_mode_set->gimbal_rc_ctrl->mouse.y) < GIMBAL_MOTIONLESS_RC_DEADLINE && gimbal_mode_set->gimbal_rc_ctrl->key.v == 0 && gimbal_mode_set->gimbal_rc_ctrl->mouse.press_l == 0 && gimbal_mode_set->gimbal_rc_ctrl->mouse.press_r == 0)
@@ -539,40 +546,40 @@ static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, Gimbal_Control
         return;
     }
 
-    {
-        static uint16_t last_turn_keyboard = 0;
-        static uint8_t gimbal_turn_flag = 0;
-        static fp32 gimbal_end_angle = 0.0f;
+    // {
+    //     static uint16_t last_turn_keyboard = 0;
+    //     static uint8_t gimbal_turn_flag = 0;
+    //     static fp32 gimbal_end_angle = 0.0f;
 
-        if ((gimbal_control_set->gimbal_rc_ctrl->key.v & TurnKeyBoard) && !(last_turn_keyboard & TurnKeyBoard))
-        {
-            if (gimbal_turn_flag == 0)
-            {
-                gimbal_turn_flag = 1;
-                //保存掉头的目标值
-                gimbal_end_angle = rad_format(gimbal_control_set->gimbal_yaw_motor.absolute_angle + PI);
-            }
-        }
-        last_turn_keyboard = gimbal_control_set->gimbal_rc_ctrl->key.v ;
+    //     if ((gimbal_control_set->gimbal_rc_ctrl->key.v & TurnKeyBoard) && !(last_turn_keyboard & TurnKeyBoard))
+    //     {
+    //         if (gimbal_turn_flag == 0)
+    //         {
+    //             gimbal_turn_flag = 1;
+    //             //保存掉头的目标值
+    //             gimbal_end_angle = rad_format(gimbal_control_set->gimbal_yaw_motor.absolute_angle + PI);
+    //         }
+    //     }
+    //     last_turn_keyboard = gimbal_control_set->gimbal_rc_ctrl->key.v ;
 
-        if (gimbal_turn_flag)
-        {
-            //不断控制到掉头的目标值，正转，反装是随机
-            if (rad_format(gimbal_end_angle - gimbal_control_set->gimbal_yaw_motor.absolute_angle) > 0.0f)
-            {
-                *yaw += TurnSpeed;
-            }
-            else
-            {
-                *yaw -= TurnSpeed;
-            }
-        }
-        //到达pi （180°）后停止
-        if (gimbal_turn_flag && fabs(rad_format(gimbal_end_angle - gimbal_control_set->gimbal_yaw_motor.absolute_angle)) < 0.01f)
-        {
-            gimbal_turn_flag = 0;
-        }
-    }
+    //     if (gimbal_turn_flag)
+    //     {
+    //         //不断控制到掉头的目标值，正转，反装是随机
+    //         if (rad_format(gimbal_end_angle - gimbal_control_set->gimbal_yaw_motor.absolute_angle) > 0.0f)
+    //         {
+    //             *yaw += TurnSpeed;
+    //         }
+    //         else
+    //         {
+    //             *yaw -= TurnSpeed;
+    //         }
+    //     }
+    //     //到达pi （180°）后停止
+    //     if (gimbal_turn_flag && fabs(rad_format(gimbal_end_angle - gimbal_control_set->gimbal_yaw_motor.absolute_angle)) < 0.01f)
+    //     {
+    //         gimbal_turn_flag = 0;
+    //     }
+    // }
 }
 /**
   * @brief          云台编码值控制，电机是相对角度控制，
