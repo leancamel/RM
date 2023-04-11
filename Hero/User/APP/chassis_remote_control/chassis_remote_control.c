@@ -131,12 +131,18 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     }
     else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_ROTATION)
     {
-        chassis_move_control->wz_set = 0;
+        fp32 sin_yaw = 0.0f, cos_yaw = 0.0f;
+        //旋转控制底盘速度方向，保证前进方向是云台方向，有利于运动平稳
+        sin_yaw = arm_sin_f32(-chassis_move_control->chassis_yaw_motor->relative_angle);
+        cos_yaw = arm_cos_f32(-chassis_move_control->chassis_yaw_motor->relative_angle);
+        chassis_move_control->vx_set = cos_yaw * vx_set + sin_yaw * vy_set;
+        chassis_move_control->vy_set = -sin_yaw * vx_set + cos_yaw * vy_set;
+
         // 小陀螺模式下，角度设置的为 角速度
         fp32 rotation_wz = angle_set;
         chassis_move_control->wz_set = rotation_wz;
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
+        chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
+        chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
     }
 }
 
