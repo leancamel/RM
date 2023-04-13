@@ -213,9 +213,9 @@ void USART6_IRQHandler(void)
 
         if (DMA_GetCurrentMemoryTarget(DMA2_Stream1) == 0)
         {
-            DMA_Cmd(DMA1_Stream1, DISABLE);
+            DMA_Cmd(DMA2_Stream1, DISABLE);
             this_time_rx_len = USART_RX_BUF_LENGHT - DMA_GetCurrDataCounter(DMA2_Stream1);
-            DMA_SetCurrDataCounter(DMA1_Stream1, USART_RX_BUF_LENGHT);
+            DMA_SetCurrDataCounter(DMA2_Stream1, USART_RX_BUF_LENGHT);
             DMA2_Stream1->CR |= DMA_SxCR_CT;
             fifo_s_puts(&referee_fifo, (char*)usart6_buf[0], this_time_rx_len);
             DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1 | DMA_FLAG_HTIF1);
@@ -224,9 +224,9 @@ void USART6_IRQHandler(void)
         }
         else
         {
-            DMA_Cmd(DMA1_Stream1, DISABLE);
+            DMA_Cmd(DMA2_Stream1, DISABLE);
             this_time_rx_len = USART_RX_BUF_LENGHT - DMA_GetCurrDataCounter(DMA2_Stream1);
-            DMA_SetCurrDataCounter(DMA1_Stream1, USART_RX_BUF_LENGHT);
+            DMA_SetCurrDataCounter(DMA2_Stream1, USART_RX_BUF_LENGHT);
             DMA2_Stream1->CR &= ~(DMA_SxCR_CT);
             fifo_s_puts(&referee_fifo, (char*)usart6_buf[1], this_time_rx_len);
             DMA_ClearFlag(DMA2_Stream1, DMA_FLAG_TCIF1 | DMA_FLAG_HTIF1);

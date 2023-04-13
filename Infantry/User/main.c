@@ -34,15 +34,7 @@ int main(void)
 
 	while(1)
 	{
-        static double compare = 1000;
-        if(compare < 1400)
-        {
-            compare += 0.1;
-        }
-        led_green_toggle();
-        fric1_on((uint16_t)compare);
-        fric2_on((uint16_t)compare);
-        delay_ms(1);
+		;
 	}
 }
 

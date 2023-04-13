@@ -44,7 +44,7 @@ void referee_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num)
 	NVIC_InitStructure.NVIC_IRQChannel = USART6_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = REFEREE_NVIC;
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init(&NVIC_InitStructure);
 
     DMA_InitTypeDef DMA_InitStructure;
