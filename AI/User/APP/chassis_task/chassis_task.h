@@ -31,11 +31,11 @@
 #define CHASSIS_TASK_INIT_TIME 357
 
 //前后的遥控器通道号码
-#define CHASSIS_X_CHANNEL 1
+#define CHASSIS_X_CHANNEL 3
 //左右的遥控器通道号码
-#define CHASSIS_Y_CHANNEL 0
+#define CHASSIS_Y_CHANNEL 2
 //在特殊模式下，可以通过遥控器控制旋转
-#define CHASSIS_WZ_CHANNEL 2
+#define CHASSIS_WZ_CHANNEL 0
 
 //选择普通底盘状态 开关通道号
 #define MODE_CHANNEL 0

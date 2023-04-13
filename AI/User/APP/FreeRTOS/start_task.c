@@ -55,10 +55,6 @@ TaskHandle_t INSTask_Handler;
 #define User_STK_SIZE 128
 static TaskHandle_t UserTask_Handler;
 
-#define LED_TASK_PRIO 10
-#define LED_STK_SIZE 128
-static TaskHandle_t LEDTask_Handler;
-
 #define VOLTAGE_TASK_PRIO 11
 #define VOLTAGE_TASK_SIZE 128
 static TaskHandle_t VoltageTask_Handler;
@@ -74,19 +70,6 @@ static TaskHandle_t DetectTask_Handler;
 #define REFEREE_TASK_PRIO 15
 #define REFEREE_STK_SIZE 128
 static TaskHandle_t RefreeTask_Handler;
-
-void LED_task(void *pvParameters)
-{
-    TickType_t lastTick = xTaskGetTickCount();
-    while(1)
-    {
-        vTaskDelayUntil(&lastTick, 500);
-        // led_blue_toggle();
-
-
-        //vTaskDelay(500);
-    }
-}   
 
 
 void start_task(void *pvParameters)
@@ -106,13 +89,6 @@ void start_task(void *pvParameters)
                 (void *)NULL,
                 (UBaseType_t)User_TASK_PRIO,
                 (TaskHandle_t *)&UserTask_Handler);
-
-    xTaskCreate((TaskFunction_t)LED_task,
-                (const char *)"LEDTask",
-                (uint16_t)LED_STK_SIZE,
-                (void *)NULL,
-                (UBaseType_t)LED_TASK_PRIO,
-                (TaskHandle_t *)&LEDTask_Handler);
 
     xTaskCreate((TaskFunction_t)GIMBAL_task,
                 (const char *)"GIMBAL_task",

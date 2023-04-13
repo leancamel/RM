@@ -73,8 +73,8 @@
 //选择用户自定义模式状态 开关通道号
 #define SUPER_MODE_CHANNEL 1
 //yaw,pitch控制通道以及状态开关通道
-#define YawChannel 2
-#define PitchChannel 3
+#define YawChannel 0
+#define PitchChannel 1
 #define ModeChannel 0
 //掉头180 按键
 #define TurnKeyBoard KEY_PRESSED_OFFSET_F

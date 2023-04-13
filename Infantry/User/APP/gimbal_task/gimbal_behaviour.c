@@ -667,8 +667,15 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, Gimbal_Control
     {
         return;
     }
-    *yaw = 0.0f;
-    //不需要处理，
+    
+    if(rotation_cmd_gimbal_absolute())
+    {
+        //不需要处理，
+    }
+    else
+    {
+        *yaw = 0;
+    }
 }
 /**
   * @brief          云台进入遥控器无输入控制，电机是相对角度控制，

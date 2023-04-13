@@ -35,6 +35,7 @@
 #include "remote_control.h"
 #include "rc_handoff.h"
 #include "shoot.h"
+#include "referee.h"
 
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
@@ -55,6 +56,8 @@ const shoot_control_t* local_shoot;
 KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
+
+fp32 local_power = 0, local_buffer = 0;
 
 fp32 Power_Calc(void);
 
@@ -91,6 +94,8 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
+        get_chassis_power_and_buffer(&local_power, &local_buffer);
+        printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
@@ -123,7 +128,7 @@ void UserTask(void *pvParameters)
         //计算底盘功率
         // Bluetooth_Send("%hd",5);
 
-		ROS_Send_Msg();
+		// ROS_Send_Msg();
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

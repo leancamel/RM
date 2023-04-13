@@ -81,7 +81,7 @@ void BSP_Init(void)
 
 	//CAN通信初始化
 	CAN1_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
-    CAN2_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
+    // CAN2_mode_init(CAN_SJW_1tq, CAN_BS2_2tq, CAN_BS1_6tq, 5, CAN_Mode_Normal);
 
 	//上电校准，flash读取函数，把校准值放回对应参数
     // cali_param_init();

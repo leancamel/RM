@@ -39,6 +39,7 @@
 #include "Kalman_Filter.h"
 #include "uart1.h"
 #include "bluetooth.h"
+#include "referee.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -52,6 +53,8 @@ KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
 extern shoot_control_t shoot_control;
+
+fp32 local_power = 0, local_buffer = 0;
 
 fp32 Power_Calc(void);
 
@@ -84,15 +87,17 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
+        get_chassis_power_and_buffer(&local_power, &local_buffer);
+        printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
-        printf("%.5f\n", angle_degree[0]);
+        // printf("%.5f\n", angle_degree[0]);
 
         //云台yaw电机角度环串速度环pid调参
-        // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
-        // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
+        printf("%.2f, %.2f, %.2f, %.2f\n", 
+        local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
+        local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 
         //云台pitch电机pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 

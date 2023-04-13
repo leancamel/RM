@@ -196,16 +196,16 @@ static void shoot_set_mode(void)
         shoot_control.shoot_mode = SHOOT_STOP;
     }
 
-    // //可以使用键盘开启摩擦轮
-    // if ((shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
-    // {
-    //     shoot_control.shoot_mode = SHOOT_READY_FRIC;
-    // }
-    // //可以使用键盘关闭摩擦轮
-    // else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
-    // {
-    //     shoot_control.shoot_mode = SHOOT_STOP;
-    // }
+    //可以使用键盘开启摩擦轮
+    if ((shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
+    {
+        shoot_control.shoot_mode = SHOOT_READY_FRIC;
+    }
+    //可以使用键盘关闭摩擦轮
+    else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
+    {
+        shoot_control.shoot_mode = SHOOT_STOP;
+    }
 
 
     if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
@@ -403,6 +403,7 @@ static void trigger_motor_turn_back(void)
   */
 static void shoot_bullet_control(void)
 {
+    static uint8_t trigger_count = 0;//拨弹轮 间断发射计数器
     //每次拨动 1/4PI的角度
     if (shoot_control.move_flag == 0)
     {
@@ -414,6 +415,7 @@ static void shoot_bullet_control(void)
     if (rad_format(shoot_control.set_angle - shoot_control.angle) > 0.05f)
     {
         //没到达一直设置旋转速度
+        trigger_count++;
         shoot_control.trigger_speed_set = TRIGGER_SPEED;
         trigger_motor_turn_back();
     }
@@ -421,6 +423,14 @@ static void shoot_bullet_control(void)
     {
         shoot_control.shoot_mode = SHOOT_READY;
         shoot_control.move_flag = 0;
+        trigger_count = 0;
+    }
+
+    if(trigger_count >= 100)
+    {
+        shoot_control.shoot_mode = SHOOT_READY;
+        shoot_control.move_flag = 0;
+        trigger_count = 0;
     }
 }
 

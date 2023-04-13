@@ -35,6 +35,7 @@
 #include "remote_control.h"
 #include "rc_handoff.h"
 #include "shoot.h"
+#include "referee.h"
 
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
@@ -52,6 +53,9 @@ const chassis_move_t* local_chassis_move;
 const RC_ctrl_t* local_rc_ctrl;
 const shoot_control_t* local_shoot;
 KalmanInfo Power_KalmanInfo_Structure;
+
+fp32 local_power = 0, local_buffer = 0;
+
 
 extern int8_t temp_set;
 
@@ -90,13 +94,16 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
+        //从裁判系统获取底盘功率
+        get_chassis_power_and_buffer(&local_power, &local_buffer);
+        printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         
         //小陀螺测试
         // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);
-        printf("%f, %f\n", local_chassis_move->wz, local_chassis_move->wz_set);
+        // printf("%f, %f\n", local_chassis_move->wz, local_chassis_move->wz_set);
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 

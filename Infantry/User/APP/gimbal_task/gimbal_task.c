@@ -24,6 +24,7 @@
 
 #include "arm_math.h"
 #include "gimbal_behaviour.h"
+#include "chassis_behaviour.h"
 #include "user_lib.h"
 #include "INS_Task.h"
 #include "remote_control.h"
@@ -92,6 +93,9 @@ static void GIMBAL_absolute_angle_limit(Gimbal_Motor_t *gimbal_motor, fp32 add);
 static void GIMBAL_relative_angle_limit(Gimbal_Motor_t *gimbal_motor, fp32 add);
 static void GIMBAL_PID_Init(Gimbal_PID_t *pid, fp32 maxout, fp32 intergral_limit, fp32 kp, fp32 ki, fp32 kd);
 static fp32 GIMBAL_PID_Calc(Gimbal_PID_t *pid, fp32 get, fp32 set, fp32 error_delta);
+
+//小陀螺状态机下 解除相对角度的限制
+static void GIMBAL_rotation_angle_set(Gimbal_Motor_t *gimbal_motor, fp32 add);
 
 static void calc_gimbal_cali(const Gimbal_Cali_t *gimbal_cali, uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch);
 
@@ -512,7 +516,14 @@ static void GIMBAL_Set_Contorl(Gimbal_Control_t *gimbal_set_control)
     else if (gimbal_set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO)
     {
         //gyro模式下，陀螺仪角度控制
-        GIMBAL_absolute_angle_limit(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
+        if(!rotation_cmd_gimbal_absolute())
+        {
+            GIMBAL_absolute_angle_limit(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
+        }
+        else
+        {
+            GIMBAL_rotation_angle_set(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
+        }
     }
     else if (gimbal_set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE)
     {
@@ -564,6 +575,18 @@ static void GIMBAL_absolute_angle_limit(Gimbal_Motor_t *gimbal_motor, fp32 add)
         {
             add = gimbal_motor->min_relative_angle - gimbal_motor->relative_angle - bias_angle;
         }
+    }
+
+    angle_set = gimbal_motor->absolute_angle_set;
+    gimbal_motor->absolute_angle_set = rad_format(angle_set + add);
+}
+
+static void GIMBAL_rotation_angle_set(Gimbal_Motor_t *gimbal_motor, fp32 add)
+{
+    static fp32 angle_set;
+    if (gimbal_motor == NULL)
+    {
+        return;
     }
 
     angle_set = gimbal_motor->absolute_angle_set;
@@ -675,7 +698,7 @@ const Gimbal_Control_t *get_gimbal_control_point(void)
 
 void gimbal_offset_init(void)
 {
-    gimbal_control.gimbal_yaw_motor.offset_ecd = 1580;
+    gimbal_control.gimbal_yaw_motor.offset_ecd = 5679;
     gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
     gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 
