@@ -27,9 +27,10 @@
 #include "CAN_receive.h"
 #include "gimbal_behaviour.h"
 #include "pid.h"
-// #include "detect_task.h"
+#include "detect_task.h"
 
 #include "rc_handoff.h"
+#include "ROS_Receive.h"
 
 #define shoot_fric1_on(pwm) fric1_on((pwm))
 #define shoot_fric2_on(pwm) fric2_on((pwm))
@@ -186,71 +187,78 @@ static void shoot_set_mode(void)
 {
     static bool_t last_shoot_switch = 0;
 
-    //上拨判断， 一次开启，再次关闭
-    if (switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode == SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_READY_FRIC;
-    }
-    else if(!switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode != SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_STOP;
-    }
+    if(toe_is_error(DBUS_TOE) == 0)
+	{
+		//上拨判断， 一次开启，再次关闭
+		if (switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode == SHOOT_STOP)
+		{
+			shoot_control.shoot_mode = SHOOT_READY_FRIC;
+		}
+		else if(!switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode != SHOOT_STOP)
+		{
+			shoot_control.shoot_mode = SHOOT_STOP;
+		}
 
-    //可以使用键盘开启摩擦轮
-    if ((shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_READY_FRIC;
-    }
-    //可以使用键盘关闭摩擦轮
-    else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_STOP;
-    }
-
-
-    if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
-    {
-        shoot_control.shoot_mode = SHOOT_READY;
-    }
-    else if(shoot_control.shoot_mode == SHOOT_READY)
-    {
-        //下拨一次或者鼠标按下一次，进入射击状态
-        if ((switch_is_shoot(shoot_control.shoot_rc->rc.ch[4]) && last_shoot_switch == 0) || (shoot_control.press_l && shoot_control.last_press_l == 0) || (shoot_control.press_r && shoot_control.last_press_r == 0))
-        {
-            shoot_control.shoot_mode = SHOOT_BULLET;
-        }
-    }
+		//可以使用键盘开启摩擦轮
+		if ((shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
+		{
+			shoot_control.shoot_mode = SHOOT_READY_FRIC;
+		}
+		//可以使用键盘关闭摩擦轮
+		else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
+		{
+			shoot_control.shoot_mode = SHOOT_STOP;
+		}
 
 
-    if(shoot_control.shoot_mode > SHOOT_READY_FRIC)
-    {
-        //鼠标长按或者开关长期处于下档一直进入射击状态 保持连发
-        if ((shoot_control.press_l_time == PRESS_LONG_TIME) || (shoot_control.press_r_time == PRESS_LONG_TIME) || (shoot_control.rc_s_time == RC_S_LONG_TIME))
-        {
-            shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
-        }
-        else if(shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
-        {
-            shoot_control.shoot_mode = SHOOT_READY;
-        }
-    }
+		if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
+		{
+			shoot_control.shoot_mode = SHOOT_READY;
+		}
+		else if(shoot_control.shoot_mode == SHOOT_READY)
+		{
+			//下拨一次或者鼠标按下一次，进入射击状态
+			if ((switch_is_shoot(shoot_control.shoot_rc->rc.ch[4]) && last_shoot_switch == 0) || (shoot_control.press_l && shoot_control.last_press_l == 0) || (shoot_control.press_r && shoot_control.last_press_r == 0))
+			{
+				shoot_control.shoot_mode = SHOOT_BULLET;
+			}
+		}
 
-    // get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
-    // if(!toe_is_error(REFEREE_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
-    // {
-    //     if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
-    //     {
-    //         shoot_control.shoot_mode =SHOOT_READY;
-    //     }
-    // }
 
-    //如果云台状态是 无力状态，就关闭射击
-    if (gimbal_cmd_to_shoot_stop())
-    {
-        shoot_control.shoot_mode = SHOOT_STOP;
-    }
+		if(shoot_control.shoot_mode > SHOOT_READY_FRIC)
+		{
+			//鼠标长按或者开关长期处于下档一直进入射击状态 保持连发
+			if ((shoot_control.press_l_time == PRESS_LONG_TIME) || (shoot_control.press_r_time == PRESS_LONG_TIME) || (shoot_control.rc_s_time == RC_S_LONG_TIME))
+			{
+				shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
+			}
+			else if(shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+			{
+				shoot_control.shoot_mode = SHOOT_READY;
+			}
+		}
 
-    last_shoot_switch = switch_is_shoot(shoot_control.shoot_rc->rc.ch[4]);
+		// get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
+		// if(!toe_is_error(REFEREE_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
+		// {
+		//     if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+		//     {
+		//         shoot_control.shoot_mode =SHOOT_READY;
+		//     }
+		// }
+
+		//如果云台状态是 无力状态，就关闭射击
+		if (gimbal_cmd_to_shoot_stop())
+		{
+			shoot_control.shoot_mode = SHOOT_STOP;
+		}
+
+		last_shoot_switch = switch_is_shoot(shoot_control.shoot_rc->rc.ch[4]);
+	}
+	else
+	{
+		Get_Shoot_Msg(&last_shoot_switch);
+	}
 }
 /**
   * @brief          射击数据更新

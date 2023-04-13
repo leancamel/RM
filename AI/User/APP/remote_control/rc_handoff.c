@@ -52,11 +52,11 @@ bool_t switch_is_shoot(uint16_t ch)
 {
     static bool_t shoot_flag = 0;
 
-    if(int_abs(ch) > CH4_HIGH_VALUE)
+    if(ch > CH4_HIGH_VALUE)
     {
         shoot_flag = 1;
     }
-    else if (int_abs(ch) < CH4_LOW_VALUE)
+    else if (ch < CH4_LOW_VALUE)
     {
         shoot_flag = 0;
     }

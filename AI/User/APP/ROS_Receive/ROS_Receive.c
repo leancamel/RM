@@ -4,11 +4,15 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "detect_task.h"
+#include "shoot.h"
+#include "gimbal_behaviour.h"
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
 
 static uint8_t ROS_rx_buf[2][ROS_RX_BUF_NUM];
 static ROS_Msg_t ROS_Msg;
+
+extern shoot_control_t shoot_control;
 
 //将串口接收到的数据转化为ROS实际的数据
 void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg);
@@ -217,6 +221,57 @@ void Get_Gimbal_Mode(gimbal_behaviour_e *gimbal_behaviour)
 				*gimbal_behaviour = GIMBAL_ZERO_FORCE;
 				break;
 		}
+	}
+}
+
+void Get_Shoot_Msg(bool_t *last_shoot_switch)
+{
+	//开摩擦轮
+	if (((ROS_Msg.mode & 0x04) == 0x04) && shoot_control.shoot_mode == SHOOT_STOP)
+	{
+		shoot_control.shoot_mode = SHOOT_READY_FRIC;
+	}
+	//关摩擦轮
+	else if(((ROS_Msg.mode & 0x04) != 0x04) && shoot_control.shoot_mode != SHOOT_STOP)
+	{
+		shoot_control.shoot_mode = SHOOT_STOP;
+	}
+	//摩擦轮准备完毕
+	if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
+	{
+		shoot_control.shoot_mode = SHOOT_READY;
+	}
+	//单发
+	else if(shoot_control.shoot_mode == SHOOT_READY)
+	{
+		if (((ROS_Msg.mode & 0x18) == 0x08) && *last_shoot_switch == 0)
+		{
+			shoot_control.shoot_mode = SHOOT_BULLET;
+		}
+	}
+	//连发
+	if(shoot_control.shoot_mode > SHOOT_READY_FRIC)
+	{
+		if ((ROS_Msg.mode & 0x10) == 0x10)
+		{
+			shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
+		}
+		else if(shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+		{
+			shoot_control.shoot_mode = SHOOT_READY;
+		}
+	}
+	if (gimbal_cmd_to_shoot_stop())
+	{
+		shoot_control.shoot_mode = SHOOT_STOP;
+	}
+	if((ROS_Msg.mode & 0x18) == 0x00)
+	{
+		*last_shoot_switch = 0;
+	}
+	else
+	{
+		*last_shoot_switch = 1;
 	}
 }
 
