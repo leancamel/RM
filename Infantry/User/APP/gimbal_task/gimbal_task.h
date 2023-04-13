@@ -101,7 +101,7 @@
 
 //电机是否反装
 #define PITCH_TURN 0
-#define YAW_TURN 0
+#define YAW_TURN 1
 #define TRIGGER_TURN 1
 
 //电机码盘值最大以及中值

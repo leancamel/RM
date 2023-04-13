@@ -698,11 +698,11 @@ const Gimbal_Control_t *get_gimbal_control_point(void)
 
 void gimbal_offset_init(void)
 {
-    gimbal_control.gimbal_yaw_motor.offset_ecd = 5679;
+    gimbal_control.gimbal_yaw_motor.offset_ecd = 6615;
     gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
     gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 
-    gimbal_control.gimbal_pitch_motor.offset_ecd = 1450;
+    gimbal_control.gimbal_pitch_motor.offset_ecd = 7983;
     gimbal_control.gimbal_pitch_motor.max_relative_angle = 0.65;
     gimbal_control.gimbal_pitch_motor.min_relative_angle = -0.45;
 }
