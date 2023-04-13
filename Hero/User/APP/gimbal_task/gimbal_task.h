@@ -210,6 +210,8 @@ typedef struct
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
     Gimbal_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
+
+    int8_t last_super_channel;          //上一次遥控器开关所在的位置
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);
