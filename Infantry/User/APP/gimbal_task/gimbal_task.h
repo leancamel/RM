@@ -139,6 +139,8 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 #endif
 
+#define YAW_ECD_TO_RAD Motor_Ecd_to_Rad/3
+
 typedef enum
 {
     GIMBAL_MOTOR_RAW = 0, //电机原始值控制

@@ -428,11 +428,37 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
 #if PITCH_TURN
     gimbal_feedback_update->gimbal_pitch_motor.relative_angle = -gimbal_feedback_update->gimbal_pitch_motor.relative_angle;
 #endif
-
     gimbal_feedback_update->gimbal_yaw_motor.absolute_angle = *(gimbal_feedback_update->gimbal_INT_angle_point + INS_YAW_ADDRESS_OFFSET);
-    gimbal_feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
-                                                                                        gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
 
+    // gimbal_feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
+    //                                                                                     gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
+    {
+        //云台yaw电机加上了减速箱，因此要更改反馈量计算方式
+        static int8_t ecd_count = 0;
+        int32_t relative_ecd = 0;
+        if(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->last_ecd > Half_ecd_range)
+        {
+            ecd_count--;
+        }
+        else if(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->last_ecd < -Half_ecd_range)
+        {
+            ecd_count++;
+        }
+        ecd_count = ecd_count % 3;
+        relative_ecd = ecd_count * ecd_range + gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.offset_ecd;
+
+        if(relative_ecd > 1.5 * ecd_range)
+        {
+            relative_ecd -= 3 * ecd_range;
+        }
+        else if(relative_ecd < -1.5 * ecd_range)
+        {
+            relative_ecd += 3 * ecd_range;
+        }
+        gimbal_feedback_update->gimbal_yaw_motor.relative_angle = relative_ecd * YAW_ECD_TO_RAD;
+    }
+  
+  
     gimbal_feedback_update->gimbal_yaw_motor.motor_gyro = arm_cos_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_Z_ADDRESS_OFFSET))
                                                         - arm_sin_f32(gimbal_feedback_update->gimbal_pitch_motor.relative_angle) * (*(gimbal_feedback_update->gimbal_INT_gyro_point + INS_GYRO_X_ADDRESS_OFFSET));
 
