@@ -24,8 +24,8 @@
 #include "arm_math.h"
 #include "detect_task.h"
 
-#define POWER_LIMIT         80.0f
-#define WARNING_POWER       40.0f   
+#define POWER_LIMIT         60.0f
+#define WARNING_POWER       20.0f   
 #define WARNING_POWER_BUFF  50.0f   
 
 #define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4, 
@@ -105,16 +105,16 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
     //计算原本电机电流设定
     for(uint8_t i = 0; i < 4; i++)
     {
-        total_current += fabs(chassis_power_control->motor_speed_pid[i].out);
+        total_current += fabs(chassis_power_control->motor_chassis[i].give_current);
     }
     
 
     if(total_current > total_current_limit)
     {
         fp32 current_scale = total_current_limit / total_current;
-        chassis_power_control->motor_speed_pid[0].out*=current_scale;
-        chassis_power_control->motor_speed_pid[1].out*=current_scale;
-        chassis_power_control->motor_speed_pid[2].out*=current_scale;
-        chassis_power_control->motor_speed_pid[3].out*=current_scale;
+        chassis_power_control->motor_chassis[0].give_current *= current_scale;
+        chassis_power_control->motor_chassis[1].give_current *= current_scale;
+        chassis_power_control->motor_chassis[2].give_current *= current_scale;
+        chassis_power_control->motor_chassis[3].give_current *= current_scale;
     }
 }
