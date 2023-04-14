@@ -216,16 +216,16 @@ static void shoot_set_mode(void)
         shoot_control.shoot_mode = SHOOT_STOP;
     }
 
-    //使用键盘开启摩擦轮
-    if ((shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_READY_FRIC;
-    }
-    //使用键盘关闭摩擦轮
-    else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
-    {
-        shoot_control.shoot_mode = SHOOT_STOP;
-    }
+    // //处于中档， 可以使用键盘开启摩擦轮
+    // if (switch_is_mid(shoot_control.shoot_rc->rc.s[SHOOT_RC_MODE_CHANNEL]) && (shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP)
+    // {
+    //     shoot_control.shoot_mode = SHOOT_READY_FRIC;
+    // }
+    // //处于中档， 可以使用键盘关闭摩擦轮
+    // else if (switch_is_mid(shoot_control.shoot_rc->rc.s[SHOOT_RC_MODE_CHANNEL]) && (shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
+    // {
+    //     shoot_control.shoot_mode = SHOOT_STOP;
+    // }
 
     //摩擦轮达到最大转速，等待子弹自动上膛
     if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)

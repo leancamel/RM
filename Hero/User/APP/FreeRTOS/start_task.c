@@ -31,22 +31,22 @@
 #include "voltage_task.h"
 #include "chassis_remote_control.h"
 // #include "detect_task.h"
-#include "referee_usart_task.h"
+
 
 #define START_TASK_PRIO 1
-#define START_STK_SIZE 512
+#define START_STK_SIZE 128
 static TaskHandle_t StartTask_Handler;
 
 #define Chassis_TASK_PRIO 18
-#define Chassis_STK_SIZE 256
+#define Chassis_STK_SIZE 128
 TaskHandle_t ChassisTask_Handler;
 
 #define GIMBAL_TASK_PRIO 19
-#define GIMBAL_STK_SIZE 256
+#define GIMBAL_STK_SIZE 128
 TaskHandle_t GIMBALTask_Handler;
 
 #define INS_TASK_PRIO 20
-#define INS_TASK_SIZE 256
+#define INS_TASK_SIZE 128
 TaskHandle_t INSTask_Handler;
 
 #define User_TASK_PRIO 4
@@ -57,17 +57,31 @@ static TaskHandle_t UserTask_Handler;
 #define CALIBRATE_STK_SIZE 128
 static TaskHandle_t CalibrateTask_Handler;
 
+#define LED_TASK_PRIO 10
+#define LED_STK_SIZE 128
+static TaskHandle_t LEDTask_Handler;
+
 #define VOLTAGE_TASK_PRIO 11
 #define VOLTAGE_TASK_SIZE 128
 static TaskHandle_t VoltageTask_Handler;
+
 
 // #define Detect_TASK_PRIO 10
 // #define Detect_STK_SIZE 128
 // static TaskHandle_t DetectTask_Handler;
 
-#define REFEREE_TASK_PRIO 15
-#define REFEREE_STK_SIZE 512
-static TaskHandle_t RefreeTask_Handler;
+void LED_task(void *pvParameters)
+{
+    TickType_t lastTick = xTaskGetTickCount();
+    while(1)
+    {
+        vTaskDelayUntil(&lastTick, 500);
+        // led_blue_toggle();
+
+
+        //vTaskDelay(500);
+    }
+}   
 
 
 void start_task(void *pvParameters)
@@ -87,6 +101,13 @@ void start_task(void *pvParameters)
                 (void *)NULL,
                 (UBaseType_t)User_TASK_PRIO,
                 (TaskHandle_t *)&UserTask_Handler);
+
+    xTaskCreate((TaskFunction_t)LED_task,
+                (const char *)"LEDTask",
+                (uint16_t)LED_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)LED_TASK_PRIO,
+                (TaskHandle_t *)&LEDTask_Handler);
 
     xTaskCreate((TaskFunction_t)GIMBAL_task,
                 (const char *)"GIMBAL_task",
@@ -123,12 +144,6 @@ void start_task(void *pvParameters)
     //             (UBaseType_t)Detect_TASK_PRIO,
     //             (TaskHandle_t *)&DetectTask_Handler);
 
-	xTaskCreate((TaskFunction_t)referee_usart_task,
-              (const char *)"RefereeTask",
-              (uint16_t)REFEREE_STK_SIZE,
-              (void *)NULL,
-              (UBaseType_t)REFEREE_TASK_PRIO,
-              (TaskHandle_t *)&RefreeTask_Handler);
 
     vTaskDelete(StartTask_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区

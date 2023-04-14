@@ -56,7 +56,7 @@
 //yaw 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
 #define YAW_GYRO_ABSOLUTE_PID_KP 15.0f
 #define YAW_GYRO_ABSOLUTE_PID_KI 0.0f
-#define YAW_GYRO_ABSOLUTE_PID_KD 0.0f
+#define YAW_GYRO_ABSOLUTE_PID_KD 0.4f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_OUT 12.0f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_IOUT 0.0f
 
@@ -210,8 +210,6 @@ typedef struct
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
     Gimbal_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
-
-    int8_t last_super_channel;          //上一次遥控器开关所在的位置
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);

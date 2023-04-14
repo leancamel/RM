@@ -131,7 +131,7 @@ void CAN_CMD_CHASSIS_RESET_ID(void)
     TxMessage.Data[6] = 0;
     TxMessage.Data[7] = 0;
 
-    CAN_Transmit(CHASSIS_CAN, &TxMessage);
+    CAN_Transmit(CAN2, &TxMessage);
 }
 
 //发送底盘电机控制命令
