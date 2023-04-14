@@ -437,6 +437,10 @@ extern const fp32 *get_accel_data_point(void)
     return INS_accel;
 }
 
+extern const fp32 *get_accel_filter_point(void)
+{
+    return accel_fliter_3;
+}
 /**
   * @brief          获取加速度,0:x轴, 1:y轴, 2:roll轴 单位 ut
   * @param[in]      none

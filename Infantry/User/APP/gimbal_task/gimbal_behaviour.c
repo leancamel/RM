@@ -27,12 +27,17 @@
 #include "led.h"
 
 #include "user_lib.h"
-
+#include "INS_task.h"
+#include "Kalman_Filter.h"
+#include "stdio.h"
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
 
 #define int_abs(x) ((x) > 0 ? (x) : (-x))
+uint8_t init_step = 0;
+KalmanInfo accel_x_kalman;
+KalmanInfo accel_y_kalman;
 /**
   * @brief          遥控器的死区判断，因为遥控器的拨杆在中位的时候，不一定是发送1024过来，
   * @author         RM
@@ -214,8 +219,8 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
 
     if(rotation_cmd_gimbal_absolute())
     {
-        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
-        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
     }
 
 
@@ -299,6 +304,25 @@ bool_t gimbal_cmd_to_chassis_stop(void)
         return 0;
     }
 }
+/**
+  * @brief          云台在初始化行为下，需要底盘短时间移动
+  * @author         RM
+  * @param[in]      void
+  * @retval         返回空
+  */
+
+bool_t gimbal_init_cmd_chassis_move(void)
+{
+    if (init_step == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 
 /**
   * @brief          云台在某些行为下，需要射击停止
@@ -336,6 +360,7 @@ bool_t gimbal_cmd_to_voltage_warning_stop(void)
     }
 }
 
+
 /**
   * @brief          云台行为状态机设置，因为在cali等模式下使用了return，故而再用了一个函数
   * @author         RM
@@ -365,39 +390,88 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     //初始化模式判断是否到达中值位置
     if (gimbal_behaviour == GIMBAL_INIT)
     {
-        static uint16_t init_time = 0;
-        static uint16_t init_stop_time = 0;
-        init_time++;
-        //到达中值 计时
-        if ((fabs(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET) < GIMBAL_INIT_ANGLE_ERROR &&
-             fabs(gimbal_mode_set->gimbal_pitch_motor.absolute_angle - INIT_PITCH_SET) < GIMBAL_INIT_ANGLE_ERROR))
+        if(init_step == 0 || init_step == 2)
         {
-            //到达初始化位置
-            if (init_stop_time < GIMBAL_INIT_STOP_TIME)
+            static uint16_t init_time = 0;
+            static uint16_t init_stop_time = 0;
+            init_time++;
+            //到达中值 计时
+            if ((fabs(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET) < GIMBAL_INIT_ANGLE_ERROR &&
+                fabs(gimbal_mode_set->gimbal_pitch_motor.absolute_angle - INIT_PITCH_SET) < GIMBAL_INIT_ANGLE_ERROR))
             {
-                init_stop_time++;
+                //到达初始化位置
+                if (init_stop_time < GIMBAL_INIT_STOP_TIME)
+                {
+                    init_stop_time++;
+                }
             }
-        }
-        else
-        {
-            //没有到达初始化位置，时间计时
-            if (init_time < GIMBAL_INIT_TIME)
+            else
             {
-                init_time++;
+                //没有到达初始化位置，时间计时
+                if (init_time < GIMBAL_INIT_TIME)
+                {
+                    init_time++;
+                }
             }
-        }
 
-        //超过初始化最大时间，或者已经稳定到中值一段时间，退出初始化状态开关打下档，或者掉线
-        if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
-            !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]) )//&& !toe_is_error(DBUSTOE))
-        {
-            return;
+            //超过初始化最大时间，或者已经稳定到中值一段时间，退出初始化状态开关打下档，或者掉线
+            if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
+                !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]) )//&& !toe_is_error(DBUSTOE))
+            {
+                return;
+            }
+            else
+            {
+                buzzer_off();
+                init_stop_time = 0;
+                init_time = 0;
+                if(init_step == 0)
+                {
+                    init_step = 1;
+                    Kalman_Filter_Init(&accel_x_kalman);
+                    Kalman_Filter_Init(&accel_y_kalman);
+                    return;
+                }
+                else if(init_step == 2)
+                {
+                    
+                }
+            }
         }
-        else
+        else if(init_step == 1)
         {
-            buzzer_off();
-            init_stop_time = 0;
-            init_time = 0;
+            static int16_t yaw_ecd_cali_time = 0;
+
+            const fp32 *local_accel;
+            fp32 vx = 0.0f,vy = 0.0f;
+            local_accel = get_accel_filter_point();
+            Kalman_Filter_Fun(&accel_x_kalman,local_accel[0]);
+            Kalman_Filter_Fun(&accel_y_kalman,local_accel[1]);
+            if(fabs(accel_x_kalman.out) > 0.8f)
+                vx += accel_x_kalman.out;
+            if(fabs(accel_y_kalman.out) > 0.8f)
+                vy += accel_y_kalman.out;
+            printf("%.2f, %.2f\n",accel_x_kalman.out,accel_y_kalman.out);
+            if(yaw_ecd_cali_time > 90)
+            {
+                fp32 k = vy / vx;
+                if(k > -0.8f && k < 0.8f)
+                {
+                    gimbal_mode_set->ecd_count = 0;
+                }
+                else if(k >= 0.8f)
+                {
+                    gimbal_mode_set->ecd_count = 2;
+                }
+                else
+                {
+                    gimbal_mode_set->ecd_count = 1;
+                }
+                init_step = 2;
+            }
+
+            yaw_ecd_cali_time++;
+            return;
         }
     }
 
