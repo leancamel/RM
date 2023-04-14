@@ -222,7 +222,7 @@ static void RC_cmd_to_calibrate(void)
         CAN_CMD_CHASSIS_RESET_ID();
         CAN_CMD_CHASSIS_RESET_ID();
         CAN_CMD_CHASSIS_RESET_ID();
-        //cali_buzzer_off();
+        cali_buzzer_off();
     }
 
 
@@ -231,19 +231,19 @@ static void RC_cmd_to_calibrate(void)
         //两个摇杆打成下内八 \../, 保持2s
         rc_cmd_time++;
     }
-    else if (calibrate_RC->rc.ch[0] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[2] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] > RC_CALI_VALUE_HOLE && switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0)
-    {
-        //两个摇杆打成上外八'\/', 保持2s， 云台使能
-        rc_cmd_time++;
-        rc_action_flag = GIMBAL_FLAG;
-    }
+    // else if (calibrate_RC->rc.ch[0] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[2] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] > RC_CALI_VALUE_HOLE && switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0)
+    // {
+    //     //两个摇杆打成上外八'\/', 保持2s， 云台使能
+    //     rc_cmd_time++;
+    //     rc_action_flag = GIMBAL_FLAG;
+    // }
 
-    else if (calibrate_RC->rc.ch[0] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[2] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] < -RC_CALI_VALUE_HOLE && switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0)
-    {
-        //两个摇杆打成下外八 ./\., 保持2s， 陀螺仪使能
-        rc_cmd_time++;
-        rc_action_flag = GYRO_FLAG;
-    }
+    // else if (calibrate_RC->rc.ch[0] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[2] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] < -RC_CALI_VALUE_HOLE && switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0)
+    // {
+    //     //两个摇杆打成下外八 ./\., 保持2s， 陀螺仪使能
+    //     rc_cmd_time++;
+    //     rc_action_flag = GYRO_FLAG;
+    // }
     else if (calibrate_RC->rc.ch[0] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[2] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] > RC_CALI_VALUE_HOLE && switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0)
     {
         //两个摇杆打成上内八 /''\, 保持2s
@@ -354,7 +354,7 @@ static void cali_data_write(void)
     uint8_t i = 0;
     uint16_t offset = 0;
     const uint16_t len = (sizeof(head_cali_t) + sizeof(gimbal_cali_t) + sizeof(imu_cali_t) * 3) / 4 + 5;
-    uint8_t buf[len * 4];
+    uint8_t buf[4 * len];
     for (i = 0; i < CALI_LIST_LENGHT; i++)
     {
         //复制设备前部参数，例如名字， 数据大小
