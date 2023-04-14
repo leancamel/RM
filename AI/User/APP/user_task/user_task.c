@@ -57,7 +57,7 @@ KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
 
-fp32 local_power = 0, local_buffer = 0;
+fp32 local_power = 0, local_buffer = 0, local_chassis_limit = 0;
 
 fp32 Power_Calc(void);
 
@@ -95,7 +95,8 @@ void UserTask(void *pvParameters)
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         get_chassis_power_and_buffer(&local_power, &local_buffer);
-        printf("%.2f, %.2f\n", local_power, local_buffer);
+		get_chassis_power_limit(&local_chassis_limit);
+        printf("%.2f, %.2f, %.2f\n", local_power, local_buffer, local_chassis_limit);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);

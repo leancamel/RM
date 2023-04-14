@@ -176,8 +176,40 @@ void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *angle_set)
 
 void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 {
-	*yaw_add = ROS_Msg.yaw_add.float_data;
-	*pitch_add = ROS_Msg.pitch_add.float_data;
+	float yaw_tick = 0.003f;
+	float pitch_tick = 0.0025f;
+	//yaw
+	if(ROS_Msg.yaw_add.float_data > yaw_tick)
+	{
+		*yaw_add = yaw_tick;
+		ROS_Msg.yaw_add.float_data -= yaw_tick;
+	}
+	else if(ROS_Msg.yaw_add.float_data < -yaw_tick)
+	{
+		*yaw_add = -yaw_tick;
+		ROS_Msg.yaw_add.float_data += yaw_tick;
+	}
+	else
+	{
+		*yaw_add = ROS_Msg.yaw_add.float_data;
+		ROS_Msg.yaw_add.float_data = 0.0f;
+	}
+	//pitch
+	if(ROS_Msg.pitch_add.float_data > pitch_tick)
+	{
+		*pitch_add = pitch_tick;
+		ROS_Msg.pitch_add.float_data -= pitch_tick;
+	}
+	else if(ROS_Msg.pitch_add.float_data < -pitch_tick)
+	{
+		*pitch_add = -pitch_tick;
+		ROS_Msg.pitch_add.float_data += pitch_tick;
+	}
+	else
+	{
+		*pitch_add = ROS_Msg.pitch_add.float_data;
+		ROS_Msg.pitch_add.float_data = 0.0f;
+	}
 }
 
 void Get_Chassis_Mode(chassis_behaviour_e *chassis_behaviour_mode)
