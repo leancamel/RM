@@ -39,6 +39,7 @@
 #include "Kalman_Filter.h"
 #include "uart1.h"
 #include "bluetooth.h"
+#include "referee.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -52,6 +53,8 @@ KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
 extern shoot_control_t shoot_control;
+
+fp32 local_power = 0.0f, local_buffer = 0.0f;
 
 fp32 Power_Calc(void);
 
@@ -84,12 +87,15 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
+		//从裁判系统获取底盘功率
+        get_chassis_power_and_buffer(&local_power, &local_buffer);
+        printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         // printf("%.5f\n", angle_degree[0]);
 
-        printf("%d\n", local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd);
+        // printf("%d\n", local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd);
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
