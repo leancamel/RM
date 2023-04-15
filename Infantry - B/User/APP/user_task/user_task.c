@@ -100,6 +100,8 @@ void UserTask(void *pvParameters)
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+
+        printf("%.2f, %d, %.2f\n", local_gimbal_control->gimbal_yaw_motor.relative_angle * 57.3f, local_gimbal_control->ecd_count, local_gimbal_control->gimbal_yaw_motor.relative_angle_set * 57.3f);
         
         //小陀螺测试
         // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);

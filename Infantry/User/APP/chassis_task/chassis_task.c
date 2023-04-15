@@ -21,6 +21,8 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "chassis_power_control.h"
+#include "gimbal_behaviour.h"
 
 #define rc_deadline_limit(input, output, dealine)        \
     {                                                    \
@@ -69,7 +71,8 @@ void chassis_task(void *pvParameters)
         chassis_set_contorl(&chassis_move);
         //底盘控制PID计算
         chassis_control_loop(&chassis_move);
-
+		//底盘功率限制
+		chassis_power_control(&chassis_move);
 		//can发送底盘数据
 		CAN_CMD_CHASSIS(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current, chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
 

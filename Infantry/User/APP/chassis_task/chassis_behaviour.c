@@ -17,6 +17,8 @@
 #include "chassis_behaviour.h"
 #include "chassis_task.h"
 
+#include "gimbal_behaviour.h"
+
 #include "arm_math.h"
 #include "led.h"
 
@@ -317,6 +319,10 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, ch
     *vx_set = 0.0f;
     *vy_set = 0.0f;
     *wz_set = 0.0f;
+    if(gimbal_init_cmd_chassis_move())
+    {
+        *vx_set = 3.0f;
+    }
 }
 
 /**

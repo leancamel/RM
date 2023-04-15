@@ -216,6 +216,7 @@ typedef struct
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
     
     int8_t last_super_channel;          //上一次遥控器开关所在的位置
+    int8_t ecd_count;
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);

@@ -24,9 +24,9 @@
 #include "arm_math.h"
 //#include "detect_task.h"
 
-#define POWER_LIMIT         80.0f
-#define WARNING_POWER       40.0f   
-#define WARNING_POWER_BUFF  50.0f   
+// #define POWER_LIMIT         80.0f
+#define WARNING_POWER       100.0f   
+#define WARNING_POWER_BUFF  20.0f   
 
 #define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4, 
 #define BUFFER_TOTAL_CURRENT_LIMIT      16000.0f
@@ -43,16 +43,18 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
     fp32 chassis_power_buffer = 0.0f;
     fp32 total_current_limit = 0.0f;
     fp32 total_current = 0.0f;
-    uint8_t robot_id = get_robot_id();
+    // uint8_t robot_id = get_robot_id();
     // if(toe_is_error(REFEREE_TOE))
     // {
     //     total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
     // }
-    if(robot_id == RED_ENGINEER || robot_id == BLUE_ENGINEER || robot_id == 0)
-    {
-        total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
-    }
-    else
+    // if(robot_id == RED_ENGINEER || robot_id == BLUE_ENGINEER || robot_id == 0)
+    // {
+    //     total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
+    // }
+    // else
+	fp32 POWER_LIMIT = 40.0f;
+	get_chassis_power_limit(&POWER_LIMIT);
     {
         get_chassis_power_and_buffer(&chassis_power, &chassis_power_buffer);
         //功率超过80w 和缓冲能量小于60j,因为缓冲能量小于60意味着功率超过80w
@@ -105,16 +107,16 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
     //计算原本电机电流设定
     for(uint8_t i = 0; i < 4; i++)
     {
-        total_current += fabs(chassis_power_control->motor_speed_pid[i].out);
+        total_current += fabs(chassis_power_control->motor_chassis[i].give_current);
     }
     
 
     if(total_current > total_current_limit)
     {
         fp32 current_scale = total_current_limit / total_current;
-        chassis_power_control->motor_speed_pid[0].out*=current_scale;
-        chassis_power_control->motor_speed_pid[1].out*=current_scale;
-        chassis_power_control->motor_speed_pid[2].out*=current_scale;
-        chassis_power_control->motor_speed_pid[3].out*=current_scale;
+        chassis_power_control->motor_chassis[0].give_current *= current_scale;
+        chassis_power_control->motor_chassis[1].give_current *= current_scale;
+        chassis_power_control->motor_chassis[2].give_current *= current_scale;
+        chassis_power_control->motor_chassis[3].give_current *= current_scale;
     }
 }

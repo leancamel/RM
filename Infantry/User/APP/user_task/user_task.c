@@ -48,6 +48,7 @@ uint32_t UserTaskStack;
 
 //姿态角 单位 度
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
+const fp32 *local_INS_accel;
 const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
 const RC_ctrl_t* local_rc_ctrl;
@@ -77,6 +78,8 @@ void UserTask(void *pvParameters)
     local_shoot = get_shoot_control_point();
     //初始化卡尔曼滤波结构体
     Kalman_Filter_Init(&Power_KalmanInfo_Structure);
+    //获取加速度指针
+    local_INS_accel = get_accel_filter_point();
     while (1)
     {
         Tcount++;
@@ -127,6 +130,9 @@ void UserTask(void *pvParameters)
 
         //计算底盘功率
         // Bluetooth_Send("%hd",5);
+
+        //获取陀螺仪数据
+        // printf("%.2f, %.2f, %.2f\n",local_INS_accel[0],local_INS_accel[1],local_gimbal_control->gimbal_yaw_motor.relative_angle * 57.3f);
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

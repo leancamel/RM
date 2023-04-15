@@ -52,7 +52,7 @@ TaskHandle_t GIMBALTask_Handler;
 TaskHandle_t INSTask_Handler;
 
 #define User_TASK_PRIO 4
-#define User_STK_SIZE 512
+#define User_STK_SIZE 256
 static TaskHandle_t UserTask_Handler;
 
 #define VOLTAGE_TASK_PRIO 11

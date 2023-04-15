@@ -87,27 +87,34 @@ typedef __packed struct
 } ext_referee_warning_t;
 typedef __packed struct //0x0201
 {
-    uint8_t robot_id;
-    uint8_t robot_level;
-    uint16_t remain_HP;
-    uint16_t max_HP;
-    uint16_t shooter_heat0_cooling_rate;
-    uint16_t shooter_heat0_cooling_limit;
-    uint16_t shooter_heat1_cooling_rate;
-    uint16_t shooter_heat1_cooling_limit;
-    uint8_t mains_power_gimbal_output : 1;
-    uint8_t mains_power_chassis_output : 1;
-    uint8_t mains_power_shooter_output : 1;
+	uint8_t robot_id;
+	uint8_t robot_level;
+	uint16_t remain_HP;
+	uint16_t max_HP;
+	uint16_t shooter_id1_17mm_cooling_rate;
+	uint16_t shooter_id1_17mm_cooling_limit;
+	uint16_t shooter_id1_17mm_speed_limit;
+	uint16_t shooter_id2_17mm_cooling_rate;
+	uint16_t shooter_id2_17mm_cooling_limit;
+	uint16_t shooter_id2_17mm_speed_limit;
+	uint16_t shooter_id1_42mm_cooling_rate;
+	uint16_t shooter_id1_42mm_cooling_limit;
+	uint16_t shooter_id1_42mm_speed_limit;
+	uint16_t chassis_power_limit;
+	uint8_t mains_power_gimbal_output : 1;
+	uint8_t mains_power_chassis_output : 1;
+	uint8_t mains_power_shooter_output : 1;
 } ext_game_robot_state_t;
 
 typedef __packed struct //0x0202
 {
-    uint16_t chassis_volt;
-    uint16_t chassis_current;
-    float chassis_power;
-    uint16_t chassis_power_buffer;
-    uint16_t shooter_heat0;
-    uint16_t shooter_heat1;
+    uint16_t chassis_volt; 
+	uint16_t chassis_current; 
+	float chassis_power; 
+	uint16_t chassis_power_buffer; 
+	uint16_t shooter_id1_17mm_cooling_heat;
+	uint16_t shooter_id2_17mm_cooling_heat;
+	uint16_t shooter_id1_42mm_cooling_heat;
 } ext_power_heat_data_t;
 
 typedef __packed struct //0x0203
@@ -179,6 +186,7 @@ extern void init_referee_struct_data(void);
 extern void referee_data_solve(uint8_t *frame);
 
 extern void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer);
+extern void get_chassis_power_limit(fp32 *power_limit);
 
 extern uint8_t get_robot_id(void);
 

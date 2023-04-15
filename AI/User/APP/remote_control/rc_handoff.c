@@ -30,7 +30,7 @@ static uint8_t rc_ch4_data_process(int16_t ch)
 }
 
 //将rc_ch4_data_process的开关量转变为状态量
-bool_t switch_is_fric_on(uint16_t ch)
+bool_t switch_is_fric_on(int16_t ch)
 {
     static bool_t fric_flag = false;
 
@@ -48,7 +48,7 @@ bool_t switch_is_fric_on(uint16_t ch)
 }
 
 
-bool_t switch_is_shoot(uint16_t ch)
+bool_t switch_is_shoot(int16_t ch)
 {
     static bool_t shoot_flag = 0;
 

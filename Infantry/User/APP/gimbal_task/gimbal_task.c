@@ -402,6 +402,7 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_pitch_motor.motor_gyro_set = gimbal_init->gimbal_pitch_motor.motor_gyro;
 
     gimbal_init->last_super_channel = gimbal_init->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
+    gimbal_init->ecd_count = 0;
 }
 
 static void GIMBAL_Set_Mode(Gimbal_Control_t *gimbal_set_mode)
@@ -434,19 +435,17 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
     //                                                                                     gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
     {
         //云台yaw电机加上了减速箱，因此要更改反馈量计算方式
-        static int8_t ecd_count = 0;
         int32_t relative_ecd = 0;
         if(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->last_ecd > Half_ecd_range)
         {
-            ecd_count--;
+            gimbal_feedback_update->ecd_count--;
         }
         else if(gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->last_ecd < -Half_ecd_range)
         {
-            ecd_count++;
+            gimbal_feedback_update->ecd_count++;
         }
-        ecd_count = ecd_count % 3;
-        relative_ecd = ecd_count * ecd_range + gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.offset_ecd;
-
+        gimbal_feedback_update->ecd_count = (gimbal_feedback_update->ecd_count + 3) % 3;
+        relative_ecd = gimbal_feedback_update->ecd_count * ecd_range + gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd - gimbal_feedback_update->gimbal_yaw_motor.offset_ecd;
         if(relative_ecd > 1.5 * ecd_range)
         {
             relative_ecd -= 3 * ecd_range;

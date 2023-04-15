@@ -78,5 +78,6 @@ extern const fp32 *get_INS_angle_point(void);
 extern const fp32 *get_gyro_data_point(void);
 extern const fp32 *get_accel_data_point(void);
 extern const fp32 *get_mag_data_point(void);
+extern const fp32 *get_accel_filter_point(void);
 
 #endif
