@@ -95,8 +95,8 @@ void UserTask(void *pvParameters)
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //从裁判系统获取底盘功率
-        get_chassis_power_and_buffer(&local_power, &local_buffer);
-        printf("%.2f, %.2f\n", local_power, local_buffer);
+        // get_chassis_power_and_buffer(&local_power, &local_buffer);
+        // printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);

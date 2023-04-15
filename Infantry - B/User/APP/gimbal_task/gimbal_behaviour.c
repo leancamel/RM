@@ -27,7 +27,7 @@
 #include "led.h"
 
 #include "user_lib.h"
-
+#include "switch.h"
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
@@ -395,6 +395,11 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
         }
         else
         {
+			if(Switch_Read() == 0)
+			{
+				
+				return;
+			}
             buzzer_off();
             init_stop_time = 0;
             init_time = 0;
