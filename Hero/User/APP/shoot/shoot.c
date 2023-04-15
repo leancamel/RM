@@ -349,7 +349,7 @@ static void shoot_feedback_update(void)
 
         if (shoot_control.rc_s_time < RC_S_LONG_TIME)
         {
-            shoot_control.rc_s_time++;
+            //shoot_control.rc_s_time++;
         }
     }
     else
