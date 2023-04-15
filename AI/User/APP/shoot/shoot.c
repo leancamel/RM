@@ -186,15 +186,15 @@ int16_t shoot_control_loop(void)
 static void shoot_set_mode(void)
 {
     static bool_t last_shoot_switch = 0;
+    static bool_t last_fric_switch = 0;
 
     if(toe_is_error(DBUS_TOE) == 0)
 	{
-		//上拨判断， 一次开启，再次关闭
-		if (switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode == SHOOT_STOP)
+		if ((switch_is_fric_on(shoot_control.shoot_rc->rc.ch[SHOOT_RC_MODE_CHANNEL]) && last_fric_switch == 0 && shoot_control.shoot_mode == SHOOT_STOP))
 		{
 			shoot_control.shoot_mode = SHOOT_READY_FRIC;
 		}
-		else if(!switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]) && shoot_control.shoot_mode != SHOOT_STOP)
+		else if ((switch_is_fric_on(shoot_control.shoot_rc->rc.ch[SHOOT_RC_MODE_CHANNEL]) && last_fric_switch == 0 && shoot_control.shoot_mode != SHOOT_STOP))
 		{
 			shoot_control.shoot_mode = SHOOT_STOP;
 		}
@@ -254,6 +254,7 @@ static void shoot_set_mode(void)
 		}
 
 		last_shoot_switch = switch_is_shoot(shoot_control.shoot_rc->rc.ch[4]);
+		last_fric_switch = switch_is_fric_on(shoot_control.shoot_rc->rc.ch[4]);
 	}
 	else
 	{
