@@ -1,7 +1,7 @@
 #include "stm32f4xx.h"
 #include "ROS_Receive.h"
 #include "uart1.h"
-
+#include "stdio.h"
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
 
@@ -96,12 +96,6 @@ void getModbusCRC16(unsigned char *_pBuf, unsigned short int _usLen)
     return;            
 } 
 
-float Byte_To_Float(uint8_t *p_Byte, uint8_t offset)
-{
-    short temp_int = (*(p_Byte + offset) << 8) | *(p_Byte + offset + 1);
-    return (float)temp_int / 1000;
-}
-
 void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 {
 	if(uart_buf == NULL || ros_msg == NULL || uart_buf[0] != ROS_START_BYTE)
@@ -109,27 +103,62 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 		return;
 	}
 
-    uint8_t CRC1 = *(uart_buf + 7);
-    uint8_t CRC2 = *(uart_buf + 8);
-	getModbusCRC16(uart_buf + 1,6);
+    uint8_t CRC1 = *(uart_buf + 9);
+    uint8_t CRC2 = *(uart_buf + 10);
+	getModbusCRC16(uart_buf + 1,8);
 
-	if(CRC1 == *(uart_buf + 7) && CRC2 == *(uart_buf + 8))
+	if(CRC1 == *(uart_buf + 9) && CRC2 == *(uart_buf + 10))
     {
-        ROS_Msg.gimbal_x = Byte_To_Float(uart_buf + 1, 0);
-        ROS_Msg.gimbal_y = Byte_To_Float(uart_buf + 1, 2);
-        ROS_Msg.gimbal_z = Byte_To_Float(uart_buf + 1, 4);
+        ROS_Msg.yaw_add.byte_data[0] = *(uart_buf + 1);
+        ROS_Msg.yaw_add.byte_data[1] = *(uart_buf + 2);
+        ROS_Msg.yaw_add.byte_data[2] = *(uart_buf + 3);
+        ROS_Msg.yaw_add.byte_data[3] = *(uart_buf + 4);
+
+        ROS_Msg.pitch_add.byte_data[0] = *(uart_buf + 5);
+        ROS_Msg.pitch_add.byte_data[1] = *(uart_buf + 6);
+        ROS_Msg.pitch_add.byte_data[2] = *(uart_buf + 7);
+        ROS_Msg.pitch_add.byte_data[3] = *(uart_buf + 8);
     }
 }
 
 
 
-void Get_Gimbal_Angle(fp32 *yaw,fp32 *pitch)
+void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
 {
-	*yaw = ROS_Msg.gimbal_x;
-	*pitch = ROS_Msg.gimbal_z;
-    // ROS_Msg.gimbal_x = 0.0f;
-    // ROS_Msg.gimbal_y = 0.0f;
-    // ROS_Msg.gimbal_z = 0.0f;
+    float yaw_tick = 0.003f;
+	float pitch_tick = 0.0025f;
+	//yaw
+	if(ROS_Msg.yaw_add.float_data > yaw_tick)
+	{
+		*yaw_add = yaw_tick;
+		ROS_Msg.yaw_add.float_data -= yaw_tick;
+	}
+	else if(ROS_Msg.yaw_add.float_data < -yaw_tick)
+	{
+		*yaw_add = -yaw_tick;
+		ROS_Msg.yaw_add.float_data += yaw_tick;
+	}
+	else
+	{
+		*yaw_add = ROS_Msg.yaw_add.float_data;
+		ROS_Msg.yaw_add.float_data = 0.0f;
+	}
+	//pitch
+	if(ROS_Msg.pitch_add.float_data > pitch_tick)
+	{
+		*pitch_add = pitch_tick;
+		ROS_Msg.pitch_add.float_data -= pitch_tick;
+	}
+	else if(ROS_Msg.pitch_add.float_data < -pitch_tick)
+	{
+		*pitch_add = -pitch_tick;
+		ROS_Msg.pitch_add.float_data += pitch_tick;
+	}
+	else
+	{
+		*pitch_add = ROS_Msg.pitch_add.float_data;
+		ROS_Msg.pitch_add.float_data = 0.0f;
+	}
 }
 
 //返回ROS数据，通过指针传递方式传递信息

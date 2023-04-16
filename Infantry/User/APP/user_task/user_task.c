@@ -98,8 +98,14 @@ void UserTask(void *pvParameters)
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //从裁判系统获取底盘功率
-        get_chassis_power_and_buffer(&local_power, &local_buffer);
-        printf("%.2f, %.2f\n", local_power, local_buffer);
+        // get_chassis_power_and_buffer(&local_power, &local_buffer);
+        // printf("%.2f, %.2f\n", local_power, local_buffer);
+
+        // printf("%.2f, %d, %d\n", local_gimbal_control->gimbal_yaw_motor.relative_angle * 57.3f, 
+        //     local_gimbal_control->ecd_count, local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd);
+
+        // printf("%d. %d, %d\n", local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd, local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->last_ecd, 
+        //     local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd - local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->last_ecd);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);

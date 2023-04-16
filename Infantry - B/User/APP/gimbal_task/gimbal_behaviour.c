@@ -28,6 +28,7 @@
 
 #include "user_lib.h"
 #include "switch.h"
+#include "ROS_Receive.h"
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
@@ -395,11 +396,11 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
         }
         else
         {
-			if(Switch_Read() == 0)
-			{
-				gimbal_mode_set->ecd_count = (gimbal_mode_set->ecd_count + 4) % 3;
-				return;
-			}
+			// if(Switch_Read() == 0)
+			// {
+			// 	gimbal_mode_set->ecd_count = (gimbal_mode_set->ecd_count + 4) % 3;
+			// 	return;
+			// }
             buzzer_off();
             init_stop_time = 0;
             init_time = 0;
@@ -717,5 +718,6 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     }
     *yaw = 0.0f;
     *pitch = 0.0f;
+    Get_Gimbal_Angle(yaw,pitch);
 }
 

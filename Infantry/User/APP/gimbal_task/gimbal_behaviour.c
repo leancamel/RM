@@ -30,6 +30,7 @@
 #include "INS_task.h"
 #include "Kalman_Filter.h"
 #include "stdio.h"
+#include "ROS_Receive.h"
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
@@ -785,5 +786,6 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     }
     *yaw = 0.0f;
     *pitch = 0.0f;
+    Get_Gimbal_Angle(yaw,pitch);
 }
 
