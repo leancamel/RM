@@ -10,6 +10,7 @@
 #include "uart1.h"
 #include "can.h"
 #include "trigger.h"
+#include "laser.h"
 
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
@@ -54,6 +55,9 @@ void BSP_Init(void)
 
 	//自定义按键初始化
 	key_Init();
+
+	//激光初始化
+	Laser_Init();
 
 	//遥控器初始化
 	remote_control_init();

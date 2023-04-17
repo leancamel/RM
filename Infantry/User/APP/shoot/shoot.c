@@ -30,6 +30,7 @@
 // #include "detect_task.h"
 
 #include "rc_handoff.h"
+#include "buzzer.h"
 
 #define shoot_fric1_on(pwm) fric1_on((pwm))
 #define shoot_fric2_on(pwm) fric2_on((pwm))
@@ -328,7 +329,7 @@ static void shoot_feedback_update(void)
     {
         if (shoot_control.press_r_time < PRESS_LONG_TIME)
         {
-            shoot_control.press_r_time++;
+            // shoot_control.press_r_time++;
         }
     }
     else
@@ -380,7 +381,8 @@ static void trigger_motor_turn_back(void)
     }
     else
     {
-        shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        // shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        shoot_control.speed_set = 0;
     }
 
     if(fabs(shoot_control.speed) < BLOCK_TRIGGER_SPEED && shoot_control.block_time < BLOCK_TIME)
@@ -388,13 +390,15 @@ static void trigger_motor_turn_back(void)
         shoot_control.block_time++;
         shoot_control.reverse_time = 0;
     }
-    else if (shoot_control.block_time == BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME)
+    else if (shoot_control.block_time >= BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME)
     {
         shoot_control.reverse_time++;
+        buzzer_on(64,20);
     }
     else
     {
         shoot_control.block_time = 0;
+        buzzer_off();
     }
 }
 

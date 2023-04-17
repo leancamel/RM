@@ -25,6 +25,10 @@
 #include "gimbal_behaviour.h"
 #include "rc_handoff.h"
 
+//按键开关小陀螺
+#define ROTATION_ON_KEYBOARD   KEY_PRESSED_OFFSET_SHIFT
+
+
 /**
   * @brief          底盘行为状态机设置，因为在小陀螺等模式下使用了return，故而再用了一个函数
   * @author         RM
@@ -152,6 +156,16 @@ void chassis_behavour_set(chassis_move_t *chassis_move_mode)
         }
         else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(chassis_move_mode->last_super_channel) && chassis_behaviour_mode == CHASSIS_ROTATION)
         {
+            chassis_behaviour_mode = CHASSIS_ROTATION_EXIT;
+        }
+
+        if (chassis_move_mode->chassis_RC->key.v == ROTATION_ON_KEYBOARD && chassis_behaviour_mode != CHASSIS_ROTATION)
+        {
+            chassis_behaviour_mode = CHASSIS_ROTATION;
+        }
+        else if (chassis_move_mode->chassis_RC->key.v == ROTATION_ON_KEYBOARD && chassis_behaviour_mode == CHASSIS_ROTATION)
+        {
+            led_red_on();
             chassis_behaviour_mode = CHASSIS_ROTATION_EXIT;
         }
 

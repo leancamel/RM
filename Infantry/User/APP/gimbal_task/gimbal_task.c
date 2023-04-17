@@ -21,7 +21,6 @@
 #include "Gimbal_Task.h"
 
 #include "main.h"
-#include "stdio.h"
 
 #include "arm_math.h"
 #include "gimbal_behaviour.h"
@@ -458,7 +457,6 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
         {
             relative_ecd += 24575;
         }
-        printf("%.2f, %d, %d, %d\n",gimbal_feedback_update->gimbal_yaw_motor.relative_angle * 57.3f, gimbal_feedback_update->ecd_count, ecd, last_ecd);
         last_ecd = ecd;
         gimbal_feedback_update->gimbal_yaw_motor.relative_angle = relative_ecd * YAW_ECD_TO_RAD;
 
@@ -813,7 +811,7 @@ const Gimbal_Control_t *get_gimbal_control_point(void)
 
 void gimbal_offset_init(void)
 {
-    gimbal_control.gimbal_yaw_motor.offset_ecd = 872;
+    gimbal_control.gimbal_yaw_motor.offset_ecd = 1354;
     gimbal_control.gimbal_yaw_motor.max_relative_angle = PI/3;
     gimbal_control.gimbal_yaw_motor.min_relative_angle = -PI/3;
 

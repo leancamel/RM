@@ -176,8 +176,8 @@ void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *angle_set)
 
 void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 {
-	float yaw_tick = 0.003f;
-	float pitch_tick = 0.0025f;
+	float yaw_tick = 0.010f;
+	float pitch_tick = 0.008f;
 	//yaw
 	if(ROS_Msg.yaw_add.float_data > yaw_tick)
 	{
