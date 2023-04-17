@@ -21,8 +21,7 @@
 #include "arm_math.h"
 #include "user_lib.h"
 #include "trigger.h"
-// #include "bsp_laser.h"
-// #include "referee.h"
+#include "referee.h"
 
 #include "CAN_receive.h"
 #include "gimbal_behaviour.h"
@@ -381,14 +380,15 @@ static void trigger_motor_turn_back(void)
     }
     else
     {
-        // shoot_control.speed_set = -shoot_control.trigger_speed_set;
-        shoot_control.speed_set = 0;
+        shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        // shoot_control.speed_set = 0;
     }
 
     if(fabs(shoot_control.speed) < BLOCK_TRIGGER_SPEED && shoot_control.block_time < BLOCK_TIME)
     {
         shoot_control.block_time++;
         shoot_control.reverse_time = 0;
+        buzzer_off();
     }
     else if (shoot_control.block_time >= BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME)
     {

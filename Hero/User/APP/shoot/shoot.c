@@ -165,7 +165,6 @@ int16_t shoot_control_loop(void)
     }
 
 
-
     if(shoot_control.shoot_mode == SHOOT_STOP)
     {
         // shoot_laser_off();
@@ -181,7 +180,7 @@ int16_t shoot_control_loop(void)
         shoot_control.given_current = (int16_t)(shoot_control.trigger_motor_pid.out);
         if(shoot_control.shoot_mode < SHOOT_READY_BULLET)
         {
-            shoot_control.given_current = 0;
+            shoot_control.given_current = -3000;
         }
 
         //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
