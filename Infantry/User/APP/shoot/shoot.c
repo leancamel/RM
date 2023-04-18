@@ -68,7 +68,7 @@ static void trigger_motor_turn_back(void);
   */
 static void shoot_bullet_control(void);
 
-
+static void shoot_limit_pwm_set(void);
 
 shoot_control_t shoot_control;          //射击数据
 
@@ -143,7 +143,14 @@ int16_t shoot_control_loop(void)
     else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
     {
         //设置拨弹轮的拨动速度,并开启堵转反转处理
-        shoot_control.trigger_speed_set = CONTINUE_TRIGGER_SPEED;
+        if(shoot_control.high_speed_on)
+        {
+            shoot_control.trigger_speed_set = HIGH_TRIGGER_SPEED;
+        }
+        else
+        {
+            shoot_control.trigger_speed_set = LOW_TRIGGER_SPEED;
+        }
         trigger_motor_turn_back();
     }
 
@@ -256,6 +263,15 @@ static void shoot_set_mode(void)
         {
             shoot_control.shoot_mode = SHOOT_READY;
         }
+
+        if(shoot_control.press_l_time == PRESS_LONG_TIME)
+        {
+            shoot_control.high_speed_on = 1;
+        }
+        else
+        {
+            shoot_control.high_speed_on = 0;
+        }
     }
 
     // get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
@@ -350,7 +366,7 @@ static void shoot_feedback_update(void)
     {
         if (shoot_control.press_r_time < PRESS_LONG_TIME)
         {
-            // shoot_control.press_r_time++;
+            shoot_control.press_r_time++;
         }
     }
     else
@@ -372,24 +388,25 @@ static void shoot_feedback_update(void)
         shoot_control.rc_s_time = 0;
     }
 
-    //鼠标右键按下加速摩擦轮，使得左键低速射击， 右键高速射击
-    static uint16_t up_time = 0;
-    if (shoot_control.press_r)
-    {
-        up_time = UP_ADD_TIME;
-    }
+    // //鼠标右键按下加速摩擦轮，使得左键低速射击， 右键高速射击
+    // static uint16_t up_time = 0;
+    // if (shoot_control.press_r)
+    // {
+    //     up_time = UP_ADD_TIME;
+    // }
 
-    if (up_time > 0)
-    {
-        shoot_control.fric1_ramp.max_value = FRIC_UP;
-        shoot_control.fric2_ramp.max_value = FRIC_UP;
-        up_time--;
-    }
-    else
-    {
-        shoot_control.fric1_ramp.max_value = FRIC_DOWN;
-        shoot_control.fric2_ramp.max_value = FRIC_DOWN;
-    }
+    // if (up_time > 0)
+    // {
+    //     shoot_control.fric1_ramp.max_value = FRIC_UP;
+    //     shoot_control.fric2_ramp.max_value = FRIC_UP;
+    //     up_time--;
+    // }
+    // else
+    // {
+    //     shoot_control.fric1_ramp.max_value = FRIC_DOWN;
+    //     shoot_control.fric2_ramp.max_value = FRIC_DOWN;
+    // }
+    shoot_limit_pwm_set();
 
 
 }
@@ -444,7 +461,7 @@ static void shoot_bullet_control(void)
     {
         //没到达一直设置旋转速度
         trigger_count++;
-        shoot_control.trigger_speed_set = TRIGGER_SPEED;
+        shoot_control.trigger_speed_set = HIGH_TRIGGER_SPEED;
         trigger_motor_turn_back();
     }
     else
@@ -468,3 +485,22 @@ const shoot_control_t *get_shoot_control_point(void)
     return &shoot_control;
 }
 
+static void shoot_limit_pwm_set(void)
+{
+    uint8_t speed = get_shoot_17mm_speed_limit();
+    switch (speed)
+    {
+    case 15:
+        shoot_control.fric1_ramp.max_value = 1580;
+        break;
+    case 18:
+        shoot_control.fric1_ramp.max_value = 1620;
+        break;
+    case 30:
+        shoot_control.fric1_ramp.max_value = 1850;
+        break;
+    default:
+        shoot_control.fric1_ramp.max_value = 1580;
+        break;
+    }
+}

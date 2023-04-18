@@ -53,8 +53,8 @@
 #define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*180)
 #define FULL_COUNT                  18  //  36/2
 //拨弹速度
-#define TRIGGER_SPEED               12.0f
-#define CONTINUE_TRIGGER_SPEED      15.0f
+#define LOW_TRIGGER_SPEED               8.0f
+#define HIGH_TRIGGER_SPEED      12.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -126,6 +126,8 @@ typedef struct
 
     uint16_t heat_limit;
     uint16_t heat;
+
+    bool_t high_speed_on;
 } shoot_control_t;
 
 //由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
