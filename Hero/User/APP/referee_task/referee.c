@@ -200,3 +200,9 @@ uint8_t get_shoot_power_status(void)
 {
     return robot_state.mains_power_shooter_output;
 }
+
+uint8_t get_shoot_42mm_speed_limit(void)
+{
+    return robot_state.shooter_id1_42mm_speed_limit;
+}
+

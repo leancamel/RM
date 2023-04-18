@@ -79,7 +79,7 @@ static void is_stuck_bullet(uint16_t block_time_set);
   */
 static void stuck_bullet(void);
 
-
+static void shoot_limit_pwm_set(void);
 
 shoot_control_t shoot_control;          //射击数据
 
@@ -394,24 +394,26 @@ static void shoot_feedback_update(void)
         shoot_control.rc_s_time = 0;
     }
 
-    //鼠标右键按下加速摩擦轮，使得左键低速射击， 右键高速射击
-    static uint16_t up_time = 0;
-    if (shoot_control.press_r)
-    {
-        up_time = UP_ADD_TIME;
-    }
+    // //鼠标右键按下加速摩擦轮，使得左键低速射击， 右键高速射击
+    // static uint16_t up_time = 0;
+    // if (shoot_control.press_r)
+    // {
+    //     up_time = UP_ADD_TIME;
+    // }
 
-    if (up_time > 0)
-    {
-        shoot_control.fric1_ramp.max_value = FRIC_UP;
-        shoot_control.fric2_ramp.max_value = FRIC_UP;
-        up_time--;
-    }
-    else
-    {
-        shoot_control.fric1_ramp.max_value = FRIC_DOWN;
-        shoot_control.fric2_ramp.max_value = FRIC_DOWN;
-    }
+    // if (up_time > 0)
+    // {
+    //     shoot_control.fric1_ramp.max_value = FRIC_UP;
+    //     shoot_control.fric2_ramp.max_value = FRIC_UP;
+    //     up_time--;
+    // }
+    // else
+    // {
+    //     shoot_control.fric1_ramp.max_value = FRIC_DOWN;
+    //     shoot_control.fric2_ramp.max_value = FRIC_DOWN;
+    // }
+    shoot_limit_pwm_set();
+
 }
 
 /**
@@ -548,5 +550,22 @@ static void shoot_bullet_on_reset(void)
     {
         //子弹上膛完毕，射击准备
         shoot_control.shoot_mode = SHOOT_READY;
+    }
+}
+
+static void shoot_limit_pwm_set(void)
+{
+    uint8_t speed = get_shoot_42mm_speed_limit();
+    switch (speed)
+    {
+    case 10:
+        shoot_control.fric1_ramp.max_value = 1620;
+        break;
+    case 16:
+        shoot_control.fric1_ramp.max_value = 1750;
+        break;
+    default:
+        shoot_control.fric1_ramp.max_value = 1620;
+        break;
     }
 }
