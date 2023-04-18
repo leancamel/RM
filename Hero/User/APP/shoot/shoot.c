@@ -17,18 +17,19 @@
 
 #include "shoot.h"
 #include "main.h"
+#include "led.h"
 
 #include "arm_math.h"
 #include "user_lib.h"
 #include "trigger.h"
-// #include "bsp_laser.h"
-// #include "referee.h"
+#include "referee.h"
 
 #include "CAN_receive.h"
 #include "gimbal_behaviour.h"
 #include "pid.h"
 #include "gimbal_task.h"
 #include "rc_handoff.h"
+#include "referee.h"
 // #include "detect_task.h"
 
 #define shoot_fric1_on(pwm) fric1_on((pwm))
@@ -224,6 +225,28 @@ static void shoot_set_mode(void)
     //键盘关闭摩擦轮
     else if ((shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP)
     {
+        shoot_control.shoot_mode = SHOOT_STOP;
+    }
+
+    static uint32_t Tcount = 0;
+    if(get_shoot_power_status())
+    {
+        Tcount++;
+        if(Tcount >= 5000)
+        {
+            //空操作
+            led_green_on();
+        }
+        else
+        {
+            led_green_off();
+            shoot_control.shoot_mode = SHOOT_STOP;
+        }
+    }
+    else
+    {
+        Tcount = 0;
+        led_green_off();
         shoot_control.shoot_mode = SHOOT_STOP;
     }
 

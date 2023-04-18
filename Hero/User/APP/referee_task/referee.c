@@ -196,3 +196,7 @@ void get_shoot_heat1_limit_and_heat1(uint16_t *heat1_limit, uint16_t *heat1)
     *heat1 = power_heat_data_t.shooter_id2_17mm_cooling_heat;
 }
 
+uint8_t get_shoot_power_status(void)
+{
+    return robot_state.mains_power_shooter_output;
+}

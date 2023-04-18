@@ -192,4 +192,6 @@ extern uint8_t get_robot_id(void);
 
 extern void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0);
 extern void get_shoot_heat1_limit_and_heat1(uint16_t *heat1_limit, uint16_t *heat1);
+
+extern uint8_t get_shoot_power_status(void);
 #endif
