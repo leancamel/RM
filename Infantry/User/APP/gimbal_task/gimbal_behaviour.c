@@ -312,11 +312,15 @@ bool_t gimbal_cmd_to_chassis_stop(void)
   * @retval         返回空
   */
 
-bool_t gimbal_init_cmd_chassis_move(void)
+uint8_t gimbal_init_cmd_chassis_move(void)
 {
     if (init_step == 1)
     {
         return 1;
+    }
+    else if(init_step == 2)
+    {
+        return 2;
     }
     else
     {
@@ -391,7 +395,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     //初始化模式判断是否到达中值位置
     if (gimbal_behaviour == GIMBAL_INIT)
     {
-        if(init_step == 0 || init_step == 2)
+        if(init_step == 0 || init_step == 3)
         {
             static uint16_t init_time = 0;
             static uint16_t init_stop_time = 0;
@@ -433,45 +437,62 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
                     Kalman_Filter_Init(&accel_y_kalman);
                     return;
                 }
-                else if(init_step == 2)
+                else if(init_step == 3)
                 {
                     
                 }
             }
         }
-        else if(init_step == 1)
+        else if(init_step == 1 || init_step == 2)
         {
             static int16_t yaw_ecd_cali_time = 0;
-
-            const fp32 *local_accel;
-            fp32 vx = 0.0f,vy = 0.0f;
-            local_accel = get_accel_filter_point();
-            Kalman_Filter_Fun(&accel_x_kalman,local_accel[0]);
-            Kalman_Filter_Fun(&accel_y_kalman,local_accel[1]);
-            if(fabs(accel_x_kalman.out) > 0.8f)
-                vx += accel_x_kalman.out;
-            if(fabs(accel_y_kalman.out) > 0.8f)
-                vy += accel_y_kalman.out;
-            printf("%.2f, %.2f\n",accel_x_kalman.out,accel_y_kalman.out);
-            if(yaw_ecd_cali_time > 90)
-            {
-                fp32 k = vy / vx;
-                if(k > -0.8f && k < 0.8f)
-                {
-                    gimbal_mode_set->ecd_count = 0;
-                }
-                else if(k >= 0.8f)
-                {
-                    gimbal_mode_set->ecd_count = 2;
-                }
-                else
-                {
-                    gimbal_mode_set->ecd_count = 1;
-                }
-                init_step = 2;
-            }
-
             yaw_ecd_cali_time++;
+            if(init_step == 1)
+            {
+                if(yaw_ecd_cali_time > 70)
+                {
+                    yaw_ecd_cali_time = 0;
+                    init_step = 2;
+                }
+                return;
+            }
+            else if(init_step == 2)
+            {
+                const fp32 *local_accel;
+                fp32 vx = 0.0f,vy = 0.0f;
+                local_accel = get_accel_filter_point();
+                Kalman_Filter_Fun(&accel_x_kalman,local_accel[0]);
+                Kalman_Filter_Fun(&accel_y_kalman,local_accel[1]);
+                if(fabs(accel_x_kalman.out) > 0.8f)
+                    vx += accel_x_kalman.out;
+                if(fabs(accel_y_kalman.out) > 0.8f)
+                    vy += accel_y_kalman.out;
+                // printf("%.2f, %.2f\n",accel_x_kalman.out,accel_y_kalman.out);
+                if(yaw_ecd_cali_time > 100)
+                {
+                    if(vx < 0.5f && vy < 0.5f)
+                    {
+                        gimbal_mode_set->ecd_count = 0;
+                    }
+                    else
+                    {
+                        fp32 k = vy / vx;
+                        if(k > -0.8f && k < 0.8f)
+                        {
+                            gimbal_mode_set->ecd_count = 0;
+                        }
+                        else if(k >= 0.8f)
+                        {
+                            gimbal_mode_set->ecd_count = 2;
+                        }
+                        else
+                        {
+                            gimbal_mode_set->ecd_count = 1;
+                        }
+                    }
+                    init_step = 3;
+                }
+            }
             return;
         }
     }

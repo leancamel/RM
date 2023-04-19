@@ -333,9 +333,13 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, ch
     *vx_set = 0.0f;
     *vy_set = 0.0f;
     *wz_set = 0.0f;
-    if(gimbal_init_cmd_chassis_move())
+    if(gimbal_init_cmd_chassis_move() == 1)
     {
         *vx_set = 3.0f;
+    }
+    else if(gimbal_init_cmd_chassis_move() == 2)
+    {
+        *vx_set = -3.0f;
     }
 }
 

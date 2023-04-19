@@ -22,5 +22,5 @@ extern void gimbal_behaviour_control_set(fp32 *add_yaw, fp32 *add_pitch, Gimbal_
 extern bool_t gimbal_cmd_to_chassis_stop(void);
 extern bool_t gimbal_cmd_to_shoot_stop(void);
 extern bool_t gimbal_cmd_to_voltage_warning_stop(void);
-extern bool_t gimbal_init_cmd_chassis_move(void);
+extern uint8_t gimbal_init_cmd_chassis_move(void);
 #endif

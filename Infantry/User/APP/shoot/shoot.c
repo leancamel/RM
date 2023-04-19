@@ -319,15 +319,28 @@ static void shoot_feedback_update(void)
     shoot_control.speed = -shoot_control.speed;
 #endif
 
-    //电机圈数重置， 因为输出轴旋转一圈， 电机轴旋转 36圈，将电机轴数据处理成输出轴数据，用于控制输出轴角度
-    if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd > HALF_ECD_RANGE)
+    // //电机圈数重置， 因为输出轴旋转一圈， 电机轴旋转 36圈，将电机轴数据处理成输出轴数据，用于控制输出轴角度
+    // if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd > HALF_ECD_RANGE)
+    // {
+    //     shoot_control.ecd_count--;
+    // }
+    // else if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd < -HALF_ECD_RANGE)
+    // {
+    //     shoot_control.ecd_count++;
+    // }
+
+    //编码器丢帧，使用软件记上一次的编码值
+    static int16_t last_ecd = 0;
+    if (shoot_control.shoot_motor_measure->ecd - last_ecd > HALF_ECD_RANGE)
     {
         shoot_control.ecd_count--;
     }
-    else if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd < -HALF_ECD_RANGE)
+    else if (shoot_control.shoot_motor_measure->ecd - last_ecd < -HALF_ECD_RANGE)
     {
         shoot_control.ecd_count++;
     }
+    last_ecd = shoot_control.shoot_motor_measure->ecd;
+
 
     if (shoot_control.ecd_count == FULL_COUNT)
     {
@@ -471,7 +484,7 @@ static void shoot_bullet_control(void)
         trigger_count = 0;
     }
 
-    if(trigger_count >= 100)
+    if(trigger_count >= 200)
     {
         shoot_control.shoot_mode = SHOOT_READY;
         shoot_control.move_flag = 0;
