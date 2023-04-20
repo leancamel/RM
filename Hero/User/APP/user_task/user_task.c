@@ -40,6 +40,7 @@
 #include "uart1.h"
 #include "bluetooth.h"
 #include "referee.h"
+#include "relays.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -88,8 +89,8 @@ void UserTask(void *pvParameters)
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
 		//从裁判系统获取底盘功率
-        get_chassis_power_and_buffer(&local_power, &local_buffer);
-        printf("%.2f, %.2f\n", local_power, local_buffer);
+        // get_chassis_power_and_buffer(&local_power, &local_buffer);
+        // printf("%.2f, %.2f\n", local_power, local_buffer);
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
@@ -120,7 +121,7 @@ void UserTask(void *pvParameters)
 
         //蓝牙测试
         // Bluetooth_Send("%f",Power_Calc());
-
+        Relays_Judge();
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

@@ -51,7 +51,7 @@ TaskHandle_t GIMBALTask_Handler;
 TaskHandle_t INSTask_Handler;
 
 #define User_TASK_PRIO 4
-#define User_STK_SIZE 128
+#define User_STK_SIZE 512
 static TaskHandle_t UserTask_Handler;
 
 #define CALIBRATE_TASK_PRIO 5

@@ -1,5 +1,8 @@
 #include "stm32f4xx.h"
 #include "relays.h"
+#include "remote_control.h"
+
+const RC_ctrl_t *local_rc;
 
 void Relays_On(void)
 {
@@ -25,4 +28,18 @@ void Relays_Init(void)
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	Relays_On();
+
+	local_rc = get_remote_control_point();
+}
+
+void Relays_Judge(void)
+{
+	if(local_rc->key.v & KEY_PRESSED_OFFSET_Z)
+	{
+		Relays_On();
+	}
+	if(local_rc->key.v & KEY_PRESSED_OFFSET_G)
+	{
+		Relays_Off();
+	}
 }
