@@ -120,6 +120,7 @@ int16_t shoot_control_loop(void)
     {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
+        buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_READY_FRIC)
     {
@@ -134,6 +135,7 @@ int16_t shoot_control_loop(void)
         }
         shoot_control.trigger_motor_pid.max_out = TRIGGER_READY_PID_MAX_OUT;
         shoot_control.trigger_motor_pid.max_iout = TRIGGER_READY_PID_MAX_IOUT;
+        buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_BULLET)
     {
