@@ -53,6 +53,7 @@ const Gimbal_Control_t* local_gimbal_control;
 const chassis_move_t* local_chassis_move;
 const RC_ctrl_t* local_rc_ctrl;
 const shoot_control_t* local_shoot;
+const ROS_Msg_t* local_ROS;
 KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
@@ -75,6 +76,8 @@ void UserTask(void *pvParameters)
     local_rc_ctrl = get_remote_control_point();
     //获取射击结构体指针
     local_shoot = get_shoot_control_point();
+	//
+	local_ROS = ROS_GetPoint();
     //初始化卡尔曼滤波结构体
     Kalman_Filter_Init(&Power_KalmanInfo_Structure);
     while (1)
@@ -85,6 +88,10 @@ void UserTask(void *pvParameters)
             led_blue_toggle();
             Tcount = 0;
         }
+		if(get_game_start())
+			led_green_on();
+		else
+			led_green_off();
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
         // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
         // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
@@ -94,9 +101,10 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
-        get_chassis_power_and_buffer(&local_power, &local_buffer);
-		get_chassis_power_limit(&local_chassis_limit);
-        printf("%.2f, %.2f, %.2f\n", local_power, local_buffer, local_chassis_limit);
+        // get_chassis_power_and_buffer(&local_power, &local_buffer);
+		// get_chassis_power_limit(&local_chassis_limit);
+        // printf("%.2f, %.2f, %.2f\n", local_power, local_buffer, local_chassis_limit);
+		// printf("%.2f, %.2f\n",local_gimbal_control->gimbal_pitch_motor.relative_angle, local_gimbal_control->gimbal_pitch_motor.relative_angle_set,local_ROS );
 
         //姿态角
         // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
@@ -127,9 +135,16 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %d\n", local_shoot->speed, local_shoot->speed_set, local_shoot->given_current);
 
         //计算底盘功率
-        // Bluetooth_Send("%hd",5);
-
-		// ROS_Send_Msg();
+        // Bluetooth_Send("%hd",5); 
+		if(get_robot_id() < 10)
+			Pack_State(1,0);
+		else
+			Pack_State(0,0);
+		if(get_game_start())
+			Pack_State(1,1);
+		else
+			Pack_State(0,1);
+		ROS_Send_Msg();
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

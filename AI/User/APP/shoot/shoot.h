@@ -62,7 +62,7 @@
 // #define SWITCH_TRIGGER_OFF          1       //子弹未到达限位开关
 
 //卡单时间 以及反转时间
-#define BLOCK_TRIGGER_SPEED         1.0f
+#define BLOCK_TRIGGER_SPEED         3.0f
 #define BLOCK_TIME                  700
 #define REVERSE_TIME                500
 #define REVERSE_SPEED_LIMIT         13.0f

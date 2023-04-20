@@ -28,7 +28,7 @@
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "referee.h"
 
 /**
   * @brief          单字节解包
@@ -61,7 +61,6 @@ void referee_usart_task(void *pvParameters)
     while(1)
     {
         referee_unpack_fifo_data();
-
         vTaskDelay(10);
     }
 }

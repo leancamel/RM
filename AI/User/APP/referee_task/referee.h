@@ -189,6 +189,7 @@ extern void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer);
 extern void get_chassis_power_limit(fp32 *power_limit);
 
 extern uint8_t get_robot_id(void);
+extern uint8_t get_game_start(void);
 
 extern void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0);
 extern void get_shoot_heat1_limit_and_heat1(uint16_t *heat1_limit, uint16_t *heat1);

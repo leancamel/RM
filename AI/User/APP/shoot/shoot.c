@@ -21,8 +21,9 @@
 #include "arm_math.h"
 #include "user_lib.h"
 #include "trigger.h"
+#include "buzzer.h"
 // #include "bsp_laser.h"
-// #include "referee.h"
+#include "referee.h"
 
 #include "CAN_receive.h"
 #include "gimbal_behaviour.h"
@@ -238,15 +239,6 @@ static void shoot_set_mode(void)
 			}
 		}
 
-		// get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
-		// if(!toe_is_error(REFEREE_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
-		// {
-		//     if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
-		//     {
-		//         shoot_control.shoot_mode =SHOOT_READY;
-		//     }
-		// }
-
 		//如果云台状态是 无力状态，就关闭射击
 		if (gimbal_cmd_to_shoot_stop())
 		{
@@ -259,7 +251,26 @@ static void shoot_set_mode(void)
 	else
 	{
 		Get_Shoot_Msg(&last_shoot_switch);
+	}  
+
+	static uint16_t Tcount = 0;
+	get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
+	if((shoot_control.heat + 20 > shoot_control.heat_limit))
+	{
+		Tcount++;
+		if(Tcount >= 500)
+		{
+			if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+			{
+				shoot_control.shoot_mode =SHOOT_READY;
+			}
+		}
 	}
+	else
+	{
+		Tcount = 0;
+	}
+
 }
 /**
   * @brief          射击数据更新
@@ -394,14 +405,17 @@ static void trigger_motor_turn_back(void)
     {
         shoot_control.block_time++;
         shoot_control.reverse_time = 0;
+		buzzer_off();
     }
     else if (shoot_control.block_time == BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME)
     {
         shoot_control.reverse_time++;
+		buzzer_on(64,20);
     }
     else
     {
         shoot_control.block_time = 0;
+		buzzer_off();
     }
 }
 

@@ -6,11 +6,15 @@
 #include "detect_task.h"
 #include "shoot.h"
 #include "gimbal_behaviour.h"
+#include "math.h"
+#include "buzzer.h"
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
 
 static uint8_t ROS_rx_buf[2][ROS_RX_BUF_NUM];
 static ROS_Msg_t ROS_Msg;
+// static float pitch_average[10] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+// static short pitch_i = 0;
 
 extern shoot_control_t shoot_control;
 
@@ -31,6 +35,7 @@ void ROS_Init(void)
 	ROS_Msg.vx.float_data = 0.0f;
 	ROS_Msg.vy.float_data = 0.0f;
 	ROS_Msg.wz.float_data = 0.0f;
+	ROS_Msg.state = 0x00;
 }
 /**
  * @brief	将待发送数据封装进结构体,若传入的数据大于等于10,则不进行更新
@@ -47,6 +52,23 @@ void Pack_Response(fp32 vx,fp32 vy,fp32 wz)
 		ROS_Msg.vy.float_data = vy;
 	if(wz < 10)
 		ROS_Msg.wz.float_data = wz;
+	return;
+}
+/**
+ * @brief 	封装状态信息
+ * @param	state	状态信息
+ * @return	void
+ */
+void Pack_State(uint8_t state,uint8_t offset)
+{
+	if(state == 1)
+	{
+		ROS_Msg.state |= (0x01 << offset);
+	}
+	else
+	{
+		ROS_Msg.state &= ~(0x01 << offset);
+	}
 	return;
 }
 /**
@@ -176,9 +198,8 @@ void Get_Chassis_Msg(fp32 *vx_set,fp32 *vy_set,fp32 *angle_set)
 
 void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 {
-	float yaw_tick = 0.010f;
-	float pitch_tick = 0.008f;
-	//yaw
+	float yaw_tick = 0.003f;
+	float pitch_tick = 0.0025f;
 	if(ROS_Msg.yaw_add.float_data > yaw_tick)
 	{
 		*yaw_add = yaw_tick;
@@ -214,60 +235,63 @@ void Get_Gimbal_Msg(fp32 *yaw_add,fp32 *pitch_add)
 
 void Get_Chassis_Mode(chassis_behaviour_e *chassis_behaviour_mode)
 {
-	if(chassis_behaviour_mode != NULL)
-	{
-		switch(ROS_Msg.mode & 0x03)
-		{
-			case 0x00:
-				*chassis_behaviour_mode = CHASSIS_NO_MOVE;
-				break;
-			case 0x01:
-				*chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
-				break;
-			case 0x02:
-				*chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
-				break;
-			default:
-				*chassis_behaviour_mode = CHASSIS_NO_MOVE;
-				break;
-		}
-	}
+	// if(chassis_behaviour_mode != NULL)
+	// {
+	// 	switch(ROS_Msg.mode & 0x03)
+	// 	{
+	// 		case 0x00:
+	// 			*chassis_behaviour_mode = CHASSIS_NO_MOVE;
+	// 			break;
+	// 		case 0x01:
+	// 			*chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+	// 			break;
+	// 		case 0x02:
+	// 			*chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+	// 			break;
+	// 		default:
+	// 			*chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+	// 			break;
+	// 	}
+	// }
+	*chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
 }
 
 void Get_Gimbal_Mode(gimbal_behaviour_e *gimbal_behaviour)
 {
-	if(gimbal_behaviour != NULL)
-	{
-		switch(ROS_Msg.mode & 0x03)
-		{
-			case 0x00:
-				*gimbal_behaviour = GIMBAL_ZERO_FORCE;
-				break;
-			case 0x01:
-				*gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
-				break;
-			case 0x02:
-				*gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
-				break;
-			default:
-				*gimbal_behaviour = GIMBAL_ZERO_FORCE;
-				break;
-		}
-	}
+	// if(gimbal_behaviour != NULL)
+	// {
+	// 	switch(ROS_Msg.mode & 0x03)
+	// 	{
+	// 		case 0x00:
+	// 			*gimbal_behaviour = GIMBAL_ZERO_FORCE;
+	// 			break;
+	// 		case 0x01:
+	// 			*gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+	// 			break;
+	// 		case 0x02:
+	// 			*gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+	// 			break;
+	// 		default:
+	// 			*gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+	// 			break;
+	// 	}
+	// }
+	*gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
 }
 
 void Get_Shoot_Msg(bool_t *last_shoot_switch)
 {
 	//开摩擦轮
-	if (((ROS_Msg.mode & 0x04) == 0x04) && shoot_control.shoot_mode == SHOOT_STOP)
-	{
-		shoot_control.shoot_mode = SHOOT_READY_FRIC;
-	}
-	//关摩擦轮
-	else if(((ROS_Msg.mode & 0x04) != 0x04) && shoot_control.shoot_mode != SHOOT_STOP)
-	{
-		shoot_control.shoot_mode = SHOOT_STOP;
-	}
+	// if (((ROS_Msg.mode & 0x04) == 0x04) && shoot_control.shoot_mode == SHOOT_STOP)
+	// {
+	// 	shoot_control.shoot_mode = SHOOT_READY_FRIC;
+	// }
+	// //关摩擦轮
+	// else if(((ROS_Msg.mode & 0x04) != 0x04) && shoot_control.shoot_mode != SHOOT_STOP)
+	// {
+	// 	shoot_control.shoot_mode = SHOOT_STOP;
+	// }
+	shoot_control.shoot_mode = SHOOT_READY_FRIC;
 	//摩擦轮准备完毕
 	if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
 	{
@@ -310,7 +334,7 @@ void Get_Shoot_Msg(bool_t *last_shoot_switch)
 void ROS_Send_Msg(void)
 {
 	Serial_SendByte(ROS_START_BYTE);
-	uint8_t CRC_Buff[14];
+	uint8_t CRC_Buff[15];
 
 	CRC_Buff[0] = ROS_Msg.vx.byte_data[0];
 	CRC_Buff[1] = ROS_Msg.vx.byte_data[1];
@@ -327,10 +351,26 @@ void ROS_Send_Msg(void)
 	CRC_Buff[10] = ROS_Msg.wz.byte_data[2];
 	CRC_Buff[11] = ROS_Msg.wz.byte_data[3];
 
-	getModbusCRC16(CRC_Buff,12);
+	CRC_Buff[12] = ROS_Msg.state;
 
-	for(int i=0;i<14;i++)
+	getModbusCRC16(CRC_Buff,13);
+
+	for(int i=0;i<15;i++)
 	{
 		Serial_SendByte(CRC_Buff[i]);
 	}
+}
+
+uint8_t ROS_Motionless(void)
+{
+	if(fabs(ROS_Msg.vx_set.float_data) < 0.0001f && fabs(ROS_Msg.vy_set.float_data) < 0.0001f && fabs(ROS_Msg.wz_set.float_data) < 0.0001f && fabs(ROS_Msg.yaw_add.float_data) < 0.0001f && fabs(ROS_Msg.pitch_add.float_data) < 0.0001f)
+	{
+		return 1;
+	}
+	return 0;
+}
+
+ROS_Msg_t* ROS_GetPoint(void)
+{
+	return &ROS_Msg;
 }

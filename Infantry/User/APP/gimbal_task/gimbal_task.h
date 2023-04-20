@@ -76,12 +76,12 @@
 #define YawChannel 0
 #define PitchChannel 1
 #define ModeChannel 0
-//掉头180 按键
-#define TurnKeyBoard KEY_PRESSED_OFFSET_F
-//掉头云台速度
-#define TurnSpeed 0.04f
-//测试按键尚未使用
-#define TestKeyBoard KEY_PRESSED_OFFSET_R
+// //掉头180 按键
+// #define TurnKeyBoard KEY_PRESSED_OFFSET_F
+// //掉头云台速度
+// #define TurnSpeed 0.04f
+//测试按键
+#define TestKeyBoard KEY_PRESSED_OFFSET_G
 //遥控器输入死区，因为遥控器存在差异，摇杆在中间，其值不一定为零
 #define RC_deadband 10
 //yaw，pitch角度与遥控器输入比例

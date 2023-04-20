@@ -184,6 +184,11 @@ uint8_t get_robot_id(void)
     return robot_state.robot_id;
 }
 
+uint8_t get_game_start(void)
+{
+	return (game_state.game_progress == 4);
+}
+
 void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0)
 {
     *heat0_limit = robot_state.shooter_id1_17mm_cooling_limit;

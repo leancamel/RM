@@ -224,6 +224,12 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
     }
 
+    //手动设置
+    if(gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE && (gimbal_mode_set->gimbal_rc_ctrl->key.v & TestKeyBoard))
+    {
+        gimbal_mode_set->ecd_count = (gimbal_mode_set->ecd_count + 1) % 3;
+    }
+
 
     gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }

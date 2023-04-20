@@ -22,7 +22,7 @@
 #include "chassis_behaviour.h"
 #include "arm_math.h"
 #include "buzzer.h"
-// #include "Detect_Task.h"
+#include "Detect_Task.h"
 
 #include "led.h"
 
@@ -495,6 +495,16 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
                 motionless_time++;
             }
         }
+		else if(toe_is_error(DBUS_TOE))
+		{
+			if(ROS_Motionless())
+			{
+				if (motionless_time < GIMBAL_MOTIONLESS_TIME_MAX)
+				{
+					motionless_time++;
+				}
+			}
+		}
         else
         {
             motionless_time = 0;

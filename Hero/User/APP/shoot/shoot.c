@@ -559,10 +559,10 @@ static void shoot_limit_pwm_set(void)
     switch (speed)
     {
     case 10:
-        shoot_control.fric1_ramp.max_value = 1620;
+        shoot_control.fric1_ramp.max_value = 1600;
         break;
     case 16:
-        shoot_control.fric1_ramp.max_value = 1750;
+        shoot_control.fric1_ramp.max_value = 1720;
         break;
     default:
         shoot_control.fric1_ramp.max_value = 1620;

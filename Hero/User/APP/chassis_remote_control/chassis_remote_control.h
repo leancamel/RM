@@ -89,7 +89,7 @@
 //底盘运动过程最大平移速度
 #define NORMAL_MAX_CHASSIS_SPEED_Y 2.9f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
-#define CHASSIS_WZ_SET_SCALE 0.1f
+#define CHASSIS_WZ_SET_SCALE 0.1f //510.3 346.1
 //底盘控制任务周期
 #define CHASSIS_CTL_TIME 2
 
