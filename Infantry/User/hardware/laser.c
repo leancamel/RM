@@ -14,5 +14,17 @@ void Laser_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
+	//GPIO_SetBits(GPIOC,GPIO_Pin_8);
+	GPIO_ResetBits(GPIOC,GPIO_Pin_8);
+}
+
+void Laser_On(void)
+{
 	GPIO_SetBits(GPIOC,GPIO_Pin_8);
 }
+
+void Laser_Off(void)
+{
+	GPIO_ResetBits(GPIOC,GPIO_Pin_8);
+}
+

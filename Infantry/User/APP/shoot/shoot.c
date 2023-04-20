@@ -31,6 +31,7 @@
 
 #include "rc_handoff.h"
 #include "buzzer.h"
+#include "Laser.h"
 
 #define shoot_fric1_on(pwm) fric1_on((pwm))
 #define shoot_fric2_on(pwm) fric2_on((pwm))
@@ -119,11 +120,14 @@ int16_t shoot_control_loop(void)
     {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
+        Laser_Off();
+        buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_READY_FRIC)
     {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
+        Laser_On();
     }
     else if(shoot_control.shoot_mode == SHOOT_READY)
     {
@@ -133,6 +137,7 @@ int16_t shoot_control_loop(void)
         }
         shoot_control.trigger_motor_pid.max_out = TRIGGER_READY_PID_MAX_OUT;
         shoot_control.trigger_motor_pid.max_iout = TRIGGER_READY_PID_MAX_IOUT;
+        buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_BULLET)
     {
