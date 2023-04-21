@@ -569,3 +569,9 @@ static void shoot_limit_pwm_set(void)
         break;
     }
 }
+
+//返回云台控制变量，通过指针传递方式传递信息
+const shoot_control_t *get_shoot_control_point(void)
+{
+    return &shoot_control;
+}

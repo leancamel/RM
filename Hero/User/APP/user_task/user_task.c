@@ -98,6 +98,8 @@ void UserTask(void *pvParameters)
 
         // printf("%d\n", local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd);
 
+        // printf("%.2f, %.2f\n", shoot_control.speed, shoot_control.speed_set);
+
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
         // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,

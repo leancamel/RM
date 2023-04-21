@@ -76,14 +76,14 @@
 
 
 //拨弹轮电机PID
-#define TRIGGER_SPEED_PID_KP        1800.0f
+#define TRIGGER_SPEED_PID_KP        3800.0f
 #define TRIGGER_SPEED_PID_KI        10.0f
-#define TRIGGER_SPEED_PID_KD        1.0f
+#define TRIGGER_SPEED_PID_KD        3.0f
 
 #define TRIGGER_BULLET_PID_MAX_OUT  12000.0f
 #define TRIGGER_BULLET_PID_MAX_IOUT 2000.0f
 
-#define TRIGGER_READY_PID_MAX_OUT   8000.0f
+#define TRIGGER_READY_PID_MAX_OUT   16000.0f
 #define TRIGGER_READY_PID_MAX_IOUT  2000.0f
 
 
@@ -152,5 +152,6 @@ typedef struct
 //由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
 extern void shoot_init(void);
 extern int16_t shoot_control_loop(void);
+const shoot_control_t *get_shoot_control_point(void);
 
 #endif
