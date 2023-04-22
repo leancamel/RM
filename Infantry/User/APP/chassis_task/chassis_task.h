@@ -94,13 +94,13 @@
 //底盘运动过程最大平移速度
 #define NORMAL_MAX_CHASSIS_SPEED_Y 3.9f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
-#define CHASSIS_WZ_SET_SCALE 0.1f
+#define CHASSIS_WZ_SET_SCALE 0.0f
 //底盘控制任务周期
 #define CHASSIS_CTL_TIME 2
 
 //小陀螺旋转速度
-#define ROTATION_SPEED_MAX 8.0f
-#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX
+#define ROTATION_SPEED_MAX 30.0f
+#define ROTATION_SPEED_ADD_VALUE ROTATION_SPEED_MAX/3
 
 
 //摇摆原地不动摇摆最大角度(rad)

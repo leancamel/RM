@@ -279,14 +279,14 @@ static void shoot_set_mode(void)
         }
     }
 
-    // get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
-    // if(!toe_is_error(REFEREE_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
-    // {
-    //     if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
-    //     {
-    //         shoot_control.shoot_mode =SHOOT_READY;
-    //     }
-    // }
+    get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
+    if((shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
+    {
+        if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
+        {
+            shoot_control.shoot_mode = SHOOT_READY;
+        }
+    }
 
     //如果云台状态是 无力状态，就关闭射击
     if (gimbal_cmd_to_shoot_stop())
@@ -437,7 +437,7 @@ static void trigger_motor_turn_back(void)
     }
     else
     {
-        shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        shoot_control.speed_set = -16;
         // shoot_control.speed_set = 0;
     }
 
@@ -509,16 +509,16 @@ static void shoot_limit_pwm_set(void)
     switch (speed)
     {
     case 15:
-        shoot_control.fric1_ramp.max_value = 1580;
+        shoot_control.fric1_ramp.max_value = 1600;
         break;
     case 18:
-        shoot_control.fric1_ramp.max_value = 1620;
+        shoot_control.fric1_ramp.max_value = 1690;
         break;
     case 30:
-        shoot_control.fric1_ramp.max_value = 1850;
+        shoot_control.fric1_ramp.max_value = 2000;
         break;
     default:
-        shoot_control.fric1_ramp.max_value = 1580;
+        shoot_control.fric1_ramp.max_value = 1600;
         break;
     }
 }
