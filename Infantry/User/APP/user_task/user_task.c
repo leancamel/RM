@@ -27,6 +27,7 @@
 #include "led.h"
 #include "adc.h"
 #include "buzzer.h"
+#include "uart1.h"
 
 //#include "Detect_Task.h"
 #include "INS_Task.h"
@@ -89,13 +90,13 @@ void UserTask(void *pvParameters)
             Tcount = 0;
         }
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
-        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
 
-        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
-        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
-        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
+        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
+        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
+        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //从裁判系统获取底盘功率
         // get_chassis_power_and_buffer(&local_power, &local_buffer);
@@ -108,16 +109,15 @@ void UserTask(void *pvParameters)
         //     local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd - local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->last_ecd);
 
         //姿态角
-        // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         
         //小陀螺测试
         // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);
         // printf("%f, %f\n", local_chassis_move->wz, local_chassis_move->wz_set);
 
-        //云台yaw电机角度环串速度环pid调参
-        // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
-        // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
+        // 云台yaw电机角度环串速度环pid调参
+        // printf("%.2f, %.2f\n", 
+        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f);
 
         //云台pitch电机pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 

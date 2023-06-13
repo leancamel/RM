@@ -436,9 +436,9 @@ static void GIMBAL_Feedback_Update(Gimbal_Control_t *gimbal_feedback_update)
     //                                                                                     gimbal_feedback_update->gimbal_yaw_motor.offset_ecd);
     {
         //云台yaw电机加上了减速箱，因此要更改反馈量计算方式
-        static int32_t last_ecd = 0;
+        static int32_t last_ecd = 0;//yaw电机上一次的编码值
         int32_t relative_ecd = 0;
-        int32_t ecd = gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        int32_t ecd = gimbal_feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd;//yaw电机此次的编码值
         if(ecd - last_ecd > Half_ecd_range)
         {
             gimbal_feedback_update->ecd_count--;

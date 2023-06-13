@@ -228,18 +228,18 @@ static void shoot_set_mode(void)
         if(Tcount >= 5000)
         {
             //空操作
-            led_green_on();
+            // led_green_on();
         }
         else
         {
-            led_green_off();
+            // led_green_off();
             shoot_control.shoot_mode = SHOOT_STOP;
         }
     }
     else
     {
         Tcount = 0;
-        led_green_off();
+        // led_green_off();
         shoot_control.shoot_mode = SHOOT_STOP;
     }
 
