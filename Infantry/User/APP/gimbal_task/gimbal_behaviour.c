@@ -380,7 +380,7 @@ bool_t gimbal_cmd_to_voltage_warning_stop(void)
   */
 static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 {
-    // static uint8_t countsuper = 0;//超级模式状态计数器
+    static uint8_t countsuper = 0;//超级模式状态计数器
 
     if (gimbal_mode_set == NULL)
     {
@@ -508,7 +508,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     {
         gimbal_behaviour = GIMBAL_ZERO_FORCE;
         gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
-        // countsuper = 0;
+        countsuper = 0;
     }
     else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
@@ -519,38 +519,38 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
 
-    // //超级模式判断进入
-    // {
-    //     if(switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) 
-    //         && countsuper == 0 && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
-    //     {
-    //         countsuper += 1;
-    //     }
-    //     else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) && countsuper == 1)
-    //     {
-    //         countsuper -= 1;
-    //     }
+    //超级模式判断进入
+    {
+        if(switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) 
+            && countsuper == 0 && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+        {
+            countsuper += 1;
+        }
+        else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) && countsuper == 1)
+        {
+            countsuper -= 1;
+        }
         
-    //     // //底盘小陀螺
-    //     // if(rotation_cmd_gimbal_absolute() && countsuper < 2)
-    //     // {
-    //     //     countsuper += 2;
-    //     // }
-    //     // else if(countsuper >= 2)
-    //     // {
-    //     //     countsuper -= 2;
-    //     // }
-    //     if(countsuper == 0)
-    //     {
-    //         led_red_off();
-    //     }
-    //     else if(countsuper == 1)
-    //     {
-    //         led_red_on();
-    //         gimbal_behaviour = GIMBAL_AUTO_SHOOT;
-    //         return;
-    //     }
-    // }
+        // //底盘小陀螺
+        // if(rotation_cmd_gimbal_absolute() && countsuper < 2)
+        // {
+        //     countsuper += 2;
+        // }
+        // else if(countsuper >= 2)
+        // {
+        //     countsuper -= 2;
+        // }
+        if(countsuper == 0)
+        {
+            led_red_off();
+        }
+        else if(countsuper == 1)
+        {
+            led_red_on();
+            gimbal_behaviour = GIMBAL_AUTO_SHOOT;
+            return;
+        }
+    }
 
     // if( toe_is_error(DBUSTOE))
     // {
@@ -813,6 +813,6 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     }
     *yaw = 0.0f;
     *pitch = 0.0f;
-    // Get_Gimbal_Angle(yaw,pitch);
+    Get_Gimbal_Angle(yaw,pitch);
 }
 

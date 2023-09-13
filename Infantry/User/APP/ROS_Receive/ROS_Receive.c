@@ -103,24 +103,29 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 		return;
 	}
 
-    uint8_t CRC1 = *(uart_buf + 9);
-    uint8_t CRC2 = *(uart_buf + 10);
-	getModbusCRC16(uart_buf + 1,8);
-
-	if(CRC1 == *(uart_buf + 9) && CRC2 == *(uart_buf + 10))
+	unsigned char sum = 0x00;
+	
+	for(unsigned short i=0;i<uart_buf[2];i++)
+		sum += uart_buf[i+3];
+	
+	if(sum == uart_buf[uart_buf[1]-1])
     {
-        ROS_Msg.yaw_add.byte_data[0] = *(uart_buf + 1);
-        ROS_Msg.yaw_add.byte_data[1] = *(uart_buf + 2);
-        ROS_Msg.yaw_add.byte_data[2] = *(uart_buf + 3);
-        ROS_Msg.yaw_add.byte_data[3] = *(uart_buf + 4);
+        ROS_Msg.yaw_add.byte_data[0] = *(uart_buf + 3);
+        ROS_Msg.yaw_add.byte_data[1] = *(uart_buf + 4);
+        ROS_Msg.yaw_add.byte_data[2] = *(uart_buf + 5);
+        ROS_Msg.yaw_add.byte_data[3] = *(uart_buf + 6);
 
-        ROS_Msg.pitch_add.byte_data[0] = *(uart_buf + 5);
-        ROS_Msg.pitch_add.byte_data[1] = *(uart_buf + 6);
-        ROS_Msg.pitch_add.byte_data[2] = *(uart_buf + 7);
-        ROS_Msg.pitch_add.byte_data[3] = *(uart_buf + 8);
+        ROS_Msg.pitch_add.byte_data[0] = *(uart_buf + 7);
+        ROS_Msg.pitch_add.byte_data[1] = *(uart_buf + 8);
+        ROS_Msg.pitch_add.byte_data[2] = *(uart_buf + 9);
+        ROS_Msg.pitch_add.byte_data[3] = *(uart_buf + 10);
+
+		ROS_Msg.depth.byte_data[0] = *(uart_buf + 11);
+        ROS_Msg.depth.byte_data[1] = *(uart_buf + 12);
+        ROS_Msg.depth.byte_data[2] = *(uart_buf + 13);
+        ROS_Msg.depth.byte_data[3] = *(uart_buf + 14);
     }
 }
-
 
 
 void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)

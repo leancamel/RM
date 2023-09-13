@@ -3,9 +3,9 @@
 
 #include "main.h"
 
-#define ROS_START_BYTE 0x5A
-#define ROS_RX_BUF_NUM 22u
-#define ROS_FRAME_LENGTH 11u
+#define ROS_START_BYTE 0x42
+#define ROS_RX_BUF_NUM 32u
+#define ROS_FRAME_LENGTH 16u
 
 typedef union
 {
@@ -17,6 +17,7 @@ typedef struct
 {
 	Float_Byte yaw_add;
 	Float_Byte pitch_add;
+	Float_Byte depth;
 }ROS_Msg_t;
 
 void ROS_Init(void);
