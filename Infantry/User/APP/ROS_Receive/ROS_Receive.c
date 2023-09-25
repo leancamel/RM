@@ -2,6 +2,12 @@
 #include "ROS_Receive.h"
 #include "uart1.h"
 #include "stdio.h"
+#include "INS_Task.h"
+
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
 
@@ -10,6 +16,23 @@ static ROS_Msg_t ROS_Msg;
 
 //将串口接收到的数据转化为ROS实际的数据
 void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg);
+
+static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t c);
+
+void imuSendTask(void *pvParameters)
+{
+    const volatile fp32 *local_imu_angle;
+    vTaskDelay(3000);//延时等待陀螺仪初始化完毕
+
+    local_imu_angle = get_INS_angle_point();
+    TickType_t IMU_LastWakeTime = xTaskGetTickCount();
+    while(1)
+    {
+        vTaskDelayUntil(&IMU_LastWakeTime, 20);
+        
+        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+    }
+}
 
 
 //初始化DMA，串口1
@@ -105,10 +128,10 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 
 	unsigned char sum = 0x00;
 	
-	for(unsigned short i=0;i<uart_buf[2];i++)
-		sum += uart_buf[i+3];
+	for(unsigned short i=0;i<uart_buf[2] - 1;i++)
+		sum += uart_buf[i];
 	
-	if(sum == uart_buf[uart_buf[1]-1])
+	if(sum == uart_buf[uart_buf[2]-1])
     {
         ROS_Msg.yaw_add.byte_data[0] = *(uart_buf + 3);
         ROS_Msg.yaw_add.byte_data[1] = *(uart_buf + 4);
@@ -128,47 +151,74 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 }
 
 
-void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
-{
-    float yaw_tick = 0.003f;
-	float pitch_tick = 0.0025f;
-	//yaw
-	if(ROS_Msg.yaw_add.float_data > yaw_tick)
-	{
-		*yaw_add = yaw_tick;
-		ROS_Msg.yaw_add.float_data -= yaw_tick;
-	}
-	else if(ROS_Msg.yaw_add.float_data < -yaw_tick)
-	{
-		*yaw_add = -yaw_tick;
-		ROS_Msg.yaw_add.float_data += yaw_tick;
-	}
-	else
-	{
-		*yaw_add = ROS_Msg.yaw_add.float_data;
-		ROS_Msg.yaw_add.float_data = 0.0f;
-	}
-	//pitch
-	if(ROS_Msg.pitch_add.float_data > pitch_tick)
-	{
-		*pitch_add = pitch_tick;
-		ROS_Msg.pitch_add.float_data -= pitch_tick;
-	}
-	else if(ROS_Msg.pitch_add.float_data < -pitch_tick)
-	{
-		*pitch_add = -pitch_tick;
-		ROS_Msg.pitch_add.float_data += pitch_tick;
-	}
-	else
-	{
-		*pitch_add = ROS_Msg.pitch_add.float_data;
-		ROS_Msg.pitch_add.float_data = 0.0f;
-	}
-}
-
 //返回ROS数据，通过指针传递方式传递信息
 const ROS_Msg_t *get_ROS_Msg_point(void)
 {
     return &ROS_Msg;
 }
 
+static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t color)
+{
+    uint8_t sendBuff[13];
+
+    sendBuff[0] = 0x42; // 设置帧头
+    sendBuff[1] = 0x21; // 设置地址
+    sendBuff[2] = 13;   // 设置帧长
+
+    float data_array[] = {yaw, pitch};
+    
+    for (int j = 0; j < 2; j++) 
+    {
+        uint8_t* float_data_ptr = (uint8_t*)&data_array[j];
+        for (int i = 0; i < sizeof(float); i++) 
+        {
+            sendBuff[3 + j * sizeof(float) + i] = float_data_ptr[i];
+        }
+    }
+    sendBuff[11] = color;
+
+    uint8_t check = 0x00;
+    for(int i = 0; i < 12; i++)
+        check += sendBuff[i];
+    sendBuff[12] = check;
+
+    Serial_SendData(sendBuff, 13);
+}
+
+void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
+{
+    float yaw_tick = 0.003f;
+	float pitch_tick = 0.0025f;
+	//yaw
+	// if(ROS_Msg.yaw_add.float_data > yaw_tick)
+	// {
+	// 	*yaw_add = yaw_tick;
+	// 	ROS_Msg.yaw_add.float_data -= yaw_tick;
+	// }
+	// else if(ROS_Msg.yaw_add.float_data < -yaw_tick)
+	// {
+	// 	*yaw_add = -yaw_tick;
+	// 	ROS_Msg.yaw_add.float_data += yaw_tick;
+	// }
+	// else
+	{
+		*yaw_add = ROS_Msg.yaw_add.float_data;
+		ROS_Msg.yaw_add.float_data = 0.0f;
+	}
+	//pitch
+	// if(ROS_Msg.pitch_add.float_data > pitch_tick)
+	// {
+	// 	*pitch_add = pitch_tick;
+	// 	ROS_Msg.pitch_add.float_data -= pitch_tick;
+	// }
+	// else if(ROS_Msg.pitch_add.float_data < -pitch_tick)
+	// {
+	// 	*pitch_add = -pitch_tick;
+	// 	ROS_Msg.pitch_add.float_data += pitch_tick;
+	// }
+	// else
+	{
+		*pitch_add = ROS_Msg.pitch_add.float_data;
+		ROS_Msg.pitch_add.float_data = 0.0f;
+	}
+}

@@ -376,6 +376,8 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_INT_gyro_point = get_gyro_data_point();
     //遥控器数据指针获取
     gimbal_init->gimbal_rc_ctrl = get_remote_control_point();
+    //上位机数据指针获取
+    gimbal_init->gimbal_ros_msg = get_ROS_Msg_point();
     //初始化电机模式
     gimbal_init->gimbal_yaw_motor.gimbal_motor_mode = gimbal_init->gimbal_yaw_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     gimbal_init->gimbal_pitch_motor.gimbal_motor_mode = gimbal_init->gimbal_pitch_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;

@@ -6,8 +6,8 @@
 /*------------------printf函数重定向-------------------*/
 int fputc(int ch, FILE *f)
 {
-    USART_SendData(USART1, (unsigned char) ch);
-    while (!(USART1->SR & USART_FLAG_TXE));
+    USART_SendData(USART6, (unsigned char) ch);
+    while (!(USART6->SR & USART_FLAG_TXE));
     return (ch);
 }
 /*-----------------------------------------------------*/
@@ -112,3 +112,11 @@ void Serial_SendByte(uint8_t Byte)
     while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 }
 
+void Serial_SendData(uint8_t* data, uint16_t length)
+{
+    for (uint16_t i = 0; i < length; i++)
+    {
+        USART_SendData(USART1, data[i]);
+        while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+    }
+}

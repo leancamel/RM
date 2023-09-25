@@ -24,6 +24,7 @@
 #include "CAN_Receive.h"
 #include "pid.h"
 #include "remote_control.h"
+#include "ROS_Receive.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
 #define PITCH_SPEED_PID_KP 3600.0f
@@ -209,6 +210,7 @@ typedef struct
 typedef struct
 {
     const RC_ctrl_t *gimbal_rc_ctrl;    //遥控器结构体指针
+    const ROS_Msg_t *gimbal_ros_msg;    //上位机指令指针
     const fp32 *gimbal_INT_angle_point; //陀螺仪数据指针
     const fp32 *gimbal_INT_gyro_point;  //加速度计数据指针
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体

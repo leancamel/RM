@@ -6,6 +6,7 @@
 
 void UART1_Init(void);
 void Serial_SendByte(uint8_t Byte);
+void Serial_SendData(uint8_t* data, uint16_t length);
 void ROS_Receive_Init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_buf_num);
 void ROS_Receive_restart(uint16_t dma_buf_num);
 

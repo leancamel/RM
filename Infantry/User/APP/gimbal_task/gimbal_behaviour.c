@@ -30,7 +30,6 @@
 #include "INS_task.h"
 #include "Kalman_Filter.h"
 #include "stdio.h"
-#include "ROS_Receive.h"
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
@@ -180,6 +179,7 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     }
     //云台行为状态机设置
     gimbal_behavour_set(gimbal_mode_set);
+    // gimbal_behaviour = GIMBAL_AUTO_SHOOT;
 
     //根据云台行为状态机设置电机状态机
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE)
@@ -214,8 +214,8 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     }
     else if (gimbal_behaviour == GIMBAL_AUTO_SHOOT)
     {
-        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
-        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
     }
 
     if(rotation_cmd_gimbal_absolute())
@@ -813,6 +813,18 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     }
     *yaw = 0.0f;
     *pitch = 0.0f;
-    Get_Gimbal_Angle(yaw,pitch);
-}
+
+    // fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    // Get_Gimbal_Angle(&add_yaw, &add_pitch);
+
+    fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    if(gimbal_control_set->gimbal_ros_msg->depth.float_data != 0)
+    {
+        add_yaw = gimbal_control_set->gimbal_ros_msg->yaw_add.float_data - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        add_pitch = gimbal_control_set->gimbal_ros_msg->pitch_add.float_data - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+    }
+
+    *pitch = add_pitch;
+    *yaw = add_yaw;
+} 
 
