@@ -133,20 +133,18 @@ void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 	
 	if(sum == uart_buf[uart_buf[2]-1])
     {
-        ROS_Msg.yaw_add.byte_data[0] = *(uart_buf + 3);
-        ROS_Msg.yaw_add.byte_data[1] = *(uart_buf + 4);
-        ROS_Msg.yaw_add.byte_data[2] = *(uart_buf + 5);
-        ROS_Msg.yaw_add.byte_data[3] = *(uart_buf + 6);
+        uint8_t* yawDataPtr = &uart_buf[3];
+        uint8_t* pitchDataPtr = &uart_buf[7];
+        uint8_t* depthDataPtr = &uart_buf[11];
+        
+        fp32 set_yaw, set_pitch, depth;
+        memcpy(&set_yaw, yawDataPtr, sizeof(fp32));
+        memcpy(&set_pitch, pitchDataPtr, sizeof(fp32));
+        memcpy(&depth, depthDataPtr, sizeof(fp32));
 
-        ROS_Msg.pitch_add.byte_data[0] = *(uart_buf + 7);
-        ROS_Msg.pitch_add.byte_data[1] = *(uart_buf + 8);
-        ROS_Msg.pitch_add.byte_data[2] = *(uart_buf + 9);
-        ROS_Msg.pitch_add.byte_data[3] = *(uart_buf + 10);
-
-		ROS_Msg.depth.byte_data[0] = *(uart_buf + 11);
-        ROS_Msg.depth.byte_data[1] = *(uart_buf + 12);
-        ROS_Msg.depth.byte_data[2] = *(uart_buf + 13);
-        ROS_Msg.depth.byte_data[3] = *(uart_buf + 14);
+        ROS_Msg.shoot_yaw = set_yaw;
+        ROS_Msg.shoot_pitch = set_pitch;
+        ROS_Msg.shoot_depth = depth;
     }
 }
 
@@ -187,9 +185,9 @@ static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t color)
 
 void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
 {
-    float yaw_tick = 0.003f;
-	float pitch_tick = 0.0025f;
-	//yaw
+    // float yaw_tick = 0.003f;
+	// float pitch_tick = 0.0025f;
+	// // yaw
 	// if(ROS_Msg.yaw_add.float_data > yaw_tick)
 	// {
 	// 	*yaw_add = yaw_tick;
@@ -201,11 +199,11 @@ void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
 	// 	ROS_Msg.yaw_add.float_data += yaw_tick;
 	// }
 	// else
-	{
-		*yaw_add = ROS_Msg.yaw_add.float_data;
-		ROS_Msg.yaw_add.float_data = 0.0f;
-	}
-	//pitch
+	// {
+	// 	*yaw_add = ROS_Msg.yaw_add.float_data;
+	// 	ROS_Msg.yaw_add.float_data = 0.0f;
+	// }
+	// // pitch
 	// if(ROS_Msg.pitch_add.float_data > pitch_tick)
 	// {
 	// 	*pitch_add = pitch_tick;
@@ -217,8 +215,8 @@ void Get_Gimbal_Angle(fp32 *yaw_add,fp32 *pitch_add)
 	// 	ROS_Msg.pitch_add.float_data += pitch_tick;
 	// }
 	// else
-	{
-		*pitch_add = ROS_Msg.pitch_add.float_data;
-		ROS_Msg.pitch_add.float_data = 0.0f;
-	}
+	// {
+	// 	*pitch_add = ROS_Msg.pitch_add.float_data;
+	// 	ROS_Msg.pitch_add.float_data = 0.0f;
+	// }
 }

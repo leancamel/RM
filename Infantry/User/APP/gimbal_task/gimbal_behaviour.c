@@ -818,10 +818,10 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     // Get_Gimbal_Angle(&add_yaw, &add_pitch);
 
     fp32 add_pitch = 0.0f, add_yaw = 0.0f;
-    if(gimbal_control_set->gimbal_ros_msg->depth.float_data != 0)
+    if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
     {
-        add_yaw = gimbal_control_set->gimbal_ros_msg->yaw_add.float_data - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
-        add_pitch = gimbal_control_set->gimbal_ros_msg->pitch_add.float_data - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+        add_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        add_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
     }
 
     *pitch = add_pitch;

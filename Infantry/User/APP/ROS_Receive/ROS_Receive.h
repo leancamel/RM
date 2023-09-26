@@ -10,18 +10,11 @@
 //陀螺仪数据发送周期 ms
 #define IMU_SEND_TIME 20
 
-
-typedef union
-{
-	float float_data;
-	uint8_t byte_data[4];
-}Float_Byte;
-
 typedef struct
 {
-	Float_Byte yaw_add;
-	Float_Byte pitch_add;
-	Float_Byte depth;
+	fp32 shoot_yaw;
+	fp32 shoot_pitch;
+	fp32 shoot_depth;
 }ROS_Msg_t;
 
 void imuSendTask(void *pvParameters);
