@@ -25,6 +25,7 @@
 #include "pid.h"
 #include "remote_control.h"
 #include "ROS_Receive.h"
+#include "user_lib.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
 #define PITCH_SPEED_PID_KP 3600.0f
@@ -95,7 +96,8 @@
 #define Yaw_Encoder_Sen 0.01f
 #define Pitch_Encoder_Sen 0.01f
 //云台控制周期
-#define GIMBAL_CONTROL_TIME 1
+#define GIMBAL_CONTROL_TIME_MS 1
+#define GIMBAL_CONTROL_TIME 0.001f
 
 //云台测试模式 宏定义 0 为不使用测试模式
 #define GIMBAL_TEST_MODE 0
@@ -142,6 +144,9 @@
 
 #define YAW_ECD_TO_RAD Motor_Ecd_to_Rad/3
 
+#define GIMBAL_ACCEL_YAW_NUM 0.02f
+#define GIMBAL_ACCEL_PITCH_NUM 0.05f
+
 typedef enum
 {
     GIMBAL_MOTOR_RAW = 0, //电机原始值控制
@@ -180,6 +185,8 @@ typedef struct
     uint16_t offset_ecd;     //yaw电机转子中间位置
     fp32 max_relative_angle; //rad
     fp32 min_relative_angle; //rad
+
+    first_order_filter_type_t gimbal_cmd_slow_set;    //一阶低通滤波上位机期望
 
     fp32 relative_angle;     //rad
     fp32 relative_angle_set; //rad

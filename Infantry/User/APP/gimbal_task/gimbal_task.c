@@ -118,7 +118,7 @@ void GIMBAL_task(void *pvParameters)
     // //判断电机是否都上线
     // while (toe_is_error(YawGimbalMotorTOE) || toe_is_error(PitchGimbalMotorTOE) || toe_is_error(TriggerMotorTOE) )
     // {
-    //     vTaskDelay(GIMBAL_CONTROL_TIME);
+    //     vTaskDelay(GIMBAL_CONTROL_TIME_MS);
     //     GIMBAL_Feedback_Update(&gimbal_control);             //云台数据反馈
     // }
 
@@ -166,7 +166,7 @@ void GIMBAL_task(void *pvParameters)
         J_scope_gimbal_test();
 #endif
 
-        vTaskDelay(GIMBAL_CONTROL_TIME);
+        vTaskDelay(GIMBAL_CONTROL_TIME_MS);
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         gimbal_high_water = uxTaskGetStackHighWaterMark(NULL);
@@ -368,6 +368,9 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
 
     static const fp32 Pitch_speed_pid[3] = {PITCH_SPEED_PID_KP, PITCH_SPEED_PID_KI, PITCH_SPEED_PID_KD};
     static const fp32 Yaw_speed_pid[3] = {YAW_SPEED_PID_KP, YAW_SPEED_PID_KI, YAW_SPEED_PID_KD};
+    const static fp32 gimbal_yaw_order_filter[1] = {GIMBAL_ACCEL_YAW_NUM};
+    const static fp32 gimbal_pitch_order_filter[1] = {GIMBAL_ACCEL_PITCH_NUM};
+
     //电机数据指针获取
     gimbal_init->gimbal_yaw_motor.gimbal_motor_measure = get_Yaw_Gimbal_Motor_Measure_Point();
     gimbal_init->gimbal_pitch_motor.gimbal_motor_measure = get_Pitch_Gimbal_Motor_Measure_Point();
@@ -381,6 +384,9 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     //初始化电机模式
     gimbal_init->gimbal_yaw_motor.gimbal_motor_mode = gimbal_init->gimbal_yaw_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     gimbal_init->gimbal_pitch_motor.gimbal_motor_mode = gimbal_init->gimbal_pitch_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+    //初始化自瞄低通滤波
+    first_order_filter_init(&gimbal_init->gimbal_yaw_motor.gimbal_cmd_slow_set, GIMBAL_CONTROL_TIME, gimbal_yaw_order_filter);
+    first_order_filter_init(&gimbal_init->gimbal_pitch_motor.gimbal_cmd_slow_set, GIMBAL_CONTROL_TIME, gimbal_pitch_order_filter);
     //初始化yaw电机pid
     GIMBAL_PID_Init(&gimbal_init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid, YAW_GYRO_ABSOLUTE_PID_MAX_OUT, YAW_GYRO_ABSOLUTE_PID_MAX_IOUT, YAW_GYRO_ABSOLUTE_PID_KP, YAW_GYRO_ABSOLUTE_PID_KI, YAW_GYRO_ABSOLUTE_PID_KD);
     GIMBAL_PID_Init(&gimbal_init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid, YAW_ENCODE_RELATIVE_PID_MAX_OUT, YAW_ENCODE_RELATIVE_PID_MAX_IOUT, YAW_ENCODE_RELATIVE_PID_KP, YAW_ENCODE_RELATIVE_PID_KI, YAW_ENCODE_RELATIVE_PID_KD);

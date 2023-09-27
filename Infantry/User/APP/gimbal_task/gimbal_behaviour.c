@@ -817,14 +817,26 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     // fp32 add_pitch = 0.0f, add_yaw = 0.0f;
     // Get_Gimbal_Angle(&add_yaw, &add_pitch);
 
-    fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    // fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    // if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
+    // {
+    //     add_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+    //     add_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+    // }
+    // *pitch = add_pitch;
+    // *yaw = add_yaw;
+
+    fp32 set_yaw = 0.0f, set_pitch = 0.0f;
     if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
     {
-        add_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
-        add_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+        set_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw;
+        set_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch;
+
+        first_order_filter_cali(&gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set, set_yaw);
+        first_order_filter_cali(&gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set, set_pitch);
     }
 
-    *pitch = add_pitch;
-    *yaw = add_yaw;
+    *yaw = gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+    *pitch = gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
 } 
 
