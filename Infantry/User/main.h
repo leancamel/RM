@@ -29,6 +29,8 @@ typedef double fp64;
 #define IST8310_NVIC 5
 #define BMI088_NVIC 5
 #define SoftWare_NVIC 5
+#define Camera_NVIC 3
+#define TIM3_NVIC 1
 
 
 #define temperature 26

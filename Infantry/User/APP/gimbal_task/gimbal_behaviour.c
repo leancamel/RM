@@ -25,6 +25,7 @@
 // #include "Detect_Task.h"
 
 #include "led.h"
+#include "Laser.h"
 
 #include "user_lib.h"
 #include "INS_task.h"
@@ -162,6 +163,7 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
 
 //云台行为状态机
 static gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
+static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
 
 /**
   * @brief          云台行为状态机以及电机状态机设置
@@ -180,6 +182,14 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     //云台行为状态机设置
     gimbal_behavour_set(gimbal_mode_set);
     // gimbal_behaviour = GIMBAL_AUTO_SHOOT;
+
+    // 自瞄切换状态平稳过渡
+    if(gimbal_behaviour == GIMBAL_AUTO_SHOOT && last_gimbal_behaviour != GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out = gimbal_mode_set->gimbal_yaw_motor.absolute_angle;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out = gimbal_mode_set->gimbal_pitch_motor.absolute_angle;
+    }
+    last_gimbal_behaviour = gimbal_behaviour;
 
     //根据云台行为状态机设置电机状态机
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE)
@@ -829,14 +839,22 @@ static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *g
     fp32 set_yaw = 0.0f, set_pitch = 0.0f;
     if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
     {
+        Laser_On();
         set_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw;
         set_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch;
 
+        // *yaw = set_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        // *pitch = set_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+
+        // 低通滤波
         first_order_filter_cali(&gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set, set_yaw);
         first_order_filter_cali(&gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set, set_pitch);
+        *yaw = gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        *pitch = gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
     }
-
-    *yaw = gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
-    *pitch = gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+    else
+    {
+        Laser_Off();
+    }
 } 
 

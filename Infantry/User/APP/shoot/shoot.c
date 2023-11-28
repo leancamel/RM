@@ -120,7 +120,7 @@ int16_t shoot_control_loop(void)
     {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
-        Laser_Off();
+        // Laser_Off();
         buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_READY_FRIC)

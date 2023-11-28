@@ -132,7 +132,12 @@
 
 #define configUSE_TRACE_FACILITY		1   //为1启用可视化跟踪调试
 
-#define configGENERATE_RUN_TIME_STATS	0   //为1时启用运行时间统计功能
+#define configGENERATE_RUN_TIME_STATS	1   //为1时启用运行时间统计功能
+extern volatile uint64_t FreeRTOSRunTimeTicks;
+#define portGET_RUN_TIME_COUNTER_VALUE() (FreeRTOSRunTimeTicks)
+extern void ConfigureTimeForRunTimeStats(void);
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() ConfigureTimeForRunTimeStats()
+
 
 #define configUSE_STATS_FORMATTING_FUNCTIONS	1       //与宏configUSE_TRACE_FACILITY同时为1时会编译下面3个函数
                                                         //prvWriteNameToBuffer(),vTaskList(),

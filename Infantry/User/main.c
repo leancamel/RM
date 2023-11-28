@@ -11,6 +11,7 @@
 #include "can.h"
 #include "trigger.h"
 #include "laser.h"
+#include "dwt.h"
 
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
@@ -46,6 +47,8 @@ void BSP_Init(void)
 
 	//初始化滴答时钟
     delay_init(configTICK_RATE_HZ);
+
+	DWT_Init(168);
 
     //LED灯初始化
 	led_Init();

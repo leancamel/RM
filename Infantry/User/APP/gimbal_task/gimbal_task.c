@@ -130,7 +130,7 @@ void GIMBAL_task(void *pvParameters)
         GIMBAL_Set_Contorl(&gimbal_control);                 //设置云台控制量
         GIMBAL_Control_loop(&gimbal_control);                //云台控制PID计算
         // fric_loop();//摩擦轮转动测试
-        Shoot_Can_Set_Current = shoot_control_loop();        //射击任务控制循环
+        // Shoot_Can_Set_Current = shoot_control_loop();        //射击任务控制循环
 #if YAW_TURN
         Yaw_Can_Set_Current = -gimbal_control.gimbal_yaw_motor.given_current;
 #else

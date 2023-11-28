@@ -21,36 +21,36 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "timer.h"
+
 // //设置调度中断定时器配置
 // void vPortSetupTimerInterrupt(void)
 // {
 // }
 
 extern void xPortSysTickHandler(void);
-
 void SysTick_Handler(void)
 {
-    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-    {
-        xPortSysTickHandler();
-    }
+  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+  {
+    xPortSysTickHandler();
+  }
 }
 
+// 利用tim3作为任务统计用时，所有任务目前测试cpu利用率
+volatile uint64_t FreeRTOSRunTimeTicks = 0;
 
-//利用tim3作为任务统计用时，所有任务目前测试cpu利用率
-// volatile uint64_t FreeRTOSRunTimeTicks = 0;
+void ConfigureTimeForRunTimeStats(void)
+{
+  TIM3_Init();
+  FreeRTOSRunTimeTicks = 0;
+}
 
-// void ConfigureTimeForRunTimeStats(void)
-// {
-//    FreeRTOSRunTimeTicks = 0;
-// }
-
-// void TIM3_IRQHandler(void)
-// {
-//    if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
-//    {
-//       FreeRTOSRunTimeTicks++;
-//       TIM_ClearFlag(TIM3, TIM_IT_Update);
-//    }
-// }
- 
+void TIM3_IRQHandler(void)
+{
+  if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
+  {
+    FreeRTOSRunTimeTicks++;
+    TIM_ClearFlag(TIM3, TIM_IT_Update);
+  }
+}

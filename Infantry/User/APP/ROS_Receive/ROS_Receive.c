@@ -3,10 +3,14 @@
 #include "uart1.h"
 #include "stdio.h"
 #include "INS_Task.h"
+#include "camera_trigger.h"
+#include "led.h"
 
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
 #include "task.h"
+
+#include  "string.h"
 
 //ROS出错数据上限
 #define ROS_Receive_ERROR_VALUE 500
@@ -18,22 +22,36 @@ static ROS_Msg_t ROS_Msg;
 void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg);
 
 static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t c);
+const volatile fp32 *local_imu_angle;
 
 void imuSendTask(void *pvParameters)
 {
-    const volatile fp32 *local_imu_angle;
     vTaskDelay(3000);//延时等待陀螺仪初始化完毕
+    {// 初始化相机pwm硬触发
+        //相机外部硬触发初始化
+        camera_trigger_Init();
+        Camera_trigger_set(20);//20ms触发
+    }
+    Camera_trigger_start();
 
     local_imu_angle = get_INS_angle_point();
     TickType_t IMU_LastWakeTime = xTaskGetTickCount();
     while(1)
     {
-        vTaskDelayUntil(&IMU_LastWakeTime, 20);
+        vTaskDelayUntil(&IMU_LastWakeTime, 18);
         
-        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+        //Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
     }
 }
 
+void TIM8_UP_TIM13_IRQHandler(void) 
+{
+    if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET) 
+    {
+        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+    }
+    TIM_ClearITPendingBit(TIM8, TIM_IT_Update);
+}
 
 //初始化DMA，串口1
 void ROS_Init(void)
