@@ -67,6 +67,9 @@
 #define CHASSIS_CONTROL_FREQUENCE 500.0f
 // 底盘3508最大can发送电流值
 #define MAX_MOTOR_CAN_CURRENT 16000.0f
+// DJI 3508电机的转矩常数
+#define M3508_TOR_CONSTANT 0.30f
+#define M3508_TOR_TO_CAN_DATA 2730.667f // (1 / 0.3) * (16384 / 20) 
 
 //电机码盘值最大以及中值
 #define Half_joint_ecd_range 4096
@@ -97,21 +100,21 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 6000.0f
-#define LEG_LENGTH_PID_KI 20.0f
-#define LEG_LENGTH_PID_KD 80.0f
+#define LEG_LENGTH_PID_KP 2400.0f
+#define LEG_LENGTH_PID_KI 8.0f
+#define LEG_LENGTH_PID_KD 32.0f
 #define LEG_LENGTH_PID_MAX_OUT 500.0f
 #define LEG_LENGTH_PID_MAX_IOUT 200.0f
 
 // 腿部角度控制PID
-#define LEG_ANGLE_PID_KP 30.0f
+#define LEG_ANGLE_PID_KP 10.0f
 #define LEG_ANGLE_PID_KI 0.0f
-#define LEG_ANGLE_PID_KD 12.0f
+#define LEG_ANGLE_PID_KD 3.0f
 #define LEG_ANGLE_PID_MAX_OUT 100.0f
 #define LEG_ANGLE_PID_MAX_IOUT 20.0f
 
 // 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 60.0f
+#define ANGLE_ERR_PID_KP 30.0f
 #define ANGLE_ERR_PID_KI 0.0f
 #define ANGLE_ERR_PID_KD 0.0f
 #define ANGLE_ERR_PID_MAX_OUT 30.0f
@@ -203,9 +206,9 @@ typedef struct
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
 
-	fp32 leg_angle;
+	fp32 leg_angle;					 // 腿部角度，平均值
 	fp32 leg_angle_set;
-	fp32 leg_length;
+	fp32 leg_length;				 // 腿长，平均值
 	fp32 leg_length_set;
 	fp32 leg_length_max;             // 腿部活动范围限制
 	fp32 leg_length_min;             // 间接限制了关节电机的活动范围，关节电机还要有机械限位

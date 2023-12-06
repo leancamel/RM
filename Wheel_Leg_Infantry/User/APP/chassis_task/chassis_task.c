@@ -85,9 +85,6 @@ void chassis_task(void *pvParameters)
 		//can发送底盘数据
 		CAN_CMD_CHASSIS(chassis_move.left_leg.front_joint.give_current, chassis_move.left_leg.back_joint.give_current, 
                         chassis_move.right_leg.back_joint.give_current, chassis_move.right_leg.front_joint.give_current);
-		// CAN_CMD_CHASSIS(0, 0, chassis_move.right_leg.back_joint.give_current, chassis_move.right_leg.front_joint.give_current);
-
-        // CAN_CMD_CHASSIS(0, 0, 3000, 0);
         vTaskDelay(2);
     }
 }   
@@ -143,10 +140,11 @@ void chassis_init(chassis_move_t *chassis_move_init)
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, chassis_x_order_filter);
 
     //关节电机机械零点设置
-    chassis_move_init->left_leg.front_joint.offset_ecd = 5540;
-    chassis_move_init->left_leg.back_joint.offset_ecd = 1451 + 4096;
-    chassis_move_init->right_leg.front_joint.offset_ecd = 2438;
-    chassis_move_init->right_leg.back_joint.offset_ecd = 6167 - 4096;
+    chassis_move_init->left_leg.front_joint.offset_ecd = 5585;
+    chassis_move_init->left_leg.back_joint.offset_ecd = 1394 + 4096;
+    chassis_move_init->right_leg.front_joint.offset_ecd = 2389;
+    chassis_move_init->right_leg.back_joint.offset_ecd = 6184 - 4096;
+
     //关节电机限制角度，实际上是限制腿长
     chassis_move_init->leg_length_max = LEG_LENGTH_MAX;
     chassis_move_init->leg_length_min = LEG_LENGTH_MIN;
@@ -327,8 +325,9 @@ void chassis_leg_limit(chassis_move_t *chassis_move_control, fp32 l_set, fp32 an
     chassis_move_control->leg_length_set = l_set;
     chassis_move_control->leg_angle_set = angle_set;
 #else
-    // 空
+    // TODO：添加机器人正常活动时的腿部限制
 #endif
+
     if(chassis_move_control->leg_length_set > LEG_LENGTH_MAX)
         chassis_move_control->leg_length_set = LEG_LENGTH_MAX;
     else if(chassis_move_control->leg_length_set < LEG_LENGTH_MIN)
@@ -419,12 +418,12 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
     fp32 tor_vector[2] = {0.0f};
     leg_conv(r_force, (-r_torque-err_tor), chassis_move_control_loop->right_leg.back_joint.angle, 
             chassis_move_control_loop->right_leg.front_joint.angle, tor_vector);
-    chassis_move_control_loop->right_leg.back_joint.give_current = limitted_motor_current(tor_vector[1] * 1000, MAX_MOTOR_CAN_CURRENT);
-    chassis_move_control_loop->right_leg.front_joint.give_current = limitted_motor_current(tor_vector[0] * 1000, MAX_MOTOR_CAN_CURRENT);
+    chassis_move_control_loop->right_leg.back_joint.give_current = limitted_motor_current(tor_vector[1] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
+    chassis_move_control_loop->right_leg.front_joint.give_current = limitted_motor_current(tor_vector[0] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
     leg_conv(l_force, (-l_torque+err_tor), chassis_move_control_loop->left_leg.back_joint.angle, 
             chassis_move_control_loop->left_leg.front_joint.angle, tor_vector);
-    chassis_move_control_loop->left_leg.back_joint.give_current = limitted_motor_current(-tor_vector[1] * 1000, MAX_MOTOR_CAN_CURRENT);
-    chassis_move_control_loop->left_leg.front_joint.give_current = limitted_motor_current(-tor_vector[0] * 1000, MAX_MOTOR_CAN_CURRENT);
+    chassis_move_control_loop->left_leg.back_joint.give_current = limitted_motor_current(-tor_vector[1] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
+    chassis_move_control_loop->left_leg.front_joint.give_current = limitted_motor_current(-tor_vector[0] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
 }
 
 static int16_t limitted_motor_current(fp32 current, fp32 max)
