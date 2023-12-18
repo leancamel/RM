@@ -31,6 +31,8 @@
   1     2
 */
 
+// #define LQR_TEST // 测试LQR算法控制腿部姿态，不使用注释定义
+
 // 任务开始空闲一段时间
 #define CHASSIS_TASK_INIT_TIME 357
 
@@ -54,9 +56,6 @@
 // 遥控遥感死区限制
 #define CHASSIS_RC_DEADLINE 10
 
-#define MOTOR_SPEED_TO_CHASSIS_SPEED_VX 0.5f
-#define MOTOR_SPEED_TO_CHASSIS_SPEED_WZ 0.5f
-
 #define MOTOR_DISTANCE_TO_CENTER 0.2f
 
 // 底盘任务控制间隔 2ms
@@ -69,14 +68,15 @@
 #define MAX_MOTOR_CAN_CURRENT 16000.0f
 // DJI 3508电机的转矩常数
 #define M3508_TOR_CONSTANT 0.30f
-#define M3508_TOR_TO_CAN_DATA 2730.667f // (1 / 0.3) * (16384 / 20) 
+// #define M3508_TOR_TO_CAN_DATA 2730.667f // (1 / 0.3) * (16384 / 20) 
+#define M3508_TOR_TO_CAN_DATA 52437.5615f 
 
 //电机码盘值最大以及中值
 #define Half_joint_ecd_range 4096
 #define joint_ecd_range 8191
 // m3508转化成底盘速度(m/s)的比例，做两个宏 是因为可能换电机需要更换比例
 //  #define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f  // 2PI/60/(3591/187) * (0.1524/2)
-#define M3508_MOTOR_RPM_TO_VECTOR 0.000831619497806989034418f // 2PI/60/(3591/187)*2 * (0.1524/2)
+#define M3508_MOTOR_RPM_TO_VECTOR 0.003141592653589793238463f // 2PI/60 * (0.06/2)
 #define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_RPM_TO_VECTOR
 
 #define MOTOR_RPM_TO_ROTATE 0.10471975512f // 2PI /60
@@ -100,24 +100,24 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 2400.0f
-#define LEG_LENGTH_PID_KI 8.0f
-#define LEG_LENGTH_PID_KD 32.0f
-#define LEG_LENGTH_PID_MAX_OUT 500.0f
-#define LEG_LENGTH_PID_MAX_IOUT 200.0f
+#define LEG_LENGTH_PID_KP 40.0f
+#define LEG_LENGTH_PID_KI 0.0f
+#define LEG_LENGTH_PID_KD 2.4f
+#define LEG_LENGTH_PID_MAX_OUT 25.0f
+#define LEG_LENGTH_PID_MAX_IOUT 10.0f
 
 // 腿部角度控制PID
-#define LEG_ANGLE_PID_KP 10.0f
+#define LEG_ANGLE_PID_KP 0.5f
 #define LEG_ANGLE_PID_KI 0.0f
-#define LEG_ANGLE_PID_KD 3.0f
-#define LEG_ANGLE_PID_MAX_OUT 100.0f
-#define LEG_ANGLE_PID_MAX_IOUT 20.0f
+#define LEG_ANGLE_PID_KD 0.1f
+#define LEG_ANGLE_PID_MAX_OUT 5.0f
+#define LEG_ANGLE_PID_MAX_IOUT 1.0f
 
 // 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 30.0f
+#define ANGLE_ERR_PID_KP 1.0f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 0.0f
-#define ANGLE_ERR_PID_MAX_OUT 30.0f
+#define ANGLE_ERR_PID_KD 0.4f
+#define ANGLE_ERR_PID_MAX_OUT 1.0f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
 // 底盘旋转跟随PID
@@ -202,6 +202,7 @@ typedef struct
 	PidTypeDef left_leg_angle_pid;    // 仅测试用
 	PidTypeDef right_leg_angle_pid;   // 仅测试用
 
+	bool_t touchingGroung;
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波

@@ -85,6 +85,9 @@ void UserTask(void *pvParameters)
                                     local_chassis_move->right_leg.front_joint.angle * 57.3f,
                                     local_chassis_move->right_leg.back_joint.angle * 57.3f);
 
+        // printf("%d, %d\n", local_chassis_move->left_leg.wheel_motor.wheel_motor_measure->ecd, local_chassis_move->right_leg.wheel_motor.wheel_motor_measure->ecd);
+        // printf("%.2f, %.2f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot);
+
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->right_leg.leg_angle * 57.3f,
         //         local_chassis_move->right_leg.front_joint.angle * 57.3f, local_chassis_move->right_leg.back_joint.angle * 57.3f);
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.leg_length * 100, local_chassis_move->left_leg.leg_angle * 57.3f,

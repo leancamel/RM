@@ -19,22 +19,11 @@
         (ptr)->temperate = (rx_message)->Data[6];                                              \
     }
 
-//云台电机数据读取
-#define get_gimbal_motor_measuer(ptr, rx_message)                                              \
-    {                                                                                          \
-        (ptr)->last_ecd = (ptr)->ecd;                                                          \
-        (ptr)->ecd = (uint16_t)((rx_message)->Data[0] << 8 | (rx_message)->Data[1]);           \
-        (ptr)->given_current = (uint16_t)((rx_message)->Data[2] << 8 | (rx_message)->Data[3]); \
-        (ptr)->speed_rpm = (uint16_t)((rx_message)->Data[4] << 8 | (rx_message)->Data[5]);     \
-        (ptr)->temperate = (rx_message)->Data[6];                                              \
-    }
 
 //统一处理can接收函数
 static void CAN_hook(CanRxMsg *rx_message);
 //声明电机变量
-static motor_measure_t motor_yaw, motor_pit, motor_trigger, motor_joint[4];
-
-static CanTxMsg GIMBAL_TxMessage;
+static motor_measure_t motor_right, motor_left, motor_joint[4];
 
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
 static uint8_t delay_time = 100;
@@ -72,21 +61,22 @@ void GIMBAL_lose_solve(void)
 }
 #endif
 
-//发送云台控制命令，其中rev为保留字节
-void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
+//发送驱动轮控制命令，其中rev为保留字节
+void CAN_CMD_WHEEL(int16_t right, int16_t left)
 {
-    GIMBAL_TxMessage.StdId = CAN_GIMBAL_ALL_ID;
-    GIMBAL_TxMessage.IDE = CAN_ID_STD;
-    GIMBAL_TxMessage.RTR = CAN_RTR_DATA;
-    GIMBAL_TxMessage.DLC = 0x08;
-    GIMBAL_TxMessage.Data[0] = (yaw >> 8);
-    GIMBAL_TxMessage.Data[1] = yaw;
-    GIMBAL_TxMessage.Data[2] = (pitch >> 8);
-    GIMBAL_TxMessage.Data[3] = pitch;
-    GIMBAL_TxMessage.Data[4] = (shoot >> 8);
-    GIMBAL_TxMessage.Data[5] = shoot;
-    GIMBAL_TxMessage.Data[6] = (rev >> 8);
-    GIMBAL_TxMessage.Data[7] = rev;
+    CanTxMsg WHEEL_TxMessage;
+    WHEEL_TxMessage.StdId = CAN_WHEEL_ALL_ID;
+    WHEEL_TxMessage.IDE = CAN_ID_STD;
+    WHEEL_TxMessage.RTR = CAN_RTR_DATA;
+    WHEEL_TxMessage.DLC = 0x08;
+    WHEEL_TxMessage.Data[0] = (right >> 8);
+    WHEEL_TxMessage.Data[1] = right;
+    WHEEL_TxMessage.Data[2] = (left >> 8);
+    WHEEL_TxMessage.Data[3] = left;
+    WHEEL_TxMessage.Data[4] = (0 >> 8);
+    WHEEL_TxMessage.Data[5] = 0;
+    WHEEL_TxMessage.Data[6] = (0 >> 8);
+    WHEEL_TxMessage.Data[7] = 0;
 
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
 
@@ -95,7 +85,7 @@ void CAN_CMD_GIMBAL(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
 
     TIM_Cmd(TIM6,ENABLE);
 #else
-    CAN_Transmit( GIMBAL_CAN,  &GIMBAL_TxMessage );
+    CAN_Transmit( GIMBAL_CAN,  &WHEEL_TxMessage );
 #endif
 
 }
@@ -107,7 +97,7 @@ void TIM6_DAC_IRQHandler(void)
 
         TIM_ClearFlag( TIM6, TIM_IT_Update );
 #if GIMBAL_MOTOR_6020_CAN_LOSE_SLOVE
-        CAN_Transmit( GIMBAL_CAN,  &GIMBAL_TxMessage );
+        CAN_Transmit( GIMBAL_CAN,  &WHEEL_TxMessage );
 #endif
         TIM_Cmd(TIM6,DISABLE);
     }
@@ -164,19 +154,14 @@ void CAN_CMD_CHASSIS(int16_t motor1, int16_t motor2, int16_t motor3, int16_t mot
 }
 
 //返回yaw电机变量地址，通过指针方式获取原始数据
-const motor_measure_t *get_Yaw_Gimbal_Motor_Measure_Point(void)
+const motor_measure_t *get_Right_Wheel_Motor_Measure_Point(void)
 {
-    return &motor_yaw;
+    return &motor_right;
 }
 //返回pitch电机变量地址，通过指针方式获取原始数据
-const motor_measure_t *get_Pitch_Gimbal_Motor_Measure_Point(void)
+const motor_measure_t *get_Left_Wheel_Motor_Measure_Point(void)
 {
-    return &motor_pit;
-}
-//返回trigger电机变量地址，通过指针方式获取原始数据
-const motor_measure_t *get_Trigger_Motor_Measure_Point(void)
-{
-    return &motor_trigger;
+    return &motor_left;
 }
 //返回关节电机变量地址，通过指针方式获取原始数据
 const motor_measure_t *get_Joint_Motor_Measure_Point(uint8_t i)
@@ -189,27 +174,19 @@ static void CAN_hook(CanRxMsg *rx_message)
 {
     switch (rx_message->StdId)
     {
-    case CAN_YAW_MOTOR_ID:
+    case CAN_RIGHT_MOTOR_ID:
     {
         //处理电机数据宏函数
-        get_gimbal_motor_measuer(&motor_yaw, rx_message);
+        get_motor_measure(&motor_right, rx_message);
         //记录时间
         //DetectHook(YawGimbalMotorTOE);
         break;
     }
-    case CAN_PIT_MOTOR_ID:
+    case CAN_LEFT_MOTOR_ID:
     {
         //处理电机数据宏函数
-        get_gimbal_motor_measuer(&motor_pit, rx_message);
+        get_motor_measure(&motor_left, rx_message);
         //DetectHook(PitchGimbalMotorTOE);
-        break;
-    }
-    case CAN_TRIGGER_MOTOR_ID:
-    {
-        //处理电机数据宏函数
-        get_motor_measure(&motor_trigger, rx_message);
-        //记录时间
-        //DetectHook(TriggerMotorTOE);
         break;
     }
     case CAN_3508_M1_ID:

@@ -22,23 +22,20 @@
 
 #include "chassis_task.h"
 
-#define LEG_POS_TEST_START // 腿部姿态控制测试 不开启请注释
-
-#if defined(LEG_POS_TEST_START)
+// #define LEG_POS_TEST_START // 腿部姿态控制测，使用PID控制腿部角度 不开启请注释
 #define RC_LENGTH_CHANNEL CHASSIS_X_CHANNEL
 #define RC_ANGLE_CHANNEL CHASSIS_WZ_CHANNEL
 #define RC_LENGTH_SEN 0.0000378f
 #define RC_ANGLE_SEN 0.0007923f
-#endif
 
 typedef enum
 {
 	CHASSIS_ZERO_FORCE,	   // 底盘无力
-	CHASSIS_STAND_UP,	   // 机器人起立，中间过渡状态，由程序自动判断切换
-	CHASSIS_NO_MOVE,	   // 底盘保持不动，如果机器人还未站起，则先进入机器人起立状态机，等待站起后自动切换到此状态机
+	CHASSIS_STAND_UP,	     // 机器人起立，中间过渡状态，由程序自动判断切换
+	CHASSIS_NO_MOVE,	     // 底盘保持不动，如果机器人还未站起，则先进入机器人起立状态机，等待站起后自动切换到此状态机
 	CHASSIS_NO_FOLLOW_YAW, // 底盘不跟随云台，旋转直接由遥控器设定
 
-	CHASSIS_LEG_VMC_TEST // 轮腿位置控制状态机，测试用
+	CHASSIS_LEG_VMC_TEST   // 轮腿位置控制状态机，测试用
 } chassis_behaviour_e;
 
 extern void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode);

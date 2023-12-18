@@ -134,6 +134,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     }
 }
 
+// TODO：腿长控制在状态机切换时需要保存，这里没有办法保存
 void chassis_behaviour_control_set(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
 {
 
@@ -146,6 +147,7 @@ void chassis_behaviour_control_set(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, c
     {
         chassis_zero_force_control(vx_set, l_set, angle_set, chassis_move_rc_to_vector);
     }
+    //TODO: 添加机器人站立控制逻辑，若是上电第一次站立，还需要校准关节电机角度
     else if(chassis_behaviour_mode == CHASSIS_STAND_UP)
     {
         chassis_stand_up_control(vx_set, l_set, angle_set, chassis_move_rc_to_vector);
