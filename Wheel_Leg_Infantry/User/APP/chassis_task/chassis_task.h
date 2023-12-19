@@ -31,7 +31,7 @@
   1     2
 */
 
-// #define LQR_TEST // 测试LQR算法控制腿部姿态，不使用注释定义
+#define LQR_TEST // 测试LQR算法控制腿部姿态，不使用注释定义
 
 // 任务开始空闲一段时间
 #define CHASSIS_TASK_INIT_TIME 357
@@ -100,11 +100,11 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 40.0f
+#define LEG_LENGTH_PID_KP 140.0f
 #define LEG_LENGTH_PID_KI 0.0f
-#define LEG_LENGTH_PID_KD 2.4f
-#define LEG_LENGTH_PID_MAX_OUT 25.0f
-#define LEG_LENGTH_PID_MAX_IOUT 10.0f
+#define LEG_LENGTH_PID_KD 600.0f
+#define LEG_LENGTH_PID_MAX_OUT 20.0f
+#define LEG_LENGTH_PID_MAX_IOUT 0.0f
 
 // 腿部角度控制PID
 #define LEG_ANGLE_PID_KP 0.5f
@@ -114,10 +114,10 @@
 #define LEG_ANGLE_PID_MAX_IOUT 1.0f
 
 // 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 1.0f
+#define ANGLE_ERR_PID_KP 0.4f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 0.4f
-#define ANGLE_ERR_PID_MAX_OUT 1.0f
+#define ANGLE_ERR_PID_KD 0.01f
+#define ANGLE_ERR_PID_MAX_OUT 0.1f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
 // 底盘旋转跟随PID
@@ -206,6 +206,7 @@ typedef struct
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
+	first_order_filter_type_t imu_pitch_gyro; // vx一阶低通滤波
 
 	fp32 leg_angle;					 // 腿部角度，平均值
 	fp32 leg_angle_set;

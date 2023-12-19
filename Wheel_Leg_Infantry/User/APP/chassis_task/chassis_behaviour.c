@@ -55,7 +55,7 @@ static void chassis_stand_up_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *w
   * @retval         返回空
   */
 
-static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_no_move_control(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
   * @brief          底盘不跟随角度的行为状态机下，底盘模式是不跟随角度，底盘旋转速度由参数直接设定
@@ -218,15 +218,15 @@ static void chassis_stand_up_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *w
   * @retval         返回空
   */
 
-static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_no_move_control(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
 {
-    if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
+    if (vx_set == NULL || l_set == NULL || angle_set == NULL || chassis_move_rc_to_vector == NULL)
     {
         return;
     }
     *vx_set = 0.0f;
-    *vy_set = 0.0f;
-    *wz_set = 0.0f;
+    *l_set = LEG_LENGTH_INIT;
+    *angle_set = 0.0f;
 }
 
 /**

@@ -45,6 +45,7 @@ uint32_t UserTaskStack;
 //姿态角 单位 度
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
 const chassis_move_t* local_chassis_move;
+const fp32 *local_imu_gyro;	  // 获取角加速度指针
 
 void UserTask(void *pvParameters)
 {
@@ -54,6 +55,7 @@ void UserTask(void *pvParameters)
     const volatile fp32 *angle;
     angle = get_INS_angle_point();
     local_chassis_move = get_chassis_control_point();
+    local_imu_gyro = get_gyro_data_point();
 
     while (1)
     {
@@ -80,13 +82,15 @@ void UserTask(void *pvParameters)
         //                             local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
         //                             local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd);
 
-        printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-                                    local_chassis_move->left_leg.back_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.front_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.back_joint.angle * 57.3f);
-
+        // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
+        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
+        
         // printf("%d, %d\n", local_chassis_move->left_leg.wheel_motor.wheel_motor_measure->ecd, local_chassis_move->right_leg.wheel_motor.wheel_motor_measure->ecd);
         // printf("%.2f, %.2f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot);
+
+        printf("%d\n", local_chassis_move->left_leg.wheel_motor.wheel_motor_measure->ecd);
 
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->right_leg.leg_angle * 57.3f,
         //         local_chassis_move->right_leg.front_joint.angle * 57.3f, local_chassis_move->right_leg.back_joint.angle * 57.3f);
@@ -101,6 +105,12 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %d, %d\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->leg_length_set * 100, 
         //         local_chassis_move->right_leg.back_joint.give_current,
         //         local_chassis_move->right_leg.front_joint.give_current);
+        
+        // 陀螺仪角加速度一阶低通滤波数据
+        // printf("%f, %f\n", *(local_imu_gyro+2)*1000, local_chassis_move->state_ref.phi_dot*1000);
+
+        // printf("%.f\n", local_chassis_move->state_ref.theta_dot*100);
+        // printf("%f, %f, %f\n", (local_chassis_move->right_leg.leg_angle - local_chassis_move->left_leg.leg_angle) * 57.3f, local_chassis_move->angle_err_pid.out * 1000, local_chassis_move->angle_err_pid.Dout * 1000);
 
         // 腿部角度PID
         // printf("%.2f, %.2f\n", local_chassis_move->right_leg.leg_angle * 57.3f, local_chassis_move->leg_angle_set * 57.3f,
