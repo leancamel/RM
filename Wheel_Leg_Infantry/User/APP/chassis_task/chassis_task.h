@@ -106,19 +106,33 @@
 #define LEG_LENGTH_PID_MAX_OUT 20.0f
 #define LEG_LENGTH_PID_MAX_IOUT 0.0f
 
+// 腿部误差控制PID
+#define ANGLE_ERR_PID_KP 1.2f
+#define ANGLE_ERR_PID_KI 0.0f
+#define ANGLE_ERR_PID_KD 0.4f
+#define ANGLE_ERR_PID_MAX_OUT 0.4f
+#define ANGLE_ERR_PID_MAX_IOUT 0.0f
+
+// roll控制pid
+#define ROLL_CTRL_PID_KP 0.0f
+#define ROLL_CTRL_PID_KI 0.0f
+#define ROLL_CTRL_PID_KD 0.0f
+#define ROLL_CTRL_PID_MAX_OUT 0.0f
+#define ROLL_CTRL_PID_MAX_IOUT 0.0f
+
+// 机器人旋转速度控制pid
+#define ROTATE_CTRL_PID_KP 0.0f
+#define ROTATE_CTRL_PID_KI 0.0f
+#define ROTATE_CTRL_PID_KD 0.0f
+#define ROTATE_CTRL_PID_MAX_OUT 0.0f
+#define ROTATE_CTRL_PID_MAX_IOUT 0.0f
+
 // 腿部角度控制PID
 #define LEG_ANGLE_PID_KP 0.5f
 #define LEG_ANGLE_PID_KI 0.0f
 #define LEG_ANGLE_PID_KD 0.1f
 #define LEG_ANGLE_PID_MAX_OUT 5.0f
 #define LEG_ANGLE_PID_MAX_IOUT 1.0f
-
-// 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 0.4f
-#define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 0.01f
-#define ANGLE_ERR_PID_MAX_OUT 0.1f
-#define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
 // 底盘旋转跟随PID
 #define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
@@ -193,16 +207,18 @@ typedef struct
 	chassis_mode_e last_chassis_mode; // 底盘上次控制状态机
 	PidTypeDef chassis_angle_pid;	  // 底盘跟随角度pid
 
-	Leg_Control_t left_leg;
-	Leg_Control_t right_leg;
+	Leg_Control_t left_leg;			  //左腿控制结构体
+	Leg_Control_t right_leg;		  //右腿控制结构体
 	PidTypeDef left_leg_length_pid;   //腿长控制器
 	PidTypeDef right_leg_length_pid;  //腿长控制器
 	PidTypeDef angle_err_pid;		  //双腿角度误差控制器
+	PidTypeDef roll_ctrl_pid;		  //横滚角误差控制器
+	PidTypeDef rotate_ctrl_pid;		  //旋转速度控制器
 
 	PidTypeDef left_leg_angle_pid;    // 仅测试用
 	PidTypeDef right_leg_angle_pid;   // 仅测试用
 
-	bool_t touchingGroung;
+	bool_t touchingGroung;          // 机器人是否离地
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
