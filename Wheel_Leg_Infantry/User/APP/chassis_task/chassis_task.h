@@ -31,8 +31,6 @@
   1     2
 */
 
-#define LQR_TEST // 测试LQR算法控制腿部姿态，不使用注释定义
-
 // 任务开始空闲一段时间
 #define CHASSIS_TASK_INIT_TIME 357
 
@@ -91,7 +89,7 @@
 #define CHASSIS_WZ_SET_SCALE 0.0f
 
 // 腿部初始长度
-#define LEG_LENGTH_INIT 0.10f
+#define LEG_LENGTH_INIT 0.08f
 
 #define LEG_LENGTH_MAX 0.14f
 #define LEG_LENGTH_MIN 0.06f
