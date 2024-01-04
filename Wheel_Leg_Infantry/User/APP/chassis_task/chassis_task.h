@@ -89,7 +89,7 @@
 #define CHASSIS_WZ_SET_SCALE 0.0f
 
 // 腿部初始长度
-#define LEG_LENGTH_INIT 0.08f
+#define LEG_LENGTH_INIT 0.085f
 
 #define LEG_LENGTH_MAX 0.14f
 #define LEG_LENGTH_MIN 0.06f
@@ -98,17 +98,17 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 140.0f
+#define LEG_LENGTH_PID_KP 280.0f
 #define LEG_LENGTH_PID_KI 0.0f
-#define LEG_LENGTH_PID_KD 600.0f
-#define LEG_LENGTH_PID_MAX_OUT 20.0f
+#define LEG_LENGTH_PID_KD 4000.0f
+#define LEG_LENGTH_PID_MAX_OUT 30.0f
 #define LEG_LENGTH_PID_MAX_IOUT 0.0f
 
 // 腿部误差控制PID
 #define ANGLE_ERR_PID_KP 1.2f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 0.4f
-#define ANGLE_ERR_PID_MAX_OUT 0.4f
+#define ANGLE_ERR_PID_KD 0.8f
+#define ANGLE_ERR_PID_MAX_OUT 1.5f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
 // roll控制pid
