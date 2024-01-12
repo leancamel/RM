@@ -98,16 +98,16 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 280.0f
-#define LEG_LENGTH_PID_KI 0.0f
-#define LEG_LENGTH_PID_KD 4000.0f
+#define LEG_LENGTH_PID_KP 160.0f
+#define LEG_LENGTH_PID_KI 1.2f
+#define LEG_LENGTH_PID_KD 5000.0f
 #define LEG_LENGTH_PID_MAX_OUT 30.0f
-#define LEG_LENGTH_PID_MAX_IOUT 0.0f
+#define LEG_LENGTH_PID_MAX_IOUT 3.0f
 
 // 腿部误差控制PID
 #define ANGLE_ERR_PID_KP 1.2f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 0.8f
+#define ANGLE_ERR_PID_KD 1.4f
 #define ANGLE_ERR_PID_MAX_OUT 1.5f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
@@ -213,19 +213,20 @@ typedef struct
 	PidTypeDef roll_ctrl_pid;		  //横滚角误差控制器
 	PidTypeDef rotate_ctrl_pid;		  //旋转速度控制器
 
-	PidTypeDef left_leg_angle_pid;    // 仅测试用
-	PidTypeDef right_leg_angle_pid;   // 仅测试用
-
 	bool_t touchingGroung;          // 机器人是否离地
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
-	first_order_filter_type_t imu_pitch_gyro; // vx一阶低通滤波
+	first_order_filter_type_t imu_pitch_gyro;
+	first_order_filter_type_t state_xdot_filter;
+
+	fp32 wheel_tor;
+	fp32 leg_tor;
 
 	fp32 leg_angle;					 // 腿部角度，平均值
-	fp32 leg_angle_set;
 	fp32 leg_length;				 // 腿长，平均值
 	fp32 leg_length_set;
+	fp32 leg_length_dot;
 	fp32 leg_length_max;             // 腿部活动范围限制
 	fp32 leg_length_min;             // 间接限制了关节电机的活动范围，关节电机还要有机械限位
 	fp32 wz;						 // 底盘旋转角速度，逆时针为正 单位 rad/s
