@@ -55,7 +55,7 @@
   */
 
 //包含校准设备的名字，校准标识符，校准数据flash大小，校准命令，对应的校准数据地址
-#include "calibrate_Task.h"
+#include "calibrate_task.h"
 
 #include "adc.h"
 #include "buzzer.h"

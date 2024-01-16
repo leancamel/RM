@@ -37,9 +37,6 @@
 #define shoot_fric2_on(pwm) fric2_on((pwm))
 #define shoot_fric_off()    fric_off()     
 
-// #define shoot_laser_on()    laser_on()
-// #define shoot_laser_off()   laser_off()
-
 #define int_abs(x) ((x) > 0 ? (x) : (-x))
 
 /**
@@ -91,8 +88,8 @@ void shoot_init(void)
     PID_Init(&shoot_control.trigger_motor_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT, TRIGGER_READY_PID_MAX_IOUT);
     //更新数据
     shoot_feedback_update();
-    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
-    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
+    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME, FRIC_DOWN, FRIC_OFF);
+    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME, FRIC_DOWN, FRIC_OFF);
     shoot_control.fric_pwm1 = FRIC_OFF;
     shoot_control.fric_pwm2 = FRIC_OFF;
     shoot_control.ecd_count = 0;
@@ -120,8 +117,8 @@ int16_t shoot_control_loop(void)
     {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
-        // Laser_Off();
-        buzzer_off();
+        // // Laser_Off();
+        // buzzer_off();
     }
     else if (shoot_control.shoot_mode == SHOOT_READY_FRIC)
     {
@@ -142,7 +139,7 @@ int16_t shoot_control_loop(void)
     else if (shoot_control.shoot_mode == SHOOT_BULLET)
     {
         shoot_control.trigger_motor_pid.max_out = TRIGGER_BULLET_PID_MAX_OUT;
-        shoot_control.trigger_motor_pid.max_iout = TRIGGER_BULLET_PID_MAX_IOUT;//将积分项设为7000，猜测是为了加速收敛
+        shoot_control.trigger_motor_pid.max_iout = TRIGGER_BULLET_PID_MAX_IOUT;
         shoot_bullet_control();
     }
     else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
@@ -443,8 +440,13 @@ static void trigger_motor_turn_back(void)
 
     if(fabs(shoot_control.speed) < BLOCK_TRIGGER_SPEED && shoot_control.block_time < BLOCK_TIME)
     {
-        shoot_control.block_time++;
-        shoot_control.reverse_time = 0;
+        // 方式
+        // shoot_control.block_time++;
+        // shoot_control.reverse_time = 0;
+        if(shoot_control.reverse_time > 0)
+            shoot_control.reverse_time--;
+        else
+            shoot_control.block_time++;
         buzzer_off();
     }
     else if (shoot_control.block_time >= BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME)
@@ -479,7 +481,7 @@ static void shoot_bullet_control(void)
     {
         //没到达一直设置旋转速度
         trigger_count++;
-        shoot_control.trigger_speed_set = HIGH_TRIGGER_SPEED;
+        shoot_control.trigger_speed_set = LOW_TRIGGER_SPEED;
         trigger_motor_turn_back();
     }
     else
@@ -518,7 +520,7 @@ static void shoot_limit_pwm_set(void)
         shoot_control.fric1_ramp.max_value = 2000;
         break;
     default:
-        shoot_control.fric1_ramp.max_value = 1600;
+        shoot_control.fric1_ramp.max_value = 1900;
         break;
     }
 }

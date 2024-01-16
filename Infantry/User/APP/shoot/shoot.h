@@ -53,8 +53,8 @@
 #define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f   // PI / (8192*180)
 #define FULL_COUNT                  18  //  36/2
 //拨弹速度
-#define LOW_TRIGGER_SPEED           8.0f
-#define HIGH_TRIGGER_SPEED          12.0f
+#define LOW_TRIGGER_SPEED           15.0f
+#define HIGH_TRIGGER_SPEED          15.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -71,7 +71,7 @@
 #define PI_TEN                      0.314f
 
 //拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        80.0f
+#define TRIGGER_ANGLE_PID_KP        280.0f
 #define TRIGGER_ANGLE_PID_KI        1.0f
 #define TRIGGER_ANGLE_PID_KD        0.0f
 

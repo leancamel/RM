@@ -181,7 +181,7 @@ int16_t shoot_control_loop(void)
         shoot_control.given_current = (int16_t)(shoot_control.trigger_motor_pid.out);
         if(shoot_control.shoot_mode < SHOOT_READY_BULLET)
         {
-            shoot_control.given_current = -3000;
+            shoot_control.given_current = -300;
         }
 
         //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
@@ -228,27 +228,27 @@ static void shoot_set_mode(void)
         shoot_control.shoot_mode = SHOOT_STOP;
     }
 
-    static uint32_t Tcount = 0;
-    if(get_shoot_power_status())
-    {
-        Tcount++;
-        if(Tcount >= 5000)
-        {
-            //空操作
-            led_green_on();
-        }
-        else
-        {
-            led_green_off();
-            shoot_control.shoot_mode = SHOOT_STOP;
-        }
-    }
-    else
-    {
-        Tcount = 0;
-        led_green_off();
-        shoot_control.shoot_mode = SHOOT_STOP;
-    }
+    // static uint32_t Tcount = 0;
+    // if(get_shoot_power_status())
+    // {
+    //     Tcount++;
+    //     if(Tcount >= 5000)
+    //     {
+    //         //空操作
+    //         led_green_on();
+    //     }
+    //     else
+    //     {
+    //         led_green_off();
+    //         shoot_control.shoot_mode = SHOOT_STOP;
+    //     }
+    // }
+    // else
+    // {
+    //     Tcount = 0;
+    //     led_green_off();
+    //     shoot_control.shoot_mode = SHOOT_STOP;
+    // }
 
     //摩擦轮达到最大转速，等待子弹自动上膛
     if(shoot_control.shoot_mode == SHOOT_READY_FRIC && shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value && shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value)
@@ -566,6 +566,14 @@ static void shoot_limit_pwm_set(void)
         break;
     default:
         shoot_control.fric1_ramp.max_value = 1630;
+        if(switch_is_mid(shoot_control.shoot_rc->rc.s[1]))
+        {
+            shoot_control.fric1_ramp.max_value = 1800;
+        }
+        else if(switch_is_up(shoot_control.shoot_rc->rc.s[1]))
+        {
+            shoot_control.fric1_ramp.max_value = 1920;
+        }
         break;
     }
 }

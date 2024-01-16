@@ -42,13 +42,13 @@
 //选择用户自定义模式状态 开关通道号
 #define SUPER_MODE_CHANNEL 1
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
-#define CHASSIS_VX_RC_SEN 0.004f
+#define CHASSIS_VX_RC_SEN 0.008f
 //遥控器左右摇杆（max 660）转化成车体左右速度（m/s）的比例
-#define CHASSIS_VY_RC_SEN 0.003f
+#define CHASSIS_VY_RC_SEN 0.006f
 //跟随底盘yaw模式下，遥控器的yaw遥杆（max 660）增加到车体角度的比例
 #define CHASSIS_ANGLE_Z_RC_SEN 0.000002f
 //不跟随云台的时候 遥控器的yaw遥杆（max 660）转化成车体旋转速度的比例
-#define CHASSIS_WZ_RC_SEN 0.007f
+#define CHASSIS_WZ_RC_SEN 0.014f
 
 #define CHASSIS_ACCEL_X_NUM 0.1666666667f
 #define CHASSIS_ACCEL_Y_NUM 0.3333333333f
@@ -78,16 +78,16 @@
 #define CHASSIS_RIGHT_KEY KEY_PRESSED_OFFSET_D
 
 //m3508转化成底盘速度(m/s)的比例，做两个宏 是因为可能换电机需要更换比例
-// #define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f
-#define M3508_MOTOR_RPM_TO_VECTOR 0.0006237146233552417758135
+#define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f
+// #define M3508_MOTOR_RPM_TO_VECTOR 0.0006237146233552417758135
 #define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_RPM_TO_VECTOR
 
 //底盘电机最大速度
-#define MAX_WHEEL_SPEED 4.0f
+#define MAX_WHEEL_SPEED 6.0f
 //底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 3.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X 5.0f
 //底盘运动过程最大平移速度
-#define NORMAL_MAX_CHASSIS_SPEED_Y 2.9f
+#define NORMAL_MAX_CHASSIS_SPEED_Y 4.9f
 //底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
 #define CHASSIS_WZ_SET_SCALE 0.1f //510.3 346.1
 //底盘控制任务周期
@@ -140,7 +140,7 @@ typedef struct
 {
   const RC_ctrl_t *chassis_RC;               //底盘使用的遥控器指针
   const Gimbal_Motor_t *chassis_yaw_motor;   //底盘使用到yaw云台电机的相对角度来计算底盘的欧拉角
-  const Gimbal_Motor_t *chassis_pitch_motor; //底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
+  const DM4310_Motor_t *chassis_pitch_motor; //底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
   const fp32 *chassis_INS_angle;             //获取陀螺仪解算出的欧拉角指针
   chassis_mode_e chassis_mode;               //底盘控制状态机
   chassis_mode_e last_chassis_mode;          //底盘上次控制状态机

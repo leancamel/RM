@@ -36,9 +36,9 @@
 //#define GIMBALWarnBuzzerOFF() buzzer_off()
 
 #define int_abs(x) ((x) > 0 ? (x) : (-x))
-uint8_t init_step = 0;
+uint8_t init_step = 3;// 第一次上电，3:1减速比找中值
 KalmanInfo accel_x_kalman;
-KalmanInfo accel_y_kalman;
+KalmanInfo accel_y_kalman; 
 /**
   * @brief          遥控器的死区判断，因为遥控器的拨杆在中位的时候，不一定是发送1024过来，
   * @author         RM

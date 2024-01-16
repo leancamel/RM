@@ -53,7 +53,7 @@ const chassis_move_t* local_chassis_move;
 KalmanInfo Power_KalmanInfo_Structure;
 
 extern int8_t temp_set;
-extern shoot_control_t shoot_control;
+const shoot_control_t* local_shoot_control;
 
 fp32 local_power = 0.0f, local_buffer = 0.0f;
 
@@ -88,6 +88,8 @@ void UserTask(void *pvParameters)
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
         angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
+        // printf("%f, %f\n", local_gimbal_control->gimbal_pitch_motor.relative_angle, local_gimbal_control->gimbal_pitch_motor.absolute_angle);
+
 		//从裁判系统获取底盘功率
         // get_chassis_power_and_buffer(&local_power, &local_buffer);
         // printf("%.2f, %.2f\n", local_power, local_buffer);
@@ -110,14 +112,17 @@ void UserTask(void *pvParameters)
         // local_gimbal_control->gimbal_pitch_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_pitch_motor.relative_angle_set * 57.3f,
         // local_gimbal_control->gimbal_pitch_motor.motor_gyro * 10, local_gimbal_control->gimbal_pitch_motor.motor_gyro_set * 10);
 
+        // 拨弹轮电机pid
+        printf("%f, %f, %f\n", local_shoot_control->speed, local_shoot_control->speed_set, local_shoot_control->angle);
+
         //底盘跟随云台角度pid调参
         // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
+        
         // init_vrefint_reciprocal();
         // printf("%.2f, %d\n", get_temprate(), temp_set);
 
-        // printf("%.2f,%.2f,%d,%.2f\n",shoot_control.speed,shoot_control.speed_set,shoot_control.given_current,shoot_control.trigger_speed_set);
         //底盘功率显示
         // printf("%f\n",Power_Calc());
 

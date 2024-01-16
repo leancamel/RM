@@ -26,11 +26,11 @@
 #include "remote_control.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_KP 8000.0f
-#define PITCH_SPEED_PID_KI 30.0f
+#define PITCH_SPEED_PID_KP 0.1f
+#define PITCH_SPEED_PID_KI 0.001f
 #define PITCH_SPEED_PID_KD 0.0f
-#define PITCH_SPEED_PID_MAX_OUT 30000.0f
-#define PITCH_SPEED_PID_MAX_IOUT 3000.0f
+#define PITCH_SPEED_PID_MAX_OUT 3.0f
+#define PITCH_SPEED_PID_MAX_IOUT 0.3f
 
 //pitch 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
 #define PITCH_GYRO_ABSOLUTE_PID_KP 15.0f
@@ -47,8 +47,8 @@
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_KP 5400.0f
-#define YAW_SPEED_PID_KI 20.0f
+#define YAW_SPEED_PID_KP 1200.0f
+#define YAW_SPEED_PID_KI 1.0f
 #define YAW_SPEED_PID_KD 0.0f
 #define YAW_SPEED_PID_MAX_OUT 30000.0f
 #define YAW_SPEED_PID_MAX_IOUT 5000.0f
@@ -69,7 +69,7 @@
 #define YAW_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //任务初始化 空闲一段时间
-#define GIMBAL_TASK_INIT_TIME 201
+#define GIMBAL_TASK_INIT_TIME 1500
 //yaw,pitch控制通道以及状态开关通道
 #define YawChannel 0
 #define PitchChannel 1
@@ -98,7 +98,7 @@
 #define GIMBAL_TEST_MODE 0
 
 //电机是否反装
-#define PITCH_TURN 1
+#define PITCH_TURN 0
 #define YAW_TURN 1
 #define TRIGGER_TURN 1
 
@@ -191,6 +191,31 @@ typedef struct
 
 typedef struct
 {
+    const DMMotor_measure_t *gimbal_motor_measure;     //云台电机结构体
+    Gimbal_PID_t gimbal_motor_absolute_angle_pid;    //绝对角度位置pid
+    Gimbal_PID_t gimbal_motor_relative_angle_pid;    //相对角度位置pid
+    PidTypeDef gimbal_motor_gyro_pid;                //yaw电机 速度电流pid
+    gimbal_motor_mode_e gimbal_motor_mode;           //云台控制状态机
+    gimbal_motor_mode_e last_gimbal_motor_mode;
+    fp32 offset_ecd;     //yaw电机转子中间位置
+    fp32 max_relative_angle; //rad
+    fp32 min_relative_angle; //rad
+
+    fp32 relative_angle;     //rad
+    fp32 relative_angle_set; //rad
+    fp32 absolute_angle;     //rad
+    fp32 absolute_angle_set; //rad
+    fp32 motor_gyro;         //rad/s
+    fp32 motor_gyro_set;
+    fp32 motor_speed;
+    fp32 raw_cmd_current;
+    fp32 current_set;
+    fp32 given_current;
+
+} DM4310_Motor_t;
+
+typedef struct
+{
     fp32 max_yaw;
     fp32 min_yaw;
     fp32 max_pitch;
@@ -208,12 +233,12 @@ typedef struct
     const fp32 *gimbal_INT_angle_point; //陀螺仪数据指针
     const fp32 *gimbal_INT_gyro_point;  //加速度计数据指针
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
-    Gimbal_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
+    DM4310_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);
-extern const Gimbal_Motor_t *get_pitch_motor_point(void);
+extern const DM4310_Motor_t *get_pitch_motor_point(void);
 extern void GIMBAL_task(void *pvParameters);
 extern bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch);
 extern void set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw, const fp32 max_pitch, const fp32 min_pitch);

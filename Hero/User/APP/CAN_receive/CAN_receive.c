@@ -33,6 +33,7 @@
 static void CAN_hook(CanRxMsg *rx_message);
 //声明电机变量
 static motor_measure_t motor_yaw, motor_pit, motor_trigger, motor_chassis[4];
+static DMMotor_measure_t DMMotor;
 
 static CanTxMsg GIMBAL_TxMessage;
 
@@ -226,10 +227,23 @@ static void CAN_hook(CanRxMsg *rx_message)
         //DetectHook(ChassisMotor1TOE + i);
         break;
     }
+    case CAN_DM_MOTOR_ID:
+    {
+        get_DMMotor_measure(&DMMotor, rx_message);
+        DMMotor.pos = uint_to_float(DMMotor.pos_int, P_MIN, P_MAX, 16);
+        DMMotor.vel = uint_to_float(DMMotor.vel_int, V_MIN, V_MAX, 12);
+        DMMotor.tor = uint_to_float(DMMotor.tor_int, T_MIN, T_MAX, 12);
+        break;
+    }
 
     default:
     {
         break;
     }
     }
+}
+
+const DMMotor_measure_t *get_DM_Motor_Measure_Point(void)
+{
+    return &DMMotor;
 }

@@ -71,9 +71,9 @@ void chassis_task(void *pvParameters)
         //底盘控制PID计算
         chassis_control_loop(&chassis_move);
         //底盘功率限制
-		chassis_power_control(&chassis_move);
+		// chassis_power_control(&chassis_move);
 		//can发送底盘数据
-		CAN_CMD_CHASSIS(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current, chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
+		CAN_CMD_CHASSIS(-chassis_move.motor_chassis[0].give_current, -chassis_move.motor_chassis[1].give_current, chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
 
         vTaskDelay(2);
     }
@@ -281,6 +281,10 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
         chassis_move_update->motor_chassis[i].speed = CHASSIS_MOTOR_RPM_TO_VECTOR_SEN * chassis_move_update->motor_chassis[i].chassis_motor_measure->speed_rpm;
         chassis_move_update->motor_chassis[i].accel = chassis_move_update->motor_speed_pid[i].Dbuf[0] * CHASSIS_CONTROL_FREQUENCE;
     }
+    chassis_move_update->motor_chassis[0].speed = -chassis_move_update->motor_chassis[0].speed;
+    chassis_move_update->motor_chassis[0].accel = -chassis_move_update->motor_chassis[0].accel;
+    chassis_move_update->motor_chassis[1].speed = -chassis_move_update->motor_chassis[1].speed;
+    chassis_move_update->motor_chassis[1].accel = -chassis_move_update->motor_chassis[1].accel;
 
     //更新底盘前进速度 x， 平移速度y，旋转速度wz，坐标系为右手系
     chassis_move_update->vx = (-chassis_move_update->motor_chassis[0].speed + chassis_move_update->motor_chassis[1].speed + chassis_move_update->motor_chassis[2].speed - chassis_move_update->motor_chassis[3].speed) * MOTOR_SPEED_TO_CHASSIS_SPEED_VX;
