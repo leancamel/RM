@@ -138,7 +138,7 @@ void chassis_behavour_set(chassis_move_t *chassis_move_mode)
     }
 
     //底盘不移动状态机拥有最高优先级，return 不会设置其他模式
-    if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]) || gimbal_cmd_to_chassis_stop())
+    if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
     {
         //重新初始化超级模式通道的开关状态，防止从底盘不移动模式退出时，遥控器超级模式通道未还原造成的意外 不可删去！！！！
         chassis_move_mode->last_super_channel = chassis_move_mode->chassis_RC->rc.s[SUPER_MODE_CHANNEL];
@@ -187,6 +187,12 @@ void chassis_behavour_set(chassis_move_t *chassis_move_mode)
                 led_red_off();
             }
         }
+    }
+
+    if(gimbal_cmd_to_chassis_stop())
+    {
+        chassis_behaviour_mode = CHASSIS_NO_MOVE;
+        return;
     }
 
     if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
@@ -360,7 +366,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
         return;
     }
 
-    chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
+    chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector); 
 
     //摇摆角度是利用sin函数生成，swing_time 是sin函数的输入值
     static fp32 swing_time = 0.0f;
