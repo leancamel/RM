@@ -157,10 +157,10 @@ void chassis_init(chassis_move_t *chassis_move_init)
     first_order_filter_init(&chassis_move_init->state_xdot_filter, CHASSIS_CONTROL_TIME, state_xdot_constant);
 
     //关节电机机械零点设置
-    chassis_move_init->left_leg.front_joint.offset_ecd = 4515;
-    chassis_move_init->left_leg.back_joint.offset_ecd = 4947 + 4096;
-    chassis_move_init->right_leg.front_joint.offset_ecd = 1154;
-    chassis_move_init->right_leg.back_joint.offset_ecd = 6280 - 4096;
+    chassis_move_init->left_leg.front_joint.offset_ecd = 4469;
+    chassis_move_init->left_leg.back_joint.offset_ecd = 4891 + 4096;
+    chassis_move_init->right_leg.front_joint.offset_ecd = 2300;
+    chassis_move_init->right_leg.back_joint.offset_ecd = 3930 - 4096;
 
     //关节电机限制角度，实际上是限制腿长
     chassis_move_init->leg_length_max = LEG_LENGTH_MAX;
@@ -245,7 +245,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     //计算底盘姿态角度，陀螺仪需要在底盘上
     // TODO: 陀螺仪数据映射
     chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + 0));
-    chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + 2) - 0.01992f);
+    chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + 2) - 0.01994f);
     chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + 1);
 
     //更新关节电机角度
@@ -280,7 +280,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     chassis_move_update->left_leg.angle_dot = L0_PHI[1];
 
     leg_spd(chassis_move_update->right_leg.back_joint.angle_dot, chassis_move_update->right_leg.front_joint.angle_dot,
-    chassis_move_update->right_leg.back_joint.angle, chassis_move_update->right_leg.front_joint.angle, L0_PHI);
+            chassis_move_update->right_leg.back_joint.angle, chassis_move_update->right_leg.front_joint.angle, L0_PHI);
     chassis_move_update->right_leg.length_dot = L0_PHI[0];
     chassis_move_update->right_leg.angle_dot = L0_PHI[1];
 
@@ -288,6 +288,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     chassis_move_update->leg_angle = 0.5f * (chassis_move_update->right_leg.leg_angle + chassis_move_update->left_leg.leg_angle);
     chassis_move_update->leg_length = 0.5f * (chassis_move_update->right_leg.leg_length + chassis_move_update->left_leg.leg_length);
     chassis_move_update->leg_length_dot = 0.5f * (chassis_move_update->right_leg.length_dot + chassis_move_update->left_leg.length_dot);
+    chassis_move_update->leg_angle_dot = 0.5f * (chassis_move_update->right_leg.angle_dot + chassis_move_update->left_leg.angle_dot);
 
     //更新驱动轮电机速度，加速度是速度的PID微分
     chassis_move_update->right_leg.wheel_motor.speed = CHASSIS_MOTOR_RPM_TO_VECTOR_SEN * chassis_move_update->right_leg.wheel_motor.wheel_motor_measure->speed_rpm;
@@ -303,7 +304,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     // chassis_move_update->state_ref.theta = chassis_move_update->leg_angle - PI/2;
     // chassis_move_update->state_ref.theta_dot = 0.5f * (chassis_move_update->right_leg.angle_dot + chassis_move_update->left_leg.angle_dot);
     chassis_move_update->state_ref.theta = chassis_move_update->leg_angle - PI/2 - chassis_move_update->chassis_pitch; // 注意theta并不是腿与机体的夹角
-    chassis_move_update->state_ref.theta_dot = 0.5f * (chassis_move_update->right_leg.angle_dot + chassis_move_update->left_leg.angle_dot) - chassis_move_update->imu_pitch_gyro.out;
+    chassis_move_update->state_ref.theta_dot = chassis_move_update->leg_angle_dot - chassis_move_update->imu_pitch_gyro.out;
     // chassis_move_update->state_ref.x_dot = (chassis_move_update->right_leg.wheel_motor.speed + chassis_move_update->left_leg.wheel_motor.speed) * 0.5f;
     chassis_move_update->state_ref.x_dot = chassis_move_update->state_xdot_filter.out;
     chassis_move_update->state_ref.x += chassis_move_update->state_ref.x_dot * CHASSIS_CONTROL_TIME;
@@ -455,7 +456,6 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
         // k[1][0] = kRes[1];
         // k[1][1] = kRes[3];
     }
-    // k[1][0] = -k[1][0];
     fp32 x[6] = {chassis_move_control_loop->state_set.theta - chassis_move_control_loop->state_ref.theta,
                 chassis_move_control_loop->state_set.theta_dot - chassis_move_control_loop->state_ref.theta_dot,
                 chassis_move_control_loop->state_set.x - chassis_move_control_loop->state_ref.x,
@@ -494,10 +494,8 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
  
     if(switch_is_up(chassis_move_control_loop->chassis_RC->rc.s[MODE_CHANNEL]))
     {
-        // r_wheel_tor *= 0.1f;
-        // l_wheel_tor *= 0.1f;
         chassis_move_control_loop->right_leg.wheel_motor.give_current = limitted_motor_current(r_wheel_tor * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
-        chassis_move_control_loop->left_leg.wheel_motor.give_current = -limitted_motor_current(l_wheel_tor * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
+        chassis_move_control_loop->left_leg.wheel_motor.give_current = limitted_motor_current(-l_wheel_tor * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
     }
     else
     {

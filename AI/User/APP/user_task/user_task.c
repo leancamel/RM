@@ -93,13 +93,13 @@ void UserTask(void *pvParameters)
 		else
 			led_green_off();
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
-        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
 
-        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
-        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
-        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
+        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
+        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
+        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         // get_chassis_power_and_buffer(&local_power, &local_buffer);
 		// get_chassis_power_limit(&local_chassis_limit);
@@ -107,7 +107,7 @@ void UserTask(void *pvParameters)
 		// printf("%.2f, %.2f\n",local_gimbal_control->gimbal_pitch_motor.relative_angle, local_gimbal_control->gimbal_pitch_motor.relative_angle_set,local_ROS );
 
         //姿态角
-        // printf("%.2f, %.2f, %.2f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        //printf("%.2f, %.2f, %.2f\r\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         
         //小陀螺测试
         // printf("%f, %f\n", local_chassis_move->rotation_ramp_wz.out, local_chassis_move->wz_set);
@@ -115,17 +115,17 @@ void UserTask(void *pvParameters)
 
         //云台yaw电机角度环串速度环pid调参
         // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle_set * 57.3f,
+        // local_gimbal_control->gimbal_yaw_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_yaw_motor.absolute_angle * 57.3f,
         // local_gimbal_control->gimbal_yaw_motor.motor_gyro * 10, local_gimbal_control->gimbal_yaw_motor.motor_gyro_set * 10);
 		// printf("%d\n",local_gimbal_control->gimbal_yaw_motor.gimbal_motor_measure->ecd);
 
         //云台pitch电机pid调参
-        // printf("%.2f, %.2f, %.2f, %.2f\n", 
-        // local_gimbal_control->gimbal_pitch_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_pitch_motor.relative_angle_set * 57.3f,
-        // local_gimbal_control->gimbal_pitch_motor.motor_gyro * 10, local_gimbal_control->gimbal_pitch_motor.motor_gyro_set * 10);
+        //  printf("%.2f, %.2f, %.2f, %.2f\n", 
+        //  local_gimbal_control->gimbal_pitch_motor.relative_angle * 57.3f, local_gimbal_control->gimbal_pitch_motor.absolute_angle * 57.3f,
+        //  local_gimbal_control->gimbal_pitch_motor.motor_gyro * 10, local_gimbal_control->gimbal_pitch_motor.motor_gyro_set * 10);
 
         //底盘跟随云台角度pid调参
-        // printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
+        printf("%.2f, %.2f\n", local_chassis_move->chassis_relative_angle * 57.3f, local_chassis_move->chassis_relative_angle_set * 57.3f);
         
         //imu 温度控制PID
         // init_vrefint_reciprocal();
@@ -136,15 +136,15 @@ void UserTask(void *pvParameters)
 
         //计算底盘功率
         // Bluetooth_Send("%hd",5); 
-		if(get_robot_id() < 10)
-			Pack_State(1,0);
-		else
-			Pack_State(0,0);
-		if(get_game_start())
-			Pack_State(1,1);
-		else
-			Pack_State(0,1);
-		ROS_Send_Msg();
+		// if(get_robot_id() < 10)
+		// 	Pack_State(1,0);
+		// else
+		// 	Pack_State(0,0);
+		// if(get_game_start())
+		// 	Pack_State(1,1);
+		// else
+		// 	Pack_State(0,1);
+		// ROS_Send_Msg();
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

@@ -26,8 +26,8 @@
 #include "remote_control.h"
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_KP 3600.0f
-#define PITCH_SPEED_PID_KI 20.0f
+#define PITCH_SPEED_PID_KP 2000.0f
+#define PITCH_SPEED_PID_KI 8.0f
 #define PITCH_SPEED_PID_KD 0.0f
 #define PITCH_SPEED_PID_MAX_OUT 30000.0f
 #define PITCH_SPEED_PID_MAX_IOUT 3000.0f
@@ -47,7 +47,7 @@
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_KP 3400.0f
+#define YAW_SPEED_PID_KP 1800.0f
 #define YAW_SPEED_PID_KI 15.0f
 #define YAW_SPEED_PID_KD 0.0f
 #define YAW_SPEED_PID_MAX_OUT 30000.0f
@@ -101,7 +101,7 @@
 
 //电机是否反装
 #define PITCH_TURN 0
-#define YAW_TURN 0
+#define YAW_TURN 1
 #define TRIGGER_TURN 1
 
 //电机码盘值最大以及中值
@@ -138,6 +138,8 @@
 #ifndef Motor_Ecd_to_Rad
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 #endif
+
+#define YAW_ECD_TO_RAD Motor_Ecd_to_Rad/3
 
 typedef enum
 {
@@ -214,6 +216,7 @@ typedef struct
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
     
     int8_t last_super_channel;          //上一次遥控器开关所在的位置
+    uint8_t ecd_count;
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);

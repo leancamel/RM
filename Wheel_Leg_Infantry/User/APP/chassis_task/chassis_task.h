@@ -89,7 +89,7 @@
 #define CHASSIS_WZ_SET_SCALE 0.0f
 
 // 腿部初始长度
-#define LEG_LENGTH_INIT 0.085f
+#define LEG_LENGTH_INIT 0.08f
 
 #define LEG_LENGTH_MAX 0.14f
 #define LEG_LENGTH_MIN 0.06f
@@ -107,7 +107,7 @@
 // 腿部误差控制PID
 #define ANGLE_ERR_PID_KP 1.2f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 1.4f
+#define ANGLE_ERR_PID_KD 5.0f
 #define ANGLE_ERR_PID_MAX_OUT 1.5f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
 
@@ -224,6 +224,7 @@ typedef struct
 	fp32 leg_tor;
 
 	fp32 leg_angle;					 // 腿部角度，平均值
+	fp32 leg_angle_dot;
 	fp32 leg_length;				 // 腿长，平均值
 	fp32 leg_length_set;
 	fp32 leg_length_dot;

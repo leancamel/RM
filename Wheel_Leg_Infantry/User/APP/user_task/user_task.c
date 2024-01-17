@@ -77,11 +77,11 @@ void UserTask(void *pvParameters)
         //姿态角
         // printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
 
-        printf("%d, %d, %d, %d, %f\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
-                                    local_chassis_move->left_leg.back_joint.joint_motor_measure->ecd,
-                                    local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
-                                    local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd,
-                                    local_chassis_move->state_ref.theta*57.3f);
+        // printf("%d, %d, %d, %d, %f\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
+        //                             local_chassis_move->left_leg.back_joint.joint_motor_measure->ecd,
+        //                             local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
+        //                             local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd,
+        //                             local_chassis_move->state_ref.theta*57.3f);
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
@@ -94,8 +94,8 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot*100.0f);
         // printf("%f. %f\n", local_chassis_move->left_leg_length_pid.out, local_chassis_move->right_leg_length_pid.out);
         // printf("%f, %f, %f\n", local_chassis_move->state_ref.theta * 57.3f, (local_chassis_move->leg_angle - PI/2) * 57.3f, local_chassis_move->chassis_pitch * 57.3f);
-        // printf("%f, %f, %f, %f, %f\n", local_chassis_move->wheel_tor, local_chassis_move->leg_tor,
-        //         local_chassis_move->state_ref.theta, local_chassis_move->state_ref.x, local_chassis_move->state_ref.phi);
+        printf("%f, %f, %f, %f, %f\n", local_chassis_move->wheel_tor, local_chassis_move->leg_tor,
+                local_chassis_move->state_ref.theta, local_chassis_move->state_ref.x, local_chassis_move->state_ref.phi);
 
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->right_leg.leg_angle * 57.3f,
         //         local_chassis_move->right_leg.front_joint.angle * 57.3f, local_chassis_move->right_leg.back_joint.angle * 57.3f);

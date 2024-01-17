@@ -410,7 +410,7 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     }
 
     //开关控制 云台状态
-	if(toe_is_error(DBUS_TOE) != 1)
+	/* if(toe_is_error(DBUS_TOE) != 1)
 	{
 		if (switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
 		{
@@ -433,7 +433,25 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 		Get_Gimbal_Mode(&gimbal_behaviour);
 		led_red_on();
 	}
-
+ */
+        /**
+         * 设定成哨兵云台只会从遥控器接收数据
+        */
+        if (switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+		{
+			gimbal_behaviour = GIMBAL_ZERO_FORCE;
+			// gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
+			// countsuper = 0;
+		}
+		else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+		{
+			gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+		}
+		else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+		{
+			gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+		}
+		led_red_off();
     //超级模式判断进入
     // {
     //     if(switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) 

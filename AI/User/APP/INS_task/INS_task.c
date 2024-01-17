@@ -41,6 +41,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "ROS_Receive.h"
+#include "arm_math.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t INSTaskStack;
@@ -233,7 +234,7 @@ void INSTask(void *pvParameters)
 
 		Pack_Response(100,100,INS_gyro[2]);
         AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
-        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
+        get_angle_Ai(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
         //陀螺仪开机校准
         // {
@@ -447,6 +448,30 @@ extern const fp32 *get_mag_data_point(void)
     return INS_mag;
 }
 
+/**
+ * @brief Set the angle new object
+ * 
+ */
+void set_angle_new()
+{
+    
+}
+/**
+  * @brief          根据四元数大小计算对应的欧拉角yaw，pitch，roll   旋转顺序 yaw_roll_pitch
+  * @author         luopin
+  * @param[in]      四元数数组，不为NULL
+  * @param[in]      返回的偏航角yaw 单位 rad
+  * @param[in]      返回的俯仰角pitch  单位 rad
+  * @param[in]      返回的横滚角roll 单位 rad
+  */
+void get_angle_Ai(const fp32 quat[4], fp32 *yaw, fp32 *pitch, fp32 *roll)
+{
+    //*yaw= atan2f((quat[0]*quat[3]-quat[1]*quat[2]), quat[0]*quat[0]+quat[2]*quat[2]-0.5f);
+    //*pitch= atan2f((quat[0]*quat[2]-quat[1]*quat[3]), quat[0]*quat[0]+quat[3]*quat[3]-0.5f);
+    *yaw= atan2f(quat[0]*quat[0]+quat[2]*quat[2]-0.5f, (quat[0]*quat[3]-quat[1]*quat[2]));
+    *roll= atan2f(quat[0]*quat[0]+quat[3]*quat[3]-0.5f, (quat[0]*quat[2]-quat[1]*quat[3]))+PI/2;
+    *pitch=asinf(2*quat[0]*quat[1]+2*quat[2]*quat[3]);
+}
 #if defined(USE_IST8310)
 void EXTI3_IRQHandler(void)//ist8310 data ready
 {

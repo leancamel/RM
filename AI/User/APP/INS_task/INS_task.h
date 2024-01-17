@@ -58,12 +58,12 @@
 #define IMU_UPDATE_SHFITS        2
 
 //获取姿态角指针地址后，对应姿态角的地址偏移量 fp32类型
-#define INS_YAW_ADDRESS_OFFSET 0
+#define INS_YAW_ADDRESS_OFFSET 2
 #define INS_PITCH_ADDRESS_OFFSET 1
-#define INS_ROLL_ADDRESS_OFFSET 2
+#define INS_ROLL_ADDRESS_OFFSET 0
 
-#define INS_GYRO_X_ADDRESS_OFFSET 0
-#define INS_GYRO_Y_ADDRESS_OFFSET 1
+#define INS_GYRO_X_ADDRESS_OFFSET 1
+#define INS_GYRO_Y_ADDRESS_OFFSET 0
 #define INS_GYRO_Z_ADDRESS_OFFSET 2
 
 #define INS_ACCEL_X_ADDRESS_OFFSET 0
@@ -78,5 +78,7 @@ extern const fp32 *get_INS_angle_point(void);
 extern const fp32 *get_gyro_data_point(void);
 extern const fp32 *get_accel_data_point(void);
 extern const fp32 *get_mag_data_point(void);
+//旋转顺序
+extern void get_angle_Ai(const fp32 quat[4], fp32 *yaw, fp32 *pitch, fp32 *roll);
 
 #endif
