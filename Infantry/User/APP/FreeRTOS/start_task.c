@@ -137,12 +137,12 @@ void start_task(void *pvParameters)
               (UBaseType_t)REFEREE_TASK_PRIO,
               (TaskHandle_t *)&RefreeTask_Handler);
 
-	// xTaskCreate((TaskFunction_t)imuSendTask,
-  //             (const char *)"imuSendTask",
-  //             (uint16_t)IMUSEND_STK_SIZE,
-  //             (void *)NULL,
-  //             (UBaseType_t)IMUSEND_TASK_PRIO,
-  //             (TaskHandle_t *)&imuSendTask_Handler);
+	xTaskCreate((TaskFunction_t)imuSendTask,
+              (const char *)"imuSendTask",
+              (uint16_t)IMUSEND_STK_SIZE,
+              (void *)NULL,
+              (UBaseType_t)IMUSEND_TASK_PRIO,
+              (TaskHandle_t *)&imuSendTask_Handler);
 
     vTaskDelete(StartTask_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区

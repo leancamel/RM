@@ -217,7 +217,6 @@ typedef struct
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
-	first_order_filter_type_t imu_pitch_gyro;
 	first_order_filter_type_t state_xdot_filter;
 
 	fp32 wheel_tor;

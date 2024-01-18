@@ -233,7 +233,7 @@ void INSTask(void *pvParameters)
 
 
         AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
-        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
+        get_angle(INS_quat, INS_angle + 0, INS_angle + 1, INS_angle + 2);// 这里不应该写宏定义中的地址偏移
 
         //陀螺仪开机校准
         // {

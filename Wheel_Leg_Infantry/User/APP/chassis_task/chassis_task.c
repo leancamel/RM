@@ -121,7 +121,6 @@ void chassis_init(chassis_move_t *chassis_move_init)
     //底盘旋转环pid值
     const static fp32 chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI, CHASSIS_FOLLOW_GIMBAL_PID_KD};
     const static fp32 chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
-    const static fp32 imu_gyro_filter[1] = {0.4f};
     const static fp32 state_xdot_constant[1] = {1.0f};
 
     //底盘开机状态为无力
@@ -153,15 +152,14 @@ void chassis_init(chassis_move_t *chassis_move_init)
     PID_Init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT, CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT);
     //用一阶滤波代替斜波函数生成
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, chassis_x_order_filter);
-    first_order_filter_init(&chassis_move_init->imu_pitch_gyro, CHASSIS_CONTROL_TIME, imu_gyro_filter);
     first_order_filter_init(&chassis_move_init->state_xdot_filter, CHASSIS_CONTROL_TIME, state_xdot_constant);
 
     //关节电机机械零点设置
-    chassis_move_init->left_leg.front_joint.offset_ecd = 4469;
-    chassis_move_init->left_leg.back_joint.offset_ecd = 4891 + 4096;
-    chassis_move_init->right_leg.front_joint.offset_ecd = 2300;
-    chassis_move_init->right_leg.back_joint.offset_ecd = 3930 - 4096;
-
+    chassis_move_init->left_leg.front_joint.offset_ecd = 3317;
+    chassis_move_init->left_leg.back_joint.offset_ecd = 3635 + 4096;
+    chassis_move_init->right_leg.front_joint.offset_ecd = 2333;
+    chassis_move_init->right_leg.back_joint.offset_ecd = 6297 - 4096;
+   
     //关节电机限制角度，实际上是限制腿长
     chassis_move_init->leg_length_max = LEG_LENGTH_MAX;
     chassis_move_init->leg_length_min = LEG_LENGTH_MIN;
@@ -244,9 +242,9 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
 
     //计算底盘姿态角度，陀螺仪需要在底盘上
     // TODO: 陀螺仪数据映射
-    chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + 0));
-    chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + 2) - 0.01994f);
-    chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + 1);
+    chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + INS_YAW_ADDRESS_OFFSET));
+    chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + INS_PITCH_ADDRESS_OFFSET) - 0.01994f);
+    chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
     //更新关节电机角度
     chassis_move_update->right_leg.front_joint.angle = motor_ecd_to_angle_change(chassis_move_update->right_leg.front_joint.joint_motor_measure->ecd,
@@ -296,20 +294,19 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
 
     //更新底盘旋转速度wz，坐标系为右手系
     chassis_move_update->wz = 0.5f * (chassis_move_update->right_leg.wheel_motor.speed - chassis_move_update->left_leg.wheel_motor.speed) / MOTOR_DISTANCE_TO_CENTER;
-    // gyro一阶低通滤波
-    first_order_filter_cali(&chassis_move_update->imu_pitch_gyro, *(chassis_move_update->chassis_imu_gyro + 2));
     // TODO: 加入Kalman Filter得到机器人位移和速度
     first_order_filter_cali(&chassis_move_update->state_xdot_filter, (chassis_move_update->right_leg.wheel_motor.speed + chassis_move_update->left_leg.wheel_motor.speed) * 0.5f);
     //底盘状态量组装
     // chassis_move_update->state_ref.theta = chassis_move_update->leg_angle - PI/2;
     // chassis_move_update->state_ref.theta_dot = 0.5f * (chassis_move_update->right_leg.angle_dot + chassis_move_update->left_leg.angle_dot);
     chassis_move_update->state_ref.theta = chassis_move_update->leg_angle - PI/2 - chassis_move_update->chassis_pitch; // 注意theta并不是腿与机体的夹角
-    chassis_move_update->state_ref.theta_dot = chassis_move_update->leg_angle_dot - chassis_move_update->imu_pitch_gyro.out;
+    chassis_move_update->state_ref.theta_dot = chassis_move_update->leg_angle_dot - *(chassis_move_update->chassis_imu_gyro + INS_GYRO_Y_ADDRESS_OFFSET);
     // chassis_move_update->state_ref.x_dot = (chassis_move_update->right_leg.wheel_motor.speed + chassis_move_update->left_leg.wheel_motor.speed) * 0.5f;
     chassis_move_update->state_ref.x_dot = chassis_move_update->state_xdot_filter.out;
     chassis_move_update->state_ref.x += chassis_move_update->state_ref.x_dot * CHASSIS_CONTROL_TIME;
     chassis_move_update->state_ref.phi = chassis_move_update->chassis_pitch;
-    chassis_move_update->state_ref.phi_dot = chassis_move_update->imu_pitch_gyro.out;
+    // chassis_move_update->state_ref.phi_dot = *(chassis_move_update->chassis_imu_gyro + INS_GYRO_Y_ADDRESS_OFFSET);
+    chassis_move_update->state_ref.phi_dot = 0.0f; // 加入角速度暂时会振荡，不加反而没问题，待解决
 
     // 机器人离地判断
     Robot_Offground_detect(chassis_move_update);

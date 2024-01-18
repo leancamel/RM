@@ -66,22 +66,21 @@ void UserTask(void *pvParameters)
             Tcount = 0;
         }
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
-        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
-        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
+        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET)) * 57.3f;
 
-        angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
-        angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
-        angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
+        // angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET));
+        // angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET));
+        // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //姿态角
         // printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
 
-        // printf("%d, %d, %d, %d, %f\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
+        // printf("%d, %d, %d, %d\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
         //                             local_chassis_move->left_leg.back_joint.joint_motor_measure->ecd,
         //                             local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
-        //                             local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd,
-        //                             local_chassis_move->state_ref.theta*57.3f);
+        //                             local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd);
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
@@ -110,9 +109,8 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %d, %d\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->leg_length_set * 100, 
         //         local_chassis_move->right_leg.back_joint.give_current,
         //         local_chassis_move->right_leg.front_joint.give_current);
-        
-        // 陀螺仪角加速度一阶低通滤波数据
-        // printf("%f, %f\n", *(local_imu_gyro+2)*1000, local_chassis_move->state_ref.phi_dot*1000);
+
+        // printf("%f, %f\n", local_chassis_move->state_ref.phi * 57.3f, local_chassis_move->state_ref.phi_dot * 10.0f);
 
         // printf("%.f\n", local_chassis_move->state_ref.theta_dot*100);
         // printf("%f, %f, %f\n", (local_chassis_move->right_leg.leg_angle - local_chassis_move->left_leg.leg_angle) * 57.3f, local_chassis_move->angle_err_pid.out * 1000, local_chassis_move->angle_err_pid.Dout * 1000);

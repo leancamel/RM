@@ -38,9 +38,9 @@ void imuSendTask(void *pvParameters)
     TickType_t IMU_LastWakeTime = xTaskGetTickCount();
     while(1)
     {
-        vTaskDelayUntil(&IMU_LastWakeTime, 18);
+        vTaskDelayUntil(&IMU_LastWakeTime, 20);
         
-        //Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
     }
 }
 
