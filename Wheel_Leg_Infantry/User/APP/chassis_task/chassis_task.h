@@ -118,13 +118,6 @@
 #define ROLL_CTRL_PID_MAX_OUT 0.0f
 #define ROLL_CTRL_PID_MAX_IOUT 0.0f
 
-// 机器人旋转速度控制pid
-#define ROTATE_CTRL_PID_KP 0.0f
-#define ROTATE_CTRL_PID_KI 0.0f
-#define ROTATE_CTRL_PID_KD 0.0f
-#define ROTATE_CTRL_PID_MAX_OUT 0.0f
-#define ROTATE_CTRL_PID_MAX_IOUT 0.0f
-
 // 腿部角度控制PID
 #define LEG_ANGLE_PID_KP 0.5f
 #define LEG_ANGLE_PID_KI 0.0f
@@ -133,11 +126,18 @@
 #define LEG_ANGLE_PID_MAX_IOUT 1.0f
 
 // 底盘旋转跟随PID
-#define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KP 0.06f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f
-#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.15f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 5.0f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.2f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 0.1f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.01f
+
+//yaw 速度环 PID参数以及 PID最大输出，积分输出
+#define YAW_SPEED_PID_KP 0.0f
+#define YAW_SPEED_PID_KI 0.0f
+#define YAW_SPEED_PID_KD 0.0f
+#define YAW_SPEED_PID_MAX_OUT 0.0f
+#define YAW_SPEED_PID_MAX_IOUT 0.0f
 
 typedef enum
 {
@@ -203,15 +203,16 @@ typedef struct
 	const fp32 *chassis_imu_gyro;	  // 获取角加速度指针
 	chassis_mode_e chassis_mode;	  // 底盘控制状态机
 	chassis_mode_e last_chassis_mode; // 底盘上次控制状态机
-	PidTypeDef chassis_angle_pid;	  // 底盘跟随角度pid
 
 	Leg_Control_t left_leg;			  //左腿控制结构体
 	Leg_Control_t right_leg;		  //右腿控制结构体
+
 	PidTypeDef left_leg_length_pid;   //腿长控制器
 	PidTypeDef right_leg_length_pid;  //腿长控制器
 	PidTypeDef angle_err_pid;		  //双腿角度误差控制器
 	PidTypeDef roll_ctrl_pid;		  //横滚角误差控制器
-	PidTypeDef rotate_ctrl_pid;		  //旋转速度控制器
+	PidTypeDef chassis_angle_pid;	  //底盘角度pid
+	PidTypeDef chassis_yaw_gyro_pid;
 
 	bool_t touchingGroung;          // 机器人是否离地
 	Robot_Statement_t state_ref;	// 机器人状态量
@@ -230,10 +231,7 @@ typedef struct
 	fp32 leg_length_max;             // 腿部活动范围限制
 	fp32 leg_length_min;             // 间接限制了关节电机的活动范围，关节电机还要有机械限位
 	fp32 wz;						 // 底盘旋转角速度，逆时针为正 单位 rad/s
-	fp32 wz_set;					 // 底盘设定旋转角速度，逆时针为正 单位 rad/s
-	fp32 chassis_relative_angle;	 // 底盘与云台的相对角度，单位 rad/s
-	fp32 chassis_relative_angle_set; // 设置相对云台控制角度
-	fp32 chassis_yaw_set;
+	fp32 chassis_yaw_set;            // 设置底盘陀螺仪yaw期望角度
 
 	fp32 vx_max_speed;	// 前进方向最大速度 单位m/s
 	fp32 vx_min_speed;	// 前进方向最小速度 单位m/s

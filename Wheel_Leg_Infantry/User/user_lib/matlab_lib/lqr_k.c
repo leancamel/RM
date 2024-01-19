@@ -9,6 +9,13 @@
 #include "lqr_k.h"
 #include "arm_math.h"
 
+/*
+ * [G,H]=c2d(eval(A),eval(B),0.005);
+ * Q=diag([1 10 1 1 800 20]);
+ * R=diag([1 0.5]);
+ * Ks(:,:,step)=dlqr(G,H,Q,R);
+ */
+
 /* Function Definitions */
 /*
  * LQR_K
