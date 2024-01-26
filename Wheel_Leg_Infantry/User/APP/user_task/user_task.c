@@ -85,7 +85,7 @@ void UserTask(void *pvParameters)
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
+        //                             lo                                    cal_chassis_move->left_leg.back_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
         
@@ -111,14 +111,7 @@ void UserTask(void *pvParameters)
         //         local_chassis_move->right_leg.front_joint.give_current);
 
         // printf("%f, %f\n", local_chassis_move->state_ref.phi * 57.3f, local_chassis_move->state_ref.phi_dot * 10.0f);
-
-        // printf("%.f\n", local_chassis_move->state_ref.theta_dot*100);
-        // printf("%f, %f, %f\n", (local_chassis_move->right_leg.leg_angle - local_chassis_move->left_leg.leg_angle) * 57.3f, local_chassis_move->angle_err_pid.out * 1000, local_chassis_move->angle_err_pid.Dout * 1000);
-
-        // 腿部角度PID
-        // printf("%.2f, %.2f\n", local_chassis_move->right_leg.leg_angle * 57.3f, local_chassis_move->leg_angle_set * 57.3f,
-        //         local_chassis_move->right_leg.back_joint.give_current,
-        //         local_chassis_move->right_leg.front_joint.give_current);
+        // printf("%f, %f\n", 0.5f*(local_chassis_move->right_leg.wheel_motor.speed + local_chassis_move->left_leg.wheel_motor.speed), local_chassis_move->state_ref.x_dot);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
