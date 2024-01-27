@@ -76,18 +76,23 @@ void UserTask(void *pvParameters)
 
         //姿态角
         // printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        // printf("%f, %f, %f\n", *(local_chassis_move->chassis_imu_accel + INS_ACCEL_X_ADDRESS_OFFSET),
+        //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Y_ADDRESS_OFFSET),
+        //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Z_ADDRESS_OFFSET));
 
-        printf("%d, %d, %d, %d\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
-                                    local_chassis_move->left_leg.back_joint.joint_motor_measure->ecd,
-                                    local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
-                                    local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd);
+        // printf("%d, %d, %d, %d\n", local_chassis_move->left_leg.front_joint.joint_motor_measure->ecd, 
+        //                             local_chassis_move->left_leg.back_joint.joint_motor_measure->ecd,
+        //                             local_chassis_move->right_leg.front_joint.joint_motor_measure->ecd,
+        //                             local_chassis_move->right_leg.back_joint.joint_motor_measure->ecd);
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
         // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-        //                             lo                                    cal_chassis_move->left_leg.back_joint.angle * 57.3f,
+        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
+
+        printf("%f\n", local_chassis_move->ground_force);
         
         // printf("%d, %d\n", local_chassis_move->left_leg.wheel_motor.wheel_motor_measure->ecd, local_chassis_move->right_leg.wheel_motor.wheel_motor_measure->ecd);
         // printf("%.2f, %.2f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot*100.0f);

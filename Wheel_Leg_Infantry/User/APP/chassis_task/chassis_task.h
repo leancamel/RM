@@ -201,6 +201,7 @@ typedef struct
 	const RC_ctrl_t *chassis_RC;	  // 底盘使用的遥控器指针
 	const fp32 *chassis_INS_angle;	  // 获取陀螺仪解算出的欧拉角指针
 	const fp32 *chassis_imu_gyro;	  // 获取角加速度指针
+	const fp32 *chassis_imu_accel;	  // 获取加速度指针
 	chassis_mode_e chassis_mode;	  // 底盘控制状态机
 	chassis_mode_e last_chassis_mode; // 底盘上次控制状态机
 
@@ -214,14 +215,17 @@ typedef struct
 	PidTypeDef chassis_angle_pid;	  //底盘角度pid
 	PidTypeDef chassis_yaw_gyro_pid;
 
-	bool_t touchingGroung;          // 机器人是否离地
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
 	first_order_filter_type_t chassis_cmd_slow_set_vx; // vx一阶低通滤波
 	first_order_filter_type_t state_xdot_filter;
 
-	fp32 wheel_tor;
-	fp32 leg_tor;
+	bool_t touchingGroung;          // 机器人是否离地
+	fp32 wheel_tor;					// 轮毂转矩
+	fp32 leg_tor;					// 髋关节转矩
+	fp32 left_support_force;        // 左腿的支持力
+	fp32 right_support_force;        // 右腿的支持力
+	fp32 ground_force;      		// 地面的支持力
 
 	fp32 leg_angle;					 // 腿部角度，平均值
 	fp32 leg_angle_dot;
