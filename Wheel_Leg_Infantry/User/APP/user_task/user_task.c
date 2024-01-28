@@ -92,12 +92,8 @@ void UserTask(void *pvParameters)
         //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
 
-        printf("%f\n", local_chassis_move->ground_force);
+        // printf("%f, %f\n", local_chassis_move->ground_force, local_chassis_move->leg_length*100);
         
-        // printf("%d, %d\n", local_chassis_move->left_leg.wheel_motor.wheel_motor_measure->ecd, local_chassis_move->right_leg.wheel_motor.wheel_motor_measure->ecd);
-        // printf("%.2f, %.2f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot*100.0f);
-        // printf("%f. %f\n", local_chassis_move->left_leg_length_pid.out, local_chassis_move->right_leg_length_pid.out);
-        // printf("%f, %f, %f\n", local_chassis_move->state_ref.theta * 57.3f, (local_chassis_move->leg_angle - PI/2) * 57.3f, local_chassis_move->chassis_pitch * 57.3f);
         // printf("%f, %f, %f, %f, %f\n", local_chassis_move->wheel_tor, local_chassis_move->leg_tor,
         //         local_chassis_move->state_ref.theta, local_chassis_move->state_ref.x, local_chassis_move->state_ref.phi);
 
@@ -114,6 +110,11 @@ void UserTask(void *pvParameters)
         // printf("%.2f, %.2f, %d, %d\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->leg_length_set * 100, 
         //         local_chassis_move->right_leg.back_joint.give_current,
         //         local_chassis_move->right_leg.front_joint.give_current);
+
+        // yaw跟随PID
+        // printf("%f, %f, %f, %f\n", local_chassis_move->chassis_yaw_set*57.3f, local_chassis_move->chassis_yaw*57.3f, 
+        //         local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
+        printf("%f, %f\n", local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
 
         // printf("%f, %f\n", local_chassis_move->state_ref.phi * 57.3f, local_chassis_move->state_ref.phi_dot * 10.0f);
         // printf("%f, %f\n", 0.5f*(local_chassis_move->right_leg.wheel_motor.speed + local_chassis_move->left_leg.wheel_motor.speed), local_chassis_move->state_ref.x_dot);

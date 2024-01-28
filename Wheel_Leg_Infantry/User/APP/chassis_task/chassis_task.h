@@ -126,18 +126,18 @@
 #define LEG_ANGLE_PID_MAX_IOUT 1.0f
 
 // 底盘旋转跟随PID
-#define CHASSIS_FOLLOW_GIMBAL_PID_KP 0.03f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f 
-#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.01f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 0.1f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.01f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.3f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 50.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 5.0f
 
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_KP 0.0f
+#define YAW_SPEED_PID_KP 0.005f
 #define YAW_SPEED_PID_KI 0.0f
 #define YAW_SPEED_PID_KD 0.0f
-#define YAW_SPEED_PID_MAX_OUT 0.0f
-#define YAW_SPEED_PID_MAX_IOUT 0.0f
+#define YAW_SPEED_PID_MAX_OUT 0.1f
+#define YAW_SPEED_PID_MAX_IOUT 0.01f
 
 typedef enum
 {
@@ -212,8 +212,8 @@ typedef struct
 	PidTypeDef right_leg_length_pid;  //腿长控制器
 	PidTypeDef angle_err_pid;		  //双腿角度误差控制器
 	PidTypeDef roll_ctrl_pid;		  //横滚角误差控制器
-	PidTypeDef chassis_angle_pid;	  //底盘角度pid
-	PidTypeDef chassis_yaw_gyro_pid;
+	PidTypeDef chassis_angle_pid;	  //底盘跟随角度pid
+	PidTypeDef chassis_yaw_gyro_pid;  //底盘角速度PID
 
 	Robot_Statement_t state_ref;	// 机器人状态量
 	Robot_Statement_t state_set;	// 机器人预期的状态
@@ -235,6 +235,7 @@ typedef struct
 	fp32 leg_length_max;             // 腿部活动范围限制
 	fp32 leg_length_min;             // 间接限制了关节电机的活动范围，关节电机还要有机械限位
 	fp32 wz;						 // 底盘旋转角速度，逆时针为正 单位 rad/s
+	fp32 wz_set;				     // 底盘旋转角速度，逆时针为正 单位 rad/s
 	fp32 chassis_yaw_set;            // 设置底盘陀螺仪yaw期望角度
 
 	fp32 vx_max_speed;	// 前进方向最大速度 单位m/s
