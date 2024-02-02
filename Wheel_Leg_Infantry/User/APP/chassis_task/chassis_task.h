@@ -98,32 +98,31 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 
 // 腿部长度控制PID
-#define LEG_LENGTH_PID_KP 160.0f
-#define LEG_LENGTH_PID_KI 1.2f
-#define LEG_LENGTH_PID_KD 5000.0f
+#define LEG_LENGTH_PID_KP 120.0f
+#define LEG_LENGTH_PID_KI 0.5f
+#define LEG_LENGTH_PID_KD 2000.0f
 #define LEG_LENGTH_PID_MAX_OUT 30.0f
 #define LEG_LENGTH_PID_MAX_IOUT 3.0f
 
 // 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 1.2f
+#define ANGLE_ERR_PID_KP 15.0f
 #define ANGLE_ERR_PID_KI 0.0f
-#define ANGLE_ERR_PID_KD 5.0f
-#define ANGLE_ERR_PID_MAX_OUT 1.5f
+#define ANGLE_ERR_PID_KD 1.0f
+#define ANGLE_ERR_PID_MAX_OUT 30.0f
 #define ANGLE_ERR_PID_MAX_IOUT 0.0f
+// 腿部角度控制PID
+#define ANGLE_DOT_PID_KP 0.02f
+#define ANGLE_DOT_PID_KI 0.0f
+#define ANGLE_DOT_PID_KD 0.0f
+#define ANGLE_DOT_PID_MAX_OUT 1.5f
+#define ANGLE_DOT_PID_MAX_IOUT 0.0f
 
 // roll控制pid
-#define ROLL_CTRL_PID_KP 0.0f
-#define ROLL_CTRL_PID_KI 0.0f
+#define ROLL_CTRL_PID_KP 0.2f
+#define ROLL_CTRL_PID_KI 0.001f
 #define ROLL_CTRL_PID_KD 0.0f
-#define ROLL_CTRL_PID_MAX_OUT 0.0f
-#define ROLL_CTRL_PID_MAX_IOUT 0.0f
-
-// 腿部角度控制PID
-#define LEG_ANGLE_PID_KP 0.5f
-#define LEG_ANGLE_PID_KI 0.0f
-#define LEG_ANGLE_PID_KD 0.1f
-#define LEG_ANGLE_PID_MAX_OUT 5.0f
-#define LEG_ANGLE_PID_MAX_IOUT 1.0f
+#define ROLL_CTRL_PID_MAX_OUT 0.03f
+#define ROLL_CTRL_PID_MAX_IOUT 0.005f
 
 // 底盘旋转跟随PID
 #define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
@@ -173,7 +172,8 @@ typedef struct
 	Joint_Motor_t front_joint;
 	Joint_Motor_t back_joint;
 
-	fp32 leg_length;    		   // 摆杆长度
+	fp32 leg_length;    	   // 摆杆长度
+	fp32 leg_length_set;
 	fp32 leg_angle;    		   // 摆杆与竖直方向的夹角
 	fp32 angle_dot;   		   // 腿部摆杆的旋转速度
 	fp32 length_dot;   		   // 腿部摆杆的旋转速度
@@ -211,6 +211,7 @@ typedef struct
 	PidTypeDef left_leg_length_pid;   //腿长控制器
 	PidTypeDef right_leg_length_pid;  //腿长控制器
 	PidTypeDef angle_err_pid;		  //双腿角度误差控制器
+	PidTypeDef angle_dot_pid;
 	PidTypeDef roll_ctrl_pid;		  //横滚角误差控制器
 	PidTypeDef chassis_angle_pid;	  //底盘跟随角度pid
 	PidTypeDef chassis_yaw_gyro_pid;  //底盘角速度PID

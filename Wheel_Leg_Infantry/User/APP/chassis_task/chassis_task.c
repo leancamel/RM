@@ -116,6 +116,7 @@ void chassis_init(chassis_move_t *chassis_move_init)
     //轮腿底盘pid值
     const static fp32 leg_length_pid[3] = {LEG_LENGTH_PID_KP, LEG_LENGTH_PID_KI, LEG_LENGTH_PID_KD };
     const static fp32 leg_angle_err_pid[3] = {ANGLE_ERR_PID_KP, ANGLE_ERR_PID_KI, ANGLE_ERR_PID_KD };
+    const static fp32 leg_angle_dot_pid[3] = {ANGLE_DOT_PID_KP, ANGLE_DOT_PID_KI, ANGLE_DOT_PID_KD };
     const static fp32 robot_roll_pid[3] = {ROLL_CTRL_PID_KP, ROLL_CTRL_PID_KI, ROLL_CTRL_PID_KD};
     //底盘旋转环pid值
     const static fp32 chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI, CHASSIS_FOLLOW_GIMBAL_PID_KD};
@@ -148,6 +149,8 @@ void chassis_init(chassis_move_t *chassis_move_init)
 
     //初始双腿误差控制pid
     PID_Init(&chassis_move_init->angle_err_pid, PID_POSITION, leg_angle_err_pid, ANGLE_ERR_PID_MAX_OUT, ANGLE_ERR_PID_MAX_IOUT);
+    PID_Init(&chassis_move_init->angle_dot_pid, PID_POSITION, leg_angle_dot_pid, ANGLE_DOT_PID_MAX_OUT, ANGLE_DOT_PID_MAX_IOUT);
+    //初始化横滚角pid
     PID_Init(&chassis_move_init->roll_ctrl_pid, PID_POSITION, robot_roll_pid, ROLL_CTRL_PID_MAX_OUT, ROLL_CTRL_PID_MAX_IOUT);
     //初始化旋转PID
     PID_Init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT, CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT);
@@ -157,10 +160,10 @@ void chassis_init(chassis_move_t *chassis_move_init)
     first_order_filter_init(&chassis_move_init->state_xdot_filter, CHASSIS_CONTROL_TIME, state_xdot_constant);
 
     //关节电机机械零点设置
-    chassis_move_init->left_leg.front_joint.offset_ecd = 3291;
-    chassis_move_init->left_leg.back_joint.offset_ecd = 4890 + 4096;
-    chassis_move_init->right_leg.front_joint.offset_ecd = 3524;
-    chassis_move_init->right_leg.back_joint.offset_ecd = 2742 - 4096;
+    chassis_move_init->left_leg.front_joint.offset_ecd = 4206;
+    chassis_move_init->left_leg.back_joint.offset_ecd = 4843 + 4096;
+    chassis_move_init->right_leg.front_joint.offset_ecd = 3803;
+    chassis_move_init->right_leg.back_joint.offset_ecd = 2771 - 4096;
    
     //关节电机限制角度，实际上是限制腿长
     chassis_move_init->leg_length_max = LEG_LENGTH_MAX;
@@ -222,6 +225,9 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     {
         chassis_move_transit->state_ref.x = 0;
         chassis_move_transit->state_set.x = 0;
+
+        chassis_move_transit->left_support_force = 0.0f;
+        chassis_move_transit->right_support_force = 0.0f;
     }
     
 
@@ -245,7 +251,7 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     //陀螺仪数据映射
     chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + INS_YAW_ADDRESS_OFFSET));
     chassis_move_update->chassis_pitch = rad_format(*(chassis_move_update->chassis_INS_angle + INS_PITCH_ADDRESS_OFFSET) - 0.01994f);
-    chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + INS_ROLL_ADDRESS_OFFSET);
+    chassis_move_update->chassis_roll = *(chassis_move_update->chassis_INS_angle + INS_ROLL_ADDRESS_OFFSET) - 0.0154f;
 
     //更新关节电机角度
     chassis_move_update->right_leg.front_joint.angle = motor_ecd_to_angle_change(chassis_move_update->right_leg.front_joint.joint_motor_measure->ecd,
@@ -307,7 +313,13 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
 
     // 机器人离地判断
     Robot_Offground_detect(chassis_move_update);
-    if(!switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL]))
+
+    // static uint16_t cnt = 0;// 计数
+    if(switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_move_update->touchingGroung = true;
+    }
+    else
     {
         chassis_move_update->touchingGroung = false;
     }
@@ -426,7 +438,7 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
     }
 
     fp32 l_force = 0.0f, r_force = 0.0f;
-    fp32 err_tor = 0.0f, yaw_err_force = 0.0f, roll_err_force = 0.0f;
+    fp32 err_tor = 0.0f, yaw_err_force = 0.0f, roll_err = 0.0f;
     // 反馈矩阵乘以一定系数用于调整，角速度的影响太大容易振荡，暂时怀疑是模型不准
     fp32 coefficient[2][6] = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.2f},
                             {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.2f}};
@@ -452,23 +464,29 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
                  chassis_move_control_loop->state_set.phi_dot - chassis_move_control_loop->state_ref.phi_dot};
     chassis_move_control_loop->wheel_tor = k[0][0] * x[0] + k[0][1] * x[1] + k[0][2] * x[2] + k[0][3] * x[3] + k[0][4] * x[4] + k[0][5] * x[5];
     chassis_move_control_loop->leg_tor = k[1][0] * x[0] + k[1][1] * x[1] + k[1][2] * x[2] + k[1][3] * x[3] + k[1][4] * x[4] + k[1][5] * x[5];
+    // TODO: lqr输出端一阶低通滤波
+    
     // PID计算转向 左右轮力矩差
-    // yaw_err_force = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, chassis_move_control_loop->chassis_yaw, chassis_move_control_loop->chassis_yaw_set);
     chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, chassis_move_control_loop->chassis_yaw, chassis_move_control_loop->chassis_yaw_set);
     yaw_err_force = PID_Calc(&chassis_move_control_loop->chassis_yaw_gyro_pid, *(chassis_move_control_loop->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET), chassis_move_control_loop->wz_set);
     
-    // TODO: PID补偿横滚角roll
-    // roll_err_force = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
+    // TODO: PID补偿横滚角roll，这里作为腿长控制的外环，而不是直接补偿支持力
+    roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
+    chassis_move_control_loop->left_leg.leg_length_set = chassis_move_control_loop->leg_length_set + roll_err;
+    chassis_move_control_loop->right_leg.leg_length_set = chassis_move_control_loop->leg_length_set - roll_err;
      
     // TODO: 使用双腿长度的平均值，离地修改目标腿长
-    r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->leg_length_set);
-    l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, chassis_move_control_loop->leg_length_set);
+    r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->right_leg.leg_length_set);
+    l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, chassis_move_control_loop->left_leg.leg_length_set);
 
-    chassis_move_control_loop->left_support_force = l_force; // +- roll_err_force
-    chassis_move_control_loop->right_support_force = r_force;
+    static const fp32 gravity_comp = 3.0f; // 补偿机体重力
+    chassis_move_control_loop->left_support_force = l_force + gravity_comp;
+    chassis_move_control_loop->right_support_force = r_force + gravity_comp;
 
     // 双腿角度误差控制
-    err_tor = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
+    //err_tor = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
+    fp32 angle_dot = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
+    err_tor = PID_Calc(&chassis_move_control_loop->angle_dot_pid, (chassis_move_control_loop->right_leg.angle_dot - chassis_move_control_loop->left_leg.angle_dot), angle_dot);
 
     // VMC 虚拟力解算
     fp32 tor_vector[2] = {0.0f};
@@ -515,8 +533,8 @@ static void Robot_Offground_detect(chassis_move_t *chassis_move_detect)
     static fp32 last_length_dot = 0.0f; // 差分计算腿长变化的加速度
     static fp32 last_theta_dot = 0.0f;  // 差分计算腿部倾角变化加速度
 
-    fp32 m_w = 0.1939f; // 轮毂的质量
-    fp32 g = 9.8f;      // 重力加速度
+    static const fp32 m_w = 0.1939f; // 轮毂的质量
+    static const fp32 g = 9.8f;      // 重力加速度
     // 机体竖直方向运动加速度
     fp32 b_acc_z = *(chassis_move_detect->chassis_imu_accel + INS_ACCEL_Z_ADDRESS_OFFSET) - g;
     // 直接使用上一控制周期计算的力矩作为力矩反馈值
@@ -528,6 +546,8 @@ static void Robot_Offground_detect(chassis_move_t *chassis_move_detect)
     // 使用差分代替微分运算
     fp32 ddlength = (chassis_move_detect->leg_length_dot - last_length_dot) / CHASSIS_CONTROL_TIME;
     fp32 ddtheta = (chassis_move_detect->state_ref.theta_dot - last_theta_dot) / CHASSIS_CONTROL_TIME;
+    ddlength = 0.0f;// 噪声太大了，需要滤波，于是暂时没有使用
+    ddtheta = 0.0f;
     last_length_dot = chassis_move_detect->leg_length_dot;
     last_theta_dot = chassis_move_detect->state_ref.theta_dot;
 
@@ -540,12 +560,12 @@ static void Robot_Offground_detect(chassis_move_t *chassis_move_detect)
                     + chassis_move_detect->leg_length * chassis_move_detect->state_ref.theta_dot * chassis_move_detect->state_ref.theta_dot * cos_theta;
 
     chassis_move_detect->ground_force = P + 2 * m_w * g + 2 * m_w * w_acc_z;
-    if(chassis_move_detect->ground_force < 10.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
+    if(chassis_move_detect->ground_force < 8.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
         chassis_move_detect->touchingGroung = false;
     else
         chassis_move_detect->touchingGroung = true;
 
     // chassis_move_detect->ground_force = w_acc_z;
-    chassis_move_detect->touchingGroung = true;
+    // chassis_move_detect->touchingGroung = true;
 }
 

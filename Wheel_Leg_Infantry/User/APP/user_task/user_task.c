@@ -42,6 +42,9 @@
 uint32_t UserTaskStack;
 #endif
 
+//归一化函数
+fp32 normalize_fp32(fp32 data);
+
 //姿态角 单位 度
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
 const chassis_move_t* local_chassis_move;
@@ -91,9 +94,11 @@ void UserTask(void *pvParameters)
         //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
         //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
-
-        // printf("%f, %f\n", local_chassis_move->ground_force, local_chassis_move->leg_length*100);
         
+        // 地面支持力
+        // printf("%f, %f, %f\n", local_chassis_move->ground_force, local_chassis_move->state_ref.x, local_chassis_move->leg_length*100);
+        printf("%f, %f, %f\n", local_chassis_move->left_leg.leg_length_set, local_chassis_move->right_leg.leg_length_set, local_chassis_move->chassis_roll);
+
         // printf("%f, %f, %f, %f, %f\n", local_chassis_move->wheel_tor, local_chassis_move->leg_tor,
         //         local_chassis_move->state_ref.theta, local_chassis_move->state_ref.x, local_chassis_move->state_ref.phi);
 
@@ -107,6 +112,7 @@ void UserTask(void *pvParameters)
         //                         local_chassis_move->right_leg.length_dot * 100.0f, local_chassis_move->right_leg.angle_dot * 57.3f);
 
         // 腿部长度PID
+        // printf("%f, %f\n", local_chassis_move->leg_length, local_chassis_move->leg_angle_dot);
         // printf("%.2f, %.2f, %d, %d\n", local_chassis_move->right_leg.leg_length * 100, local_chassis_move->leg_length_set * 100, 
         //         local_chassis_move->right_leg.back_joint.give_current,
         //         local_chassis_move->right_leg.front_joint.give_current);
@@ -114,10 +120,9 @@ void UserTask(void *pvParameters)
         // yaw跟随PID
         // printf("%f, %f, %f, %f\n", local_chassis_move->chassis_yaw_set*57.3f, local_chassis_move->chassis_yaw*57.3f, 
         //         local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
-        printf("%f, %f\n", local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
+        // printf("%f, %f\n", local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
 
-        // printf("%f, %f\n", local_chassis_move->state_ref.phi * 57.3f, local_chassis_move->state_ref.phi_dot * 10.0f);
-        // printf("%f, %f\n", 0.5f*(local_chassis_move->right_leg.wheel_motor.speed + local_chassis_move->left_leg.wheel_motor.speed), local_chassis_move->state_ref.x_dot);
+        // printf("%f, %f, %f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot, local_chassis_move->leg_length);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -164,4 +169,22 @@ void buzzer_warn(uint8_t num)
             show_num--;
         }
     }
+}
+
+/**
+  * @brief          归一化函数[0, 1]
+  * @param[in]      data 要归一化的数据
+  * @retval         归一化后的值
+  */
+fp32 normalize_fp32(fp32 data) 
+{
+    // 这里可以根据实际情况进行归一化计算
+    // 此处假设数据范围为 [min_value, max_value]
+    fp32 min_value = 0.0f;
+    fp32 max_value = 1.0f;
+
+    // 归一化计算
+    fp32 normalized_data = (data - min_value) / (max_value - min_value);
+
+    return normalized_data;
 }
