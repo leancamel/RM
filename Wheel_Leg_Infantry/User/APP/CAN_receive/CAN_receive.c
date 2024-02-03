@@ -7,7 +7,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-// #include "Detect_Task.h"
+#include "detect_task.h"
 
 //底盘电机数据读取
 #define get_motor_measure(ptr, rx_message)                                                     \
@@ -179,14 +179,14 @@ static void CAN_hook(CanRxMsg *rx_message)
         //处理电机数据宏函数
         get_motor_measure(&motor_right, rx_message);
         //记录时间
-        //DetectHook(YawGimbalMotorTOE);
+        detect_hook(WHEEL_MOTOR5_TOE);
         break;
     }
     case CAN_LEFT_MOTOR_ID:
     {
         //处理电机数据宏函数
         get_motor_measure(&motor_left, rx_message);
-        //DetectHook(PitchGimbalMotorTOE);
+        detect_hook(WHEEL_MOTOR6_TOE);
         break;
     }
     case CAN_3508_M1_ID:
@@ -200,7 +200,7 @@ static void CAN_hook(CanRxMsg *rx_message)
         //处理电机数据宏函数
         get_motor_measure(&motor_joint[i], rx_message);
         //记录时间
-        //DetectHook(ChassisMotor1TOE + i);
+        detect_hook(CHASSIS_MOTOR1_TOE + i);
         break;
     }
 

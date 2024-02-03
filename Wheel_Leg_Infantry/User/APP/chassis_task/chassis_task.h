@@ -42,11 +42,9 @@
 // 选择普通底盘状态 开关通道号
 #define MODE_CHANNEL 0
 // 遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
-#define CHASSIS_VX_RC_SEN 0.006f
-// 跟随底盘yaw模式下，遥控器的yaw遥杆（max 660）增加到车体角度的比例
-#define CHASSIS_ANGLE_Z_RC_SEN 0.000002f
-// 不跟随云台的时候 遥控器的yaw遥杆（max 660）转化成车体旋转速度的比例
-#define CHASSIS_WZ_RC_SEN 0.007f
+#define CHASSIS_VX_RC_SEN 0.0015f
+// 遥控器的yaw遥杆（max 660）增加到车体角度的比例
+#define CHASSIS_WZ_RC_SEN 0.00001f
 
 #define CHASSIS_ACCEL_X_NUM 0.1666666667f
 #define CHASSIS_ACCEL_Y_NUM 0.3333333333f
@@ -82,7 +80,7 @@
 // 底盘电机最大速度
 #define MAX_WHEEL_SPEED 4.0f
 // 底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 4.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X 0.5f
 // 底盘运动过程最大平移速度
 #define NORMAL_MAX_CHASSIS_SPEED_Y 3.9f
 // 底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
@@ -105,7 +103,7 @@
 #define LEG_LENGTH_PID_MAX_IOUT 3.0f
 
 // 腿部误差控制PID
-#define ANGLE_ERR_PID_KP 15.0f
+#define ANGLE_ERR_PID_KP 20.0f
 #define ANGLE_ERR_PID_KI 0.0f
 #define ANGLE_ERR_PID_KD 1.0f
 #define ANGLE_ERR_PID_MAX_OUT 30.0f
@@ -127,7 +125,7 @@
 // 底盘旋转跟随PID
 #define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f 
-#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.3f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 50.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 5.0f
 

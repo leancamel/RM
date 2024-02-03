@@ -11,7 +11,7 @@
   */
  
 #include "chassis_task.h"
-#include "chassis_behaviour.h"
+// #include "chassis_behaviour.h"
 
 #include "arm_math.h"
 #include "leg_pos.h"
@@ -189,7 +189,20 @@ void chassis_set_mode(chassis_move_t *chassis_move_mode)
         return;
     }
 
-    chassis_behaviour_mode_set(chassis_move_mode);
+    // chassis_behaviour_mode_set(chassis_move_mode);
+    //遥控器设置行为模式
+    if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW;
+    }
+    else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW;
+    }
+    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[MODE_CHANNEL]))
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_FORCE_RAW;
+    }
 }
 
 /**
@@ -343,18 +356,23 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     fp32 vx_set = 0.0f, l_set = 0.0f, angle_set = 0.0f;
     // chassis_behaviour_control_set(&vx_set, &l_set, &angle_set, chassis_move_control);
     l_set = LEG_LENGTH_INIT;
+    if(switch_is_down(chassis_move_control->chassis_RC->rc.s[1]))// 左边拨到最下档才允许摇杆操控，防止不小心误触
+    {
+        chassis_rc_to_control_vector(&vx_set, &angle_set, chassis_move_control);
+    }
+    
     if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
-        chassis_move_control->chassis_yaw_set = chassis_move_control->chassis_yaw_set + angle_set;
+        chassis_move_control->chassis_yaw_set = rad_format(chassis_move_control->chassis_yaw_set + angle_set);
         chassis_leg_limit(chassis_move_control, l_set);
 
         chassis_move_control->state_set.phi = 0.0f;
         chassis_move_control->state_set.phi_dot = 0.0f;
         chassis_move_control->state_set.theta = 0.0f;
         chassis_move_control->state_set.theta_dot = 0.0f;
-        // chassis_move_control->state_set.x += chassis_move_control->state_ref.x_dot * CHASSIS_CONTROL_TIME;
-        chassis_move_control->state_set.x = 0.0f;
         chassis_move_control->state_set.x_dot = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
+        chassis_move_control->state_set.x += chassis_move_control->state_set.x_dot * CHASSIS_CONTROL_TIME;
+        // chassis_move_control->state_set.x = 0.0f;
     }
     else if (chassis_move_control->chassis_mode == CHASSIS_POSITION_LEG)
     {
@@ -382,30 +400,37 @@ void chassis_leg_limit(chassis_move_t *chassis_move_control, fp32 l_set)
   * @param          chassis_move_rc_to_vector   底盘结构体指针
   * @retval         void
   */
-void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *chassis_move_rc_to_vector)
+void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *add_yaw_set, chassis_move_t *chassis_move_rc_to_vector)
 {
-    if (chassis_move_rc_to_vector == NULL || vx_set == NULL || vy_set == NULL)
+    if (chassis_move_rc_to_vector == NULL || vx_set == NULL || add_yaw_set == NULL)
     {
         return;
     }
     //遥控器原始通道值
-    int16_t vx_channel;
-    fp32 vx_set_channel;
+    int16_t vx_channel, wz_channel;
+    fp32 vx_set_channel, add_yaw_channel;
     //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
     rc_deadline_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_X_CHANNEL], vx_channel, CHASSIS_RC_DEADLINE);
+    rc_deadline_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL], wz_channel, CHASSIS_RC_DEADLINE)
 
     vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
+    add_yaw_channel = wz_channel * -CHASSIS_WZ_RC_SEN;
 
     //一阶低通滤波代替斜波作为底盘速度输入
     first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
 
-    //停止信号，不需要缓慢加速，直接减速到零
+    //停止信号，不需要缓慢加速，直接减速到零TODO:这里写没用，要在stats_set变量中写
     if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
     {
         chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out = 0.0f;
     }
+    if(add_yaw_channel < CHASSIS_RC_DEADLINE * CHASSIS_WZ_RC_SEN && add_yaw_channel > -CHASSIS_RC_DEADLINE * CHASSIS_WZ_RC_SEN)
+    {
+        add_yaw_channel = 0.0f;
+    }
 
     *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
+    *add_yaw_set = add_yaw_channel;
 }
 
 //计算相对角度
@@ -466,19 +491,21 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
     chassis_move_control_loop->leg_tor = k[1][0] * x[0] + k[1][1] * x[1] + k[1][2] * x[2] + k[1][3] * x[3] + k[1][4] * x[4] + k[1][5] * x[5];
     // TODO: lqr输出端一阶低通滤波
     
-    // PID计算转向 左右轮力矩差
-    chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, chassis_move_control_loop->chassis_yaw, chassis_move_control_loop->chassis_yaw_set);
+    // PID计算转向 左右轮力矩差 注意过零保护
+    // chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, chassis_move_control_loop->chassis_yaw, chassis_move_control_loop->chassis_yaw_set);
+    chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, rad_format(chassis_move_control_loop->chassis_yaw - chassis_move_control_loop->chassis_yaw_set), 0);
     yaw_err_force = PID_Calc(&chassis_move_control_loop->chassis_yaw_gyro_pid, *(chassis_move_control_loop->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET), chassis_move_control_loop->wz_set);
     
-    // TODO: PID补偿横滚角roll，这里作为腿长控制的外环，而不是直接补偿支持力
+    // PID补偿横滚角roll，这里作为腿长控制的外环，而不是直接补偿支持力
     roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
     chassis_move_control_loop->left_leg.leg_length_set = chassis_move_control_loop->leg_length_set + roll_err;
     chassis_move_control_loop->right_leg.leg_length_set = chassis_move_control_loop->leg_length_set - roll_err;
      
-    // TODO: 使用双腿长度的平均值，离地修改目标腿长
+    // 使用双腿长度的平均值，离地修改目标腿长
     r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->right_leg.leg_length_set);
     l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, chassis_move_control_loop->left_leg.leg_length_set);
 
+    // TODO: 加入前馈
     static const fp32 gravity_comp = 3.0f; // 补偿机体重力
     chassis_move_control_loop->left_support_force = l_force + gravity_comp;
     chassis_move_control_loop->right_support_force = r_force + gravity_comp;

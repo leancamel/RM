@@ -68,18 +68,6 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, 
   */
 static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
-/**
-  * @brief          测试轮腿VMC控制算法
-  * @author         RM
-  * @param[in]      vx_set前进的速度
-  * @param[in]      vy_set左右的速度
-  * @param[in]      wz_set底盘设置的旋转速度
-  * @param[in]      chassis_move_rc_to_vector底盘数据
-  * @retval         返回空
-  */
-
-static void chassis_leg_pos_control(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
-
 
 //底盘行为状态机
 static chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
@@ -106,11 +94,6 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
         chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
     }
 
-#if defined(LEG_POS_TEST_START)
-    if(chassis_behaviour_mode != CHASSIS_ZERO_FORCE)
-        chassis_behaviour_mode = CHASSIS_LEG_VMC_TEST;
-#endif
-
     //根据行为状态机选择底盘状态机
     if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE)
     {
@@ -127,10 +110,6 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     else if (chassis_behaviour_mode == CHASSIS_NO_FOLLOW_YAW)
     {
         chassis_move_mode->chassis_mode = CHASSIS_VECTOR_NO_FOLLOW_YAW; //当行为是底盘不跟随角度，则设置底盘状态机为 底盘不跟随角度 状态机。
-    }
-    else if(chassis_behaviour_mode == CHASSIS_LEG_VMC_TEST)
-    {
-        chassis_move_mode->chassis_mode = CHASSIS_POSITION_LEG; //当行为是轮腿VMC测试时，则设置底盘腿部控制
     }
 }
 
@@ -159,10 +138,6 @@ void chassis_behaviour_control_set(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, c
     else if (chassis_behaviour_mode == CHASSIS_NO_FOLLOW_YAW)
     {
         chassis_no_follow_yaw_control(vx_set, l_set, angle_set, chassis_move_rc_to_vector);
-    }
-    else if (chassis_behaviour_mode == CHASSIS_LEG_VMC_TEST)
-    {
-        chassis_leg_pos_control(vx_set, l_set, angle_set, chassis_move_rc_to_vector);
     }
 }
 
@@ -248,26 +223,4 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
 
     chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
     *wz_set = CHASSIS_WZ_RC_SEN * chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL];
-}
-
-/**
-  * @brief          测试轮腿VMC控制算法
-  * @author         RM
-  * @param[in]      vx_set    前进的速度
-  * @param[in]      l_set     腿长
-  * @param[in]      angle_set 腿部摆杆角度
-  * @param[in]      chassis_move_rc_to_vector底盘数据
-  * @retval         返回空
-  */
-
-static void chassis_leg_pos_control(fp32 *vx_set, fp32 *l_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
-{
-    if (vx_set == NULL || l_set == NULL || angle_set == NULL || chassis_move_rc_to_vector == NULL)
-    {
-        return;
-    }
-
-    *vx_set = 0;
-    *l_set = LEG_LENGTH_INIT + -chassis_move_rc_to_vector->chassis_RC->rc.ch[RC_LENGTH_CHANNEL] * RC_LENGTH_SEN;
-    *angle_set = PI * 0.5f + chassis_move_rc_to_vector->chassis_RC->rc.ch[RC_ANGLE_CHANNEL] * RC_ANGLE_SEN;
 }

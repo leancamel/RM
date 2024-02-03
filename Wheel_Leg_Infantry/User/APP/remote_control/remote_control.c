@@ -2,8 +2,8 @@
 #include "stm32f4xx.h"
 
 #include "rc.h"
+#include "detect_task.h"
 
-//#include "Detect_Task.h"
 //遥控器出错数据上限
 #define RC_CHANNAL_ERROR_VALUE 700
 
@@ -111,7 +111,7 @@ void USART3_IRQHandler(void)
                 //处理遥控器数据
                 SBUS_TO_RC(SBUS_rx_buf[0], &rc_ctrl);
                 //记录数据接收时间
-                //DetectHook(DBUSTOE);
+                detect_hook(DBUS_TOE);
             }
         }
         else
@@ -129,7 +129,7 @@ void USART3_IRQHandler(void)
                 //处理遥控器数据
                 SBUS_TO_RC(SBUS_rx_buf[1], &rc_ctrl);
                 //记录数据接收时间
-                //DetectHook(DBUSTOE);
+                detect_hook(DBUS_TOE);
             }
 
         }

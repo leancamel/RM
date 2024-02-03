@@ -34,8 +34,6 @@ typedef enum
 	CHASSIS_STAND_UP,	     // 机器人起立，中间过渡状态，由程序自动判断切换
 	CHASSIS_NO_MOVE,	     // 底盘保持不动，如果机器人还未站起，则先进入机器人起立状态机，等待站起后自动切换到此状态机
 	CHASSIS_NO_FOLLOW_YAW, // 底盘不跟随云台，旋转直接由遥控器设定
-
-	CHASSIS_LEG_VMC_TEST   // 轮腿位置控制状态机，测试用
 } chassis_behaviour_e;
 
 extern void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode);

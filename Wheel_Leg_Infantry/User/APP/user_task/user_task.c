@@ -32,11 +32,12 @@
 #include "INS_Task.h"
 #include "chassis_task.h"
 #include "remote_control.h"
+#include "detect_task.h"
 
 #include "voltage_task.h"
 #include "Kalman_Filter.h"
 #include "bluetooth.h"
-//#define user_is_error() toe_is_error(errorListLength)
+// #define user_is_error() toe_is_error(errorListLength)
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t UserTaskStack;
@@ -44,6 +45,7 @@ uint32_t UserTaskStack;
 
 //归一化函数
 fp32 normalize_fp32(fp32 data);
+void buzzer_warn(uint8_t num, uint8_t interval);
 
 //姿态角 单位 度
 fp32 angle_degree[3] = {0.0f, 0.0f, 0.0f};
@@ -63,11 +65,18 @@ void UserTask(void *pvParameters)
     while (1)
     {
         Tcount++;
-        if(Tcount >= 50)
+        if(Tcount >= 100)
         {
             led_blue_toggle();
             Tcount = 0;
         }
+
+        if((toe_is_error(WHEEL_MOTOR5_TOE) || toe_is_error(WHEEL_MOTOR6_TOE || toe_is_error(CHASSIS_MOTOR1_TOE))
+            || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) || toe_is_error(CHASSIS_MOTOR4_TOE)) && USE_BUZZER_WARNING)
+            buzzer_warn(MOTOR_LOST + 1, 10);
+        else
+            buzzer_off();
+
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
         angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
         angle_degree[1] = (*(angle + INS_PITCH_ADDRESS_OFFSET)) * 57.3f;
@@ -134,19 +143,20 @@ void UserTask(void *pvParameters)
 
 /**
   * @brief          蜂鸣器报警
-  * @param[in]      num:响声次数
+  * @param[in]      num:响声次数，最大为5次
+  * @param[in]      interval:任务执行间隔ms，最大为200
   * @retval         none
   */
-void buzzer_warn(uint8_t num)
+void buzzer_warn(uint8_t num, uint8_t interval)
 {
     static uint8_t show_num = 0;
-    static uint8_t stop_num = 100;
+    static uint8_t stop_num = 0;
     if(show_num == 0 && stop_num == 0)
     {
         show_num = num;
-        stop_num = 100;
+        stop_num = 1000/interval;
     }
-    else if(show_num == 0)
+    else if(show_num == 0)//一次报警周期结束，暂停1s
     {
         stop_num--;
         buzzer_off();
@@ -155,11 +165,11 @@ void buzzer_warn(uint8_t num)
     {
         static uint8_t tick = 0;
         tick++;
-        if(tick < 50)
+        if(tick < 600/interval/num)
         {
             buzzer_off();
         }
-        else if(tick < 100)
+        else if(tick < 1000/interval/num)
         {
             buzzer_on(64, 20);
         }

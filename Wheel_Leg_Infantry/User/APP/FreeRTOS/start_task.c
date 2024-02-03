@@ -28,7 +28,7 @@
 #include "user_task.h"
 #include "voltage_task.h"
 #include "chassis_task.h"
-
+#include "detect_task.h"
 
 
 #define START_TASK_PRIO 1
@@ -50,6 +50,10 @@ static TaskHandle_t UserTask_Handler;
 #define VOLTAGE_TASK_PRIO 11
 #define VOLTAGE_TASK_SIZE 128
 static TaskHandle_t VoltageTask_Handler;
+
+#define Detect_TASK_PRIO 10
+#define Detect_STK_SIZE 128
+static TaskHandle_t DetectTask_Handler;
 
 void start_task(void *pvParameters)
 {
@@ -82,6 +86,13 @@ void start_task(void *pvParameters)
                 (void *)NULL,
                 (UBaseType_t)VOLTAGE_TASK_PRIO,
                 (TaskHandle_t *)&VoltageTask_Handler);
+
+    xTaskCreate((TaskFunction_t)detect_task,
+                (const char *)"DetectTask",
+                (uint16_t)Detect_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)Detect_TASK_PRIO,
+                (TaskHandle_t *)&DetectTask_Handler);
 
     vTaskDelete(StartTask_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区

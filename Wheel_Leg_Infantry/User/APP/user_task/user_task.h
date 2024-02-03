@@ -19,6 +19,15 @@
 #ifndef USER_TASK_H
 #define USER_TASK_H
 
+// 是否开启蜂鸣器报警，1 on ： 2 off
+#define USE_BUZZER_WARNING 1
+
+enum errorType
+{
+  MOTOR_LOST = 0,
+  MOTOR_TEMP_HIGH,
+};
+
 extern void UserTask(void *pvParameters);
 
 #endif
