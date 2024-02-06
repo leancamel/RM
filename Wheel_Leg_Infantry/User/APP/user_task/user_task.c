@@ -71,11 +71,15 @@ void UserTask(void *pvParameters)
             Tcount = 0;
         }
 
-        if((toe_is_error(WHEEL_MOTOR5_TOE) || toe_is_error(WHEEL_MOTOR6_TOE || toe_is_error(CHASSIS_MOTOR1_TOE))
-            || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) || toe_is_error(CHASSIS_MOTOR4_TOE)) && USE_BUZZER_WARNING)
+#if USE_BUZZER_WARNING == 1
+        if(toe_is_error(WHEEL_MOTOR5_TOE) || toe_is_error(WHEEL_MOTOR6_TOE || toe_is_error(CHASSIS_MOTOR1_TOE))
+            || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) || toe_is_error(CHASSIS_MOTOR4_TOE))
             buzzer_warn(MOTOR_LOST + 1, 10);
+        else if(local_chassis_move->left_leg.leg_length > LEG_LENGTH_MAX || local_chassis_move->right_leg.leg_length > LEG_LENGTH_MAX)
+            buzzer_warn(LEG_EXCEED + 1, 10);
         else
             buzzer_off();
+#endif
 
         //姿态角 将rad 变成 度，除这里的姿态角的单位为度，其他地方的姿态角，单位均为弧度
         angle_degree[0] = (*(angle + INS_YAW_ADDRESS_OFFSET)) * 57.3f;
@@ -99,14 +103,14 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
-        // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
-        //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
-        //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
+        printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
+                                    local_chassis_move->left_leg.back_joint.angle * 57.3f,
+                                    local_chassis_move->right_leg.front_joint.angle * 57.3f,
+                                    local_chassis_move->right_leg.back_joint.angle * 57.3f);
         
         // 地面支持力
         // printf("%f, %f, %f\n", local_chassis_move->ground_force, local_chassis_move->state_ref.x, local_chassis_move->leg_length*100);
-        printf("%f, %f, %f\n", local_chassis_move->left_leg.leg_length_set, local_chassis_move->right_leg.leg_length_set, local_chassis_move->chassis_roll);
+        // printf("%f, %f, %f\n", local_chassis_move->left_leg.leg_length_set, local_chassis_move->right_leg.leg_length_set, local_chassis_move->chassis_roll);
 
         // printf("%f, %f, %f, %f, %f\n", local_chassis_move->wheel_tor, local_chassis_move->leg_tor,
         //         local_chassis_move->state_ref.theta, local_chassis_move->state_ref.x, local_chassis_move->state_ref.phi);

@@ -22,9 +22,10 @@
 // 是否开启蜂鸣器报警，1 on ： 2 off
 #define USE_BUZZER_WARNING 1
 
-enum errorType
+enum errorType // 机器人状态异常状况，会触发蜂鸣器报警，序号越小优先级越高
 {
   MOTOR_LOST = 0,
+  LEG_EXCEED,
   MOTOR_TEMP_HIGH,
 };
 

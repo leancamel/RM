@@ -26,9 +26,11 @@
 #include "pid.h"
 
 /*底盘CAN_ID
-  4     3
-
-  1     2
+		   前	
+		1     4
+  左  6         5  右
+		2     3
+		   后
 */
 
 // 任务开始空闲一段时间
@@ -38,11 +40,13 @@
 #define CHASSIS_X_CHANNEL 3
 // 旋转的遥控器通道号码
 #define CHASSIS_WZ_CHANNEL 2
+// 腿长的遥控器通道号码
+#define CHASSIS_L_CHANNEL 1
 
 // 选择普通底盘状态 开关通道号
 #define MODE_CHANNEL 0
 // 遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
-#define CHASSIS_VX_RC_SEN 0.0015f
+#define CHASSIS_VX_RC_SEN 0.0020f
 // 遥控器的yaw遥杆（max 660）增加到车体角度的比例
 #define CHASSIS_WZ_RC_SEN 0.00001f
 
@@ -80,16 +84,14 @@
 // 底盘电机最大速度
 #define MAX_WHEEL_SPEED 4.0f
 // 底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 0.5f
-// 底盘运动过程最大平移速度
-#define NORMAL_MAX_CHASSIS_SPEED_Y 3.9f
-// 底盘设置旋转速度，设置前后左右轮不同设定速度的比例分权 0为在几何中心，不需要补偿
+#define NORMAL_MAX_CHASSIS_SPEED_X 0.8f
+// 底盘设置旋转速度
 #define CHASSIS_WZ_SET_SCALE 0.0f
 
 // 腿部初始长度
 #define LEG_LENGTH_INIT 0.08f
 
-#define LEG_LENGTH_MAX 0.14f
+#define LEG_LENGTH_MAX 0.12f
 #define LEG_LENGTH_MIN 0.06f
 
 //电机编码值转化成角度值
@@ -123,11 +125,11 @@
 #define ROLL_CTRL_PID_MAX_IOUT 0.005f
 
 // 底盘旋转跟随PID
-#define CHASSIS_FOLLOW_GIMBAL_PID_KP 8.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KP 12.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f 
-#define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.0f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 50.0f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 5.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KD 3.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 12.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 1.2f
 
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
 #define YAW_SPEED_PID_KP 0.005f

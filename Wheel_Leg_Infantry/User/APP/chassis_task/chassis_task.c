@@ -160,12 +160,13 @@ void chassis_init(chassis_move_t *chassis_move_init)
     first_order_filter_init(&chassis_move_init->state_xdot_filter, CHASSIS_CONTROL_TIME, state_xdot_constant);
 
     //关节电机机械零点设置
-    chassis_move_init->left_leg.front_joint.offset_ecd = 4206;
-    chassis_move_init->left_leg.back_joint.offset_ecd = 4843 + 4096;
+    chassis_move_init->left_leg.front_joint.offset_ecd = 4162;
+    chassis_move_init->left_leg.back_joint.offset_ecd = 4879 + 4096;
     chassis_move_init->right_leg.front_joint.offset_ecd = 3803;
     chassis_move_init->right_leg.back_joint.offset_ecd = 2771 - 4096;
    
     //关节电机限制角度，实际上是限制腿长
+    chassis_move_init->leg_length_set = LEG_LENGTH_INIT;
     chassis_move_init->leg_length_max = LEG_LENGTH_MAX;
     chassis_move_init->leg_length_min = LEG_LENGTH_MIN;
     //最大 最小速度
@@ -353,26 +354,45 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     }
 
     //设置速度
-    fp32 vx_set = 0.0f, l_set = 0.0f, angle_set = 0.0f;
+    static fp32 vx_set = 0.0f, l_set = LEG_LENGTH_INIT, angle_set = 0.0f;
     // chassis_behaviour_control_set(&vx_set, &l_set, &angle_set, chassis_move_control);
-    l_set = LEG_LENGTH_INIT;
     if(switch_is_down(chassis_move_control->chassis_RC->rc.s[1]))// 左边拨到最下档才允许摇杆操控，防止不小心误触
     {
         chassis_rc_to_control_vector(&vx_set, &angle_set, chassis_move_control);
+    }
+    else if(switch_is_up(chassis_move_control->chassis_RC->rc.s[1]))
+    {
+        fp32 add_l, add_l_channel;
+        rc_deadline_limit(chassis_move_control->chassis_RC->rc.ch[CHASSIS_L_CHANNEL], add_l_channel, CHASSIS_RC_DEADLINE);
+        add_l = add_l_channel * 0.0000003f;
+        l_set += add_l;
+    }
+    else
+    {
+        vx_set = 0.0f;
+        angle_set = 0.0f;
     }
     
     if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
         chassis_move_control->chassis_yaw_set = rad_format(chassis_move_control->chassis_yaw_set + angle_set);
         chassis_leg_limit(chassis_move_control, l_set);
+        l_set = chassis_move_control->leg_length_set;
 
         chassis_move_control->state_set.phi = 0.0f;
         chassis_move_control->state_set.phi_dot = 0.0f;
         chassis_move_control->state_set.theta = 0.0f;
         chassis_move_control->state_set.theta_dot = 0.0f;
-        chassis_move_control->state_set.x_dot = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
-        chassis_move_control->state_set.x += chassis_move_control->state_set.x_dot * CHASSIS_CONTROL_TIME;
-        // chassis_move_control->state_set.x = 0.0f;
+        if(vx_set != 0)
+        {
+            chassis_move_control->state_set.x_dot = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
+            chassis_move_control->state_set.x += chassis_move_control->state_set.x_dot * CHASSIS_CONTROL_TIME;
+        }
+        else // TODO: 停止立即刹车，但目前还不是很平稳
+        {
+            chassis_move_control->state_set.x_dot = 0.0f;
+            chassis_move_control->state_set.x = chassis_move_control->state_set.x;
+        }
     }
     else if (chassis_move_control->chassis_mode == CHASSIS_POSITION_LEG)
     {
@@ -411,7 +431,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *add_yaw_set, chassis_move_
     fp32 vx_set_channel, add_yaw_channel;
     //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
     rc_deadline_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_X_CHANNEL], vx_channel, CHASSIS_RC_DEADLINE);
-    rc_deadline_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL], wz_channel, CHASSIS_RC_DEADLINE)
+    rc_deadline_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL], wz_channel, CHASSIS_RC_DEADLINE);
 
     vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
     add_yaw_channel = wz_channel * -CHASSIS_WZ_RC_SEN;
@@ -449,7 +469,7 @@ static fp32 motor_ecd_to_angle_change(uint16_t ecd, int16_t offset_ecd)
   * @param          chassis_move_control_loop   底盘结构体指针
   * @retval         void
   */
-void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
+void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将该函数重写，剥离其中的控制模块以及各种约束限制
 {
     if(chassis_move_control_loop->chassis_mode == CHASSIS_FORCE_RAW)
     {
@@ -465,8 +485,8 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
     fp32 l_force = 0.0f, r_force = 0.0f;
     fp32 err_tor = 0.0f, yaw_err_force = 0.0f, roll_err = 0.0f;
     // 反馈矩阵乘以一定系数用于调整，角速度的影响太大容易振荡，暂时怀疑是模型不准
-    fp32 coefficient[2][6] = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.2f},
-                            {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.2f}};
+    fp32 coefficient[2][6] = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+                            {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}};
     fp32 kRes[12] = {0}, k[2][6] = {0};
     lqr_k(chassis_move_control_loop->leg_length, kRes);
     if(chassis_move_control_loop->touchingGroung) //正常触地状态
@@ -489,17 +509,28 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
                  chassis_move_control_loop->state_set.phi_dot - chassis_move_control_loop->state_ref.phi_dot};
     chassis_move_control_loop->wheel_tor = k[0][0] * x[0] + k[0][1] * x[1] + k[0][2] * x[2] + k[0][3] * x[3] + k[0][4] * x[4] + k[0][5] * x[5];
     chassis_move_control_loop->leg_tor = k[1][0] * x[0] + k[1][1] * x[1] + k[1][2] * x[2] + k[1][3] * x[3] + k[1][4] * x[4] + k[1][5] * x[5];
+    chassis_move_control_loop->wheel_tor *= 0.5f; // 两条腿，每条腿只取一半
+    chassis_move_control_loop->leg_tor *= 0.5f;
     // TODO: lqr输出端一阶低通滤波
     
     // PID计算转向 左右轮力矩差 注意过零保护
-    // chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, chassis_move_control_loop->chassis_yaw, chassis_move_control_loop->chassis_yaw_set);
     chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, rad_format(chassis_move_control_loop->chassis_yaw - chassis_move_control_loop->chassis_yaw_set), 0);
     yaw_err_force = PID_Calc(&chassis_move_control_loop->chassis_yaw_gyro_pid, *(chassis_move_control_loop->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET), chassis_move_control_loop->wz_set);
     
     // PID补偿横滚角roll，这里作为腿长控制的外环，而不是直接补偿支持力
-    roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
+    if(chassis_move_control_loop->touchingGroung == true)
+        roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
+
     chassis_move_control_loop->left_leg.leg_length_set = chassis_move_control_loop->leg_length_set + roll_err;
     chassis_move_control_loop->right_leg.leg_length_set = chassis_move_control_loop->leg_length_set - roll_err;
+    if(chassis_move_control_loop->left_leg.leg_length_set < LEG_LENGTH_MIN)
+    {
+        chassis_move_control_loop->right_leg.leg_length_set += LEG_LENGTH_MIN - chassis_move_control_loop->left_leg.leg_length_set;
+    }
+    else if(chassis_move_control_loop->right_leg.leg_length_set < LEG_LENGTH_MIN)
+    {
+        chassis_move_control_loop->left_leg.leg_length_set += LEG_LENGTH_MIN - chassis_move_control_loop->right_leg.leg_length_set;
+    }
      
     // 使用双腿长度的平均值，离地修改目标腿长
     r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->right_leg.leg_length_set);
