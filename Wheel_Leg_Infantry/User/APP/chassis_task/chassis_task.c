@@ -63,7 +63,7 @@ static fp32 motor_ecd_to_angle_change(uint16_t ecd, int16_t offset_ecd);
 static int16_t limitted_motor_current(fp32 current, fp32 max);
 
 // 机器人离地检测
-static void Robot_Offground_detect(chassis_move_t *chassis_move_detect);
+static bool_t Robot_Offground_detect(chassis_move_t *chassis_move_detect);
 
 void chassis_task(void *pvParameters)
 {
@@ -123,9 +123,9 @@ void chassis_init(chassis_move_t *chassis_move_init)
     const static fp32 chassis_yaw_gyro_pid[3] = {YAW_SPEED_PID_KP, YAW_SPEED_PID_KI, YAW_SPEED_PID_KD};
     //一阶低通滤波初始化
     const static fp32 chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
-    const static fp32 state_xdot_constant[1] = {0.05f};
+    const static fp32 state_xdot_constant[1] = {CHASSIS_SPEED_NUM};
 
-    //底盘开机状态为无力
+    //底盘开机状态为无力、不接触地面
     chassis_move_init->chassis_mode = CHASSIS_FORCE_RAW;
     chassis_move_init->touchingGroung = false;
     //获取遥控器指针
@@ -242,6 +242,7 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
 
         chassis_move_transit->left_support_force = 0.0f;
         chassis_move_transit->right_support_force = 0.0f;
+        chassis_move_transit->leg_length_set = LEG_LENGTH_INIT;
     }
     
 
@@ -328,15 +329,11 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     // 机器人离地判断
     Robot_Offground_detect(chassis_move_update);
 
-    // static uint16_t cnt = 0;// 计数
-    if(switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL]))
-    {
+    if(switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL])){
         chassis_move_update->touchingGroung = true;
     }
     else
-    {
         chassis_move_update->touchingGroung = false;
-    }
 }
 
 /**
@@ -354,8 +351,9 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     }
 
     //设置速度
-    static fp32 vx_set = 0.0f, l_set = LEG_LENGTH_INIT, angle_set = 0.0f;
+    fp32 vx_set = 0.0f, l_set = 0.0f, angle_set = 0.0f;
     // chassis_behaviour_control_set(&vx_set, &l_set, &angle_set, chassis_move_control);
+    l_set = chassis_move_control->leg_length_set;
     if(switch_is_down(chassis_move_control->chassis_RC->rc.s[1]))// 左边拨到最下档才允许摇杆操控，防止不小心误触
     {
         chassis_rc_to_control_vector(&vx_set, &angle_set, chassis_move_control);
@@ -377,27 +375,34 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     {
         chassis_move_control->chassis_yaw_set = rad_format(chassis_move_control->chassis_yaw_set + angle_set);
         chassis_leg_limit(chassis_move_control, l_set);
-        l_set = chassis_move_control->leg_length_set;
 
         chassis_move_control->state_set.phi = 0.0f;
         chassis_move_control->state_set.phi_dot = 0.0f;
         chassis_move_control->state_set.theta = 0.0f;
         chassis_move_control->state_set.theta_dot = 0.0f;
+        
+        static uint16_t T_count = 1000;
         if(vx_set != 0)
         {
+            T_count = 0;
             chassis_move_control->state_set.x_dot = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
             chassis_move_control->state_set.x += chassis_move_control->state_set.x_dot * CHASSIS_CONTROL_TIME;
         }
-        else // TODO: 停止立即刹车，但目前还不是很平稳
+        else // 停止立即刹车
         {
             chassis_move_control->state_set.x_dot = 0.0f;
-            chassis_move_control->state_set.x = chassis_move_control->state_set.x;
+            if(T_count < 1000){
+                T_count++;
+                chassis_move_control->state_set.x = chassis_move_control->state_ref.x;
+            }
+            else
+                chassis_move_control->state_set.x = chassis_move_control->state_set.x;
         }
     }
-    else if (chassis_move_control->chassis_mode == CHASSIS_POSITION_LEG)
+    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW)
     {
-        // 当腿部控制模式时，angle为腿部摆杆角度
-        chassis_leg_limit(chassis_move_control, l_set);
+        // 保持底盘与云台的相对角度不变
+        ;
     }
 }
 
@@ -439,7 +444,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *add_yaw_set, chassis_move_
     //一阶低通滤波代替斜波作为底盘速度输入
     first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
 
-    //停止信号，不需要缓慢加速，直接减速到零TODO:这里写没用，要在stats_set变量中写
+    //停止信号，不需要缓慢加速，直接减速到零
     if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
     {
         chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out = 0.0f;
@@ -484,7 +489,7 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
 
     fp32 l_force = 0.0f, r_force = 0.0f;
     fp32 err_tor = 0.0f, yaw_err_force = 0.0f, roll_err = 0.0f;
-    // 反馈矩阵乘以一定系数用于调整，角速度的影响太大容易振荡，暂时怀疑是模型不准
+    // 反馈矩阵乘以一定系数用于调整
     fp32 coefficient[2][6] = {{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
                             {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f}};
     fp32 kRes[12] = {0}, k[2][6] = {0};
@@ -542,7 +547,6 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
     chassis_move_control_loop->right_support_force = r_force + gravity_comp;
 
     // 双腿角度误差控制
-    //err_tor = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
     fp32 angle_dot = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
     err_tor = PID_Calc(&chassis_move_control_loop->angle_dot_pid, (chassis_move_control_loop->right_leg.angle_dot - chassis_move_control_loop->left_leg.angle_dot), angle_dot);
 
@@ -586,7 +590,7 @@ const chassis_move_t *get_chassis_control_point(void)
 }
 
 // TODO: 机器人支持力解算，判断离地(后面加入kalman filter)
-static void Robot_Offground_detect(chassis_move_t *chassis_move_detect)
+static bool_t Robot_Offground_detect(chassis_move_t *chassis_move_detect)
 {
     static fp32 last_length_dot = 0.0f; // 差分计算腿长变化的加速度
     static fp32 last_theta_dot = 0.0f;  // 差分计算腿部倾角变化加速度
@@ -618,12 +622,13 @@ static void Robot_Offground_detect(chassis_move_t *chassis_move_detect)
                     + chassis_move_detect->leg_length * chassis_move_detect->state_ref.theta_dot * chassis_move_detect->state_ref.theta_dot * cos_theta;
 
     chassis_move_detect->ground_force = P + 2 * m_w * g + 2 * m_w * w_acc_z;
-    if(chassis_move_detect->ground_force < 8.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
+    if(chassis_move_detect->ground_force < 7.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
         chassis_move_detect->touchingGroung = false;
     else
         chassis_move_detect->touchingGroung = true;
 
     // chassis_move_detect->ground_force = w_acc_z;
     // chassis_move_detect->touchingGroung = true;
+    return chassis_move_detect->touchingGroung;
 }
 

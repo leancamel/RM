@@ -51,7 +51,8 @@
 #define CHASSIS_WZ_RC_SEN 0.00001f
 
 #define CHASSIS_ACCEL_X_NUM 0.1666666667f
-#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
+#define CHASSIS_SPEED_NUM 0.05f
+// #define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 
 // 遥控遥感死区限制
 #define CHASSIS_RC_DEADLINE 10
@@ -143,8 +144,6 @@ typedef enum
 	CHASSIS_FORCE_RAW,				  // 底盘开环控制
 	CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW, // 底盘跟随云台
 	CHASSIS_VECTOR_NO_FOLLOW_YAW,	  // 底盘不跟随云台
-
-	CHASSIS_POSITION_LEG			  // 底盘腿部控制
 } chassis_mode_e;
 
 typedef struct

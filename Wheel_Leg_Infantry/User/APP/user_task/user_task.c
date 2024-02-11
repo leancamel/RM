@@ -103,10 +103,10 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
-        printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-                                    local_chassis_move->left_leg.back_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.front_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.back_joint.angle * 57.3f);
+        // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
+        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
         
         // 地面支持力
         // printf("%f, %f, %f\n", local_chassis_move->ground_force, local_chassis_move->state_ref.x, local_chassis_move->leg_length*100);
@@ -136,6 +136,8 @@ void UserTask(void *pvParameters)
         // printf("%f, %f\n", local_chassis_move->wz_set*10.0f, *(local_chassis_move->chassis_imu_gyro+INS_GYRO_Z_ADDRESS_OFFSET)*10.0f);
 
         // printf("%f, %f, %f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot, local_chassis_move->leg_length);
+        // printf("%f, %f\n", local_chassis_move->state_set.x_dot, local_chassis_move->state_ref.x_dot);
+        // printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
