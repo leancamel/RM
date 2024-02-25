@@ -391,12 +391,13 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
         else // 停止立即刹车
         {
             chassis_move_control->state_set.x_dot = 0.0f;
-            if(T_count < 1000){
+            if(T_count < 1200){
                 T_count++;
                 chassis_move_control->state_set.x = chassis_move_control->state_ref.x;
             }
-            else
+            else{
                 chassis_move_control->state_set.x = chassis_move_control->state_set.x;
+            }
         }
     }
     else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW)

@@ -137,7 +137,7 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f, %f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot, local_chassis_move->leg_length);
         // printf("%f, %f\n", local_chassis_move->state_set.x_dot, local_chassis_move->state_ref.x_dot);
-        // printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
+        printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

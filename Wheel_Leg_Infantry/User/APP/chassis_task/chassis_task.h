@@ -70,6 +70,7 @@
 // DJI 3508电机的转矩常数
 #define M3508_TOR_CONSTANT 0.30f
 // #define M3508_TOR_TO_CAN_DATA 2730.667f // (1 / 0.3) * (16384 / 20) 
+// DJI 3508电机+6020电调，力矩转换为can_data的比例
 #define M3508_TOR_TO_CAN_DATA 52437.5615f 
 
 //电机码盘值最大以及中值
