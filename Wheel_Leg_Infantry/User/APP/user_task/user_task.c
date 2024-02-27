@@ -75,8 +75,10 @@ void UserTask(void *pvParameters)
         if(toe_is_error(WHEEL_MOTOR5_TOE) || toe_is_error(WHEEL_MOTOR6_TOE || toe_is_error(CHASSIS_MOTOR1_TOE))
             || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) || toe_is_error(CHASSIS_MOTOR4_TOE))
             buzzer_warn(MOTOR_LOST + 1, 10);
-        else if(local_chassis_move->left_leg.leg_length > LEG_LENGTH_MAX || local_chassis_move->right_leg.leg_length > LEG_LENGTH_MAX)
+        else if((local_chassis_move->left_leg.leg_length > LEG_LENGTH_MAX || local_chassis_move->right_leg.leg_length > LEG_LENGTH_MAX) && local_chassis_move->chassis_mode != CHASSIS_FORCE_RAW)
             buzzer_warn(LEG_EXCEED + 1, 10);
+        else if(!local_chassis_move->touchingGroung && local_chassis_move->chassis_mode != CHASSIS_FORCE_RAW)
+            buzzer_warn(OFF_GROUND + 1, 10);
         else
             buzzer_off();
 #endif
@@ -103,10 +105,10 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
-        // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
-        //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
-        //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
+        printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
+                                    local_chassis_move->left_leg.back_joint.angle * 57.3f,
+                                    local_chassis_move->right_leg.front_joint.angle * 57.3f,
+                                    local_chassis_move->right_leg.back_joint.angle * 57.3f);
         
         // 地面支持力
         // printf("%f, %f, %f\n", local_chassis_move->ground_force, local_chassis_move->state_ref.x, local_chassis_move->leg_length*100);
@@ -137,7 +139,7 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f, %f\n", local_chassis_move->state_ref.x, local_chassis_move->state_ref.x_dot, local_chassis_move->leg_length);
         // printf("%f, %f\n", local_chassis_move->state_set.x_dot, local_chassis_move->state_ref.x_dot);
-        printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
+        // printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
 
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark

@@ -329,11 +329,12 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     // 机器人离地判断
     Robot_Offground_detect(chassis_move_update);
 
-    if(switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL])){
-        chassis_move_update->touchingGroung = true;
-    }
-    else
-        chassis_move_update->touchingGroung = false;
+    // 以下用于手动给定机器人触地状态，方便调试，不使用注释
+    // if(switch_is_up(chassis_move_update->chassis_RC->rc.s[MODE_CHANNEL])){
+    //     chassis_move_update->touchingGroung = true;
+    // }
+    // else
+    //     chassis_move_update->touchingGroung = false;
 }
 
 /**
@@ -391,7 +392,7 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
         else // 停止立即刹车
         {
             chassis_move_control->state_set.x_dot = 0.0f;
-            if(T_count < 1200){
+            if(T_count < 750){
                 T_count++;
                 chassis_move_control->state_set.x = chassis_move_control->state_ref.x;
             }
@@ -539,13 +540,24 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
     }
      
     // 使用双腿长度的平均值，离地修改目标腿长
-    r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->right_leg.leg_length_set);
-    l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, chassis_move_control_loop->left_leg.leg_length_set);
+    if(chassis_move_control_loop->touchingGroung) //正常触地状态
+    {
+        r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, chassis_move_control_loop->right_leg.leg_length_set);
+        l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, chassis_move_control_loop->left_leg.leg_length_set);
 
-    // TODO: 加入前馈
-    static const fp32 gravity_comp = 3.0f; // 补偿机体重力
-    chassis_move_control_loop->left_support_force = l_force + gravity_comp;
-    chassis_move_control_loop->right_support_force = r_force + gravity_comp;
+        static const fp32 gravity_comp = 3.0f; // 补偿机体重力
+        chassis_move_control_loop->left_support_force = l_force + gravity_comp;
+        chassis_move_control_loop->right_support_force = r_force + gravity_comp;
+    }
+    else
+    {
+        r_force = PID_Calc(&chassis_move_control_loop->right_leg_length_pid, chassis_move_control_loop->right_leg.leg_length, LEG_LENGTH_INIT);
+        l_force = PID_Calc(&chassis_move_control_loop->left_leg_length_pid, chassis_move_control_loop->left_leg.leg_length, LEG_LENGTH_INIT);
+
+        chassis_move_control_loop->left_support_force = l_force;
+        chassis_move_control_loop->right_support_force = r_force;
+    }
+
 
     // 双腿角度误差控制
     fp32 angle_dot = PID_Calc(&chassis_move_control_loop->angle_err_pid, (chassis_move_control_loop->right_leg.leg_angle - chassis_move_control_loop->left_leg.leg_angle), 0);
@@ -563,7 +575,7 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
     chassis_move_control_loop->left_leg.back_joint.give_current = limitted_motor_current(-tor_vector[1] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
     chassis_move_control_loop->left_leg.front_joint.give_current = limitted_motor_current(-tor_vector[0] * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
  
-    if(switch_is_up(chassis_move_control_loop->chassis_RC->rc.s[MODE_CHANNEL]))
+    if(chassis_move_control_loop->touchingGroung)
     {
         chassis_move_control_loop->right_leg.wheel_motor.give_current = limitted_motor_current((chassis_move_control_loop->wheel_tor+yaw_err_force) * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
         chassis_move_control_loop->left_leg.wheel_motor.give_current = limitted_motor_current(-(chassis_move_control_loop->wheel_tor-yaw_err_force) * M3508_TOR_TO_CAN_DATA, MAX_MOTOR_CAN_CURRENT);
@@ -623,6 +635,7 @@ static bool_t Robot_Offground_detect(chassis_move_t *chassis_move_detect)
                     + chassis_move_detect->leg_length * chassis_move_detect->state_ref.theta_dot * chassis_move_detect->state_ref.theta_dot * cos_theta;
 
     chassis_move_detect->ground_force = P + 2 * m_w * g + 2 * m_w * w_acc_z;
+    // TODO: 使用双阈值的方式进行判断，防止机器人在离地与触地之间反复切换
     if(chassis_move_detect->ground_force < 7.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
         chassis_move_detect->touchingGroung = false;
     else

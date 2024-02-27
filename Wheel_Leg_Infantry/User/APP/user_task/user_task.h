@@ -24,8 +24,9 @@
 
 enum errorType // 机器人状态异常状况，会触发蜂鸣器报警，序号越小优先级越高
 {
-  MOTOR_LOST = 0,
-  LEG_EXCEED,
+  MOTOR_LOST = 0,  // 电机离线
+  LEG_EXCEED,      // 腿部长度超限
+  OFF_GROUND,      // 机器人离地
   MOTOR_TEMP_HIGH,
 };
 

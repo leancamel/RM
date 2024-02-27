@@ -92,6 +92,8 @@
 
 // 腿部初始长度
 #define LEG_LENGTH_INIT 0.08f
+// 腿部离地时便于缓冲需要的长度
+#define LEG_LENGTH_BUFFER 0.10f
 
 #define LEG_LENGTH_MAX 0.12f
 #define LEG_LENGTH_MIN 0.06f
@@ -123,7 +125,7 @@
 #define ROLL_CTRL_PID_KP 0.2f
 #define ROLL_CTRL_PID_KI 0.001f
 #define ROLL_CTRL_PID_KD 0.0f
-#define ROLL_CTRL_PID_MAX_OUT 0.03f
+#define ROLL_CTRL_PID_MAX_OUT 0.05f
 #define ROLL_CTRL_PID_MAX_IOUT 0.005f
 
 // 底盘旋转跟随PID
