@@ -228,17 +228,21 @@ void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit)
     if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW)
     {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
+        chassis_move_transit->state_ref.x = 0;
+        chassis_move_transit->state_set.x = 0;
     }
     //切入不跟随云台模式(暂为开启腿长控制)
     else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_NO_FOLLOW_YAW) && chassis_move_transit->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
+        chassis_move_transit->state_ref.x = 0;
+        chassis_move_transit->state_set.x = 0;
     }
     //切入无力模式，清空里程计
     else if ((chassis_move_transit->last_chassis_mode != CHASSIS_FORCE_RAW) && chassis_move_transit->chassis_mode == CHASSIS_FORCE_RAW)
     {
-        chassis_move_transit->state_ref.x = 0;
-        chassis_move_transit->state_set.x = 0;
+        // chassis_move_transit->state_ref.x = 0;
+        // chassis_move_transit->state_set.x = 0;
 
         chassis_move_transit->left_support_force = 0.0f;
         chassis_move_transit->right_support_force = 0.0f;
@@ -352,29 +356,28 @@ void chassis_set_contorl(chassis_move_t *chassis_move_control)
     }
 
     //设置速度
-    fp32 vx_set = 0.0f, l_set = 0.0f, angle_set = 0.0f;
+    fp32 vx_set = 0.0f, l_set = 0.0f, angle_set = 0.0f, roll_set = 0.0f;
     // chassis_behaviour_control_set(&vx_set, &l_set, &angle_set, chassis_move_control);
     l_set = chassis_move_control->leg_length_set;
     if(switch_is_down(chassis_move_control->chassis_RC->rc.s[1]))// 左边拨到最下档才允许摇杆操控，防止不小心误触
     {
         chassis_rc_to_control_vector(&vx_set, &angle_set, chassis_move_control);
     }
-    else if(switch_is_up(chassis_move_control->chassis_RC->rc.s[1]))
+    else if(switch_is_up(chassis_move_control->chassis_RC->rc.s[1]))// 控制腿长以及横滚角
     {
-        fp32 add_l, add_l_channel;
-        rc_deadline_limit(chassis_move_control->chassis_RC->rc.ch[CHASSIS_L_CHANNEL], add_l_channel, CHASSIS_RC_DEADLINE);
-        add_l = add_l_channel * 0.0000003f;
-        l_set += add_l;
+        chassis_rc_to_control_euler(&l_set, &roll_set, chassis_move_control);
     }
     else
     {
         vx_set = 0.0f;
         angle_set = 0.0f;
+        roll_set = 0.0f;
     }
     
     if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
     {
         chassis_move_control->chassis_yaw_set = rad_format(chassis_move_control->chassis_yaw_set + angle_set);
+        chassis_move_control->chassis_roll_set = roll_set;
         chassis_leg_limit(chassis_move_control, l_set);
 
         chassis_move_control->state_set.phi = 0.0f;
@@ -460,6 +463,27 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *add_yaw_set, chassis_move_
     *add_yaw_set = add_yaw_channel;
 }
 
+/**
+  * @brief          遥控器的数据处理成轮腿底盘腿长、roll角
+  * @author         pxx
+  * @param          l_set  x轴前进速度设置，m/s
+  * @param          roll_set  y轴前进速度设置，m/s
+  * @param          chassis_move_rc_to_vector   底盘结构体指针
+  * @retval         void
+  */
+void chassis_rc_to_control_euler(fp32 *l_set, fp32 *roll_set, chassis_move_t *chassis_move_rc_to_euler)
+{
+    fp32 add_l, add_l_channel;
+    rc_deadline_limit(chassis_move_rc_to_euler->chassis_RC->rc.ch[CHASSIS_L_CHANNEL], add_l_channel, CHASSIS_RC_DEADLINE);
+    add_l = add_l_channel * 0.0000003f;
+    *l_set += add_l;
+
+    fp32 roll_channel;
+    rc_deadline_limit(chassis_move_rc_to_euler->chassis_RC->rc.ch[CHASSIS_ROLL_CHANNEL], roll_channel, CHASSIS_RC_DEADLINE);
+    *roll_set = roll_channel * 0.000264f;
+}
+
+
 //计算相对角度
 static fp32 motor_ecd_to_angle_change(uint16_t ecd, int16_t offset_ecd)
 {
@@ -518,7 +542,7 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
     chassis_move_control_loop->leg_tor = k[1][0] * x[0] + k[1][1] * x[1] + k[1][2] * x[2] + k[1][3] * x[3] + k[1][4] * x[4] + k[1][5] * x[5];
     chassis_move_control_loop->wheel_tor *= 0.5f; // 两条腿，每条腿只取一半
     chassis_move_control_loop->leg_tor *= 0.5f;
-    // TODO: lqr输出端一阶低通滤波
+    // TODO: lqr输出端一阶低通滤波?
     
     // PID计算转向 左右轮力矩差 注意过零保护
     chassis_move_control_loop->wz_set = PID_Calc(&chassis_move_control_loop->chassis_angle_pid, rad_format(chassis_move_control_loop->chassis_yaw - chassis_move_control_loop->chassis_yaw_set), 0);
@@ -526,7 +550,7 @@ void chassis_control_loop(chassis_move_t *chassis_move_control_loop)// TODO: 将
     
     // PID补偿横滚角roll，这里作为腿长控制的外环，而不是直接补偿支持力
     if(chassis_move_control_loop->touchingGroung == true)
-        roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, 0);
+        roll_err = PID_Calc(&chassis_move_control_loop->roll_ctrl_pid, chassis_move_control_loop->chassis_roll, chassis_move_control_loop->chassis_roll_set);
 
     chassis_move_control_loop->left_leg.leg_length_set = chassis_move_control_loop->leg_length_set + roll_err;
     chassis_move_control_loop->right_leg.leg_length_set = chassis_move_control_loop->leg_length_set - roll_err;
@@ -602,7 +626,7 @@ const chassis_move_t *get_chassis_control_point(void)
     return &chassis_move;
 }
 
-// TODO: 机器人支持力解算，判断离地(后面加入kalman filter)
+// 机器人支持力解算，判断离地
 static bool_t Robot_Offground_detect(chassis_move_t *chassis_move_detect)
 {
     static fp32 last_length_dot = 0.0f; // 差分计算腿长变化的加速度
@@ -635,11 +659,21 @@ static bool_t Robot_Offground_detect(chassis_move_t *chassis_move_detect)
                     + chassis_move_detect->leg_length * chassis_move_detect->state_ref.theta_dot * chassis_move_detect->state_ref.theta_dot * cos_theta;
 
     chassis_move_detect->ground_force = P + 2 * m_w * g + 2 * m_w * w_acc_z;
-    // TODO: 使用双阈值的方式进行判断，防止机器人在离地与触地之间反复切换
-    if(chassis_move_detect->ground_force < 7.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
+
+    // 使用双阈值的方式进行判断，防止机器人在离地与触地之间反复切换
+    if(chassis_move_detect->touchingGroung && chassis_move_detect->ground_force < 6.0f)
         chassis_move_detect->touchingGroung = false;
-    else
+    else if(!chassis_move_detect->touchingGroung && chassis_move_detect->ground_force > 7.0f){
         chassis_move_detect->touchingGroung = true;
+        chassis_move_detect->chassis_yaw_set = chassis_move_detect->chassis_yaw;// 落地后保证朝向
+    }
+    else
+        chassis_move_detect->touchingGroung = chassis_move_detect->touchingGroung;
+     
+    // if(chassis_move_detect->ground_force < 6.0f || chassis_move_detect->leg_length > chassis_move_detect->leg_length_set * 1.2f)
+    //     chassis_move_detect->touchingGroung = false;
+    // else
+    //     chassis_move_detect->touchingGroung = true;
 
     // chassis_move_detect->ground_force = w_acc_z;
     // chassis_move_detect->touchingGroung = true;

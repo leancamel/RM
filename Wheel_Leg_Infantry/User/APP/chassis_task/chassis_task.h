@@ -42,6 +42,8 @@
 #define CHASSIS_WZ_CHANNEL 2
 // 腿长的遥控器通道号码
 #define CHASSIS_L_CHANNEL 1
+// ROLL的遥控器通道号码
+#define CHASSIS_ROLL_CHANNEL 0
 
 // 选择普通底盘状态 开关通道号
 #define MODE_CHANNEL 0
@@ -104,7 +106,7 @@
 // 腿部长度控制PID
 #define LEG_LENGTH_PID_KP 120.0f
 #define LEG_LENGTH_PID_KI 0.5f
-#define LEG_LENGTH_PID_KD 2000.0f
+#define LEG_LENGTH_PID_KD 600.0f
 #define LEG_LENGTH_PID_MAX_OUT 30.0f
 #define LEG_LENGTH_PID_MAX_IOUT 3.0f
 
@@ -240,6 +242,7 @@ typedef struct
 	fp32 wz;						 // 底盘旋转角速度，逆时针为正 单位 rad/s
 	fp32 wz_set;				     // 底盘旋转角速度，逆时针为正 单位 rad/s
 	fp32 chassis_yaw_set;            // 设置底盘陀螺仪yaw期望角度
+	fp32 chassis_roll_set;
 
 	fp32 vx_max_speed;	// 前进方向最大速度 单位m/s
 	fp32 vx_min_speed;	// 前进方向最小速度 单位m/s
@@ -250,6 +253,7 @@ typedef struct
 
 extern void chassis_task(void *pvParameters);
 extern void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *chassis_move_rc_to_vector);
+extern void chassis_rc_to_control_euler(fp32 *l_set, fp32 *roll_set, chassis_move_t *chassis_move_rc_to_vector);
 
 // 底盘初始化，主要是pid初始化
 extern void chassis_init(chassis_move_t *chassis_move_init);
