@@ -24,6 +24,9 @@
 #include "CAN_Receive.h"
 #include "pid.h"
 #include "remote_control.h"
+#include "user_lib.h"
+#include "ROS_Receive.h"
+
 
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
 #define PITCH_SPEED_PID_KP 0.1f
@@ -137,6 +140,9 @@
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
 #endif
 
+#define GIMBAL_ACCEL_YAW_NUM 0.02f
+#define GIMBAL_ACCEL_PITCH_NUM 0.05f
+
 typedef enum
 {
     GIMBAL_MOTOR_RAW = 0, //电机原始值控制
@@ -176,6 +182,7 @@ typedef struct
     fp32 max_relative_angle; //rad
     fp32 min_relative_angle; //rad
 
+    first_order_filter_type_t gimbal_cmd_slow_set;    //一阶低通滤波上位机期望
     fp32 relative_angle;     //rad
     fp32 relative_angle_set; //rad
     fp32 absolute_angle;     //rad
@@ -201,6 +208,7 @@ typedef struct
     fp32 max_relative_angle; //rad
     fp32 min_relative_angle; //rad
 
+    first_order_filter_type_t gimbal_cmd_slow_set;    //一阶低通滤波上位机期望
     fp32 relative_angle;     //rad
     fp32 relative_angle_set; //rad
     fp32 absolute_angle;     //rad
@@ -230,11 +238,13 @@ typedef struct
 typedef struct
 {
     const RC_ctrl_t *gimbal_rc_ctrl;    //遥控器结构体指针
+    const ROS_Msg_t *gimbal_ros_msg;    //上位机指令指针
     const fp32 *gimbal_INT_angle_point; //陀螺仪数据指针
     const fp32 *gimbal_INT_gyro_point;  //加速度计数据指针
     Gimbal_Motor_t gimbal_yaw_motor;    //云台yaw电机结构体
     DM4310_Motor_t gimbal_pitch_motor;  //云台pitch电机结构体
     Gimbal_Cali_t gimbal_cali;          //校准结果结构体
+    int8_t last_super_channel;          //上一次遥控器开关所在的位置
 } Gimbal_Control_t;
 
 extern const Gimbal_Motor_t *get_yaw_motor_point(void);

@@ -1,62 +1,111 @@
 #include "stm32f4xx.h"
 #include "ROS_Receive.h"
 #include "uart1.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include "stdio.h"
+#include "INS_Task.h"
+#include "camera_trigger.h"
+#include "led.h"
 
-#define CRC_Len 2		// CRC 校验位长度
-#define Packet_Len 8	//接收数据包长，6位数据位 + 2位 CRC 校验位
-#define Start_Byte 0xFF	//接收起始帧
-ROS_Msg_Struct ROS_Msg;
+#include "FreeRTOSConfig.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
-uint8_t Serial_RxPacket[Packet_Len];
+#include  "string.h"
 
-uint8_t CRC_Data[Packet_Len];
-/**
- * @brief	初始化发送、接收结构体数据初始化
- * @return	void
- */
-void ROS_Msg_Init(void)
+//ROS出错数据上限
+#define ROS_Receive_ERROR_VALUE 500
+
+static uint8_t ROS_rx_buf[2][ROS_RX_BUF_NUM];
+static ROS_Msg_t ROS_Msg;
+
+//将串口接收到的数据转化为ROS实际的数据
+void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg);
+
+static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t c);
+const volatile fp32 *local_imu_angle;
+
+void imuSendTask(void *pvParameters)
 {
-	ROS_Msg.gimbal_x = 0;
-	ROS_Msg.gimbal_y = 0;
-	ROS_Msg.gimbal_z = 0;
-	return;
+    vTaskDelay(3000);//延时等待陀螺仪初始化完毕
+    {// 初始化相机pwm硬触发
+        //相机外部硬触发初始化
+        camera_trigger_Init();
+        Camera_trigger_set(20);//20ms触发
+    }
+    Camera_trigger_start();
+
+    local_imu_angle = get_INS_angle_point();
+    TickType_t IMU_LastWakeTime = xTaskGetTickCount();
+    while(1)
+    {
+        vTaskDelayUntil(&IMU_LastWakeTime, 20);
+        
+        // Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+    }
 }
-/**
- * @brief	将接受到的 int 数据除以 1000 后转换需要的 float 数据
- * @param	p_Byte	传入的 Byte 数组指针
- * @return	转换后的 float 数据
- */
-float Byte_To_Float(unsigned char *p_Byte,unsigned char offest)
+
+void TIM8_UP_TIM13_IRQHandler(void) 
 {
-	short temp_int = (*(p_Byte + offest) << 8) | *(p_Byte + offest + 1);
-	return (float)temp_int / 1000;
+    if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET) 
+    {
+        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+    }
+    TIM_ClearITPendingBit(TIM8, TIM_IT_Update);
 }
-/**
- * @brief	将接受到的数据封装进结构体
- * @return	void
- */
-void Pack_Msg(void)
+
+//初始化DMA，串口1
+void ROS_Init(void)
 {
-	ROS_Msg.gimbal_x = Byte_To_Float(CRC_Data,0);
-	ROS_Msg.gimbal_y = Byte_To_Float(CRC_Data,2);
-	ROS_Msg.gimbal_z = Byte_To_Float(CRC_Data,4);
-	return;
+    ROS_Receive_Init(ROS_rx_buf[0], ROS_rx_buf[1], ROS_RX_BUF_NUM);
 }
-/**
- * @brief	获取接受到的云台控制信息
- * @param	vx_set	m/s
- * @param	vy_set	m/s
- * @param	wz_set	rad/s
- * @return	void
- */
-void Get_Gimbal_Msg(fp32 *gimbal_x,fp32 *gimbal_y,fp32 *gimbal_z)
+
+//串口中断
+void USART1_IRQHandler(void)
 {
-	*gimbal_x = ROS_Msg.gimbal_x;
-	*gimbal_y = ROS_Msg.gimbal_y;
-	*gimbal_z = ROS_Msg.gimbal_z;
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+    {
+        USART_ReceiveData(USART1);
+    }
+    else if (USART_GetITStatus(USART1, USART_IT_IDLE) != RESET)
+    {
+        static uint16_t this_time_rx_len = 0;
+        USART_ReceiveData(USART1);
+
+        if(DMA_GetCurrentMemoryTarget(DMA2_Stream5) == 0)
+        {
+            //重新设置DMA
+            DMA_Cmd(DMA2_Stream5, DISABLE);
+            this_time_rx_len = ROS_RX_BUF_NUM - DMA_GetCurrDataCounter(DMA2_Stream5);
+            DMA_SetCurrDataCounter(DMA2_Stream5, ROS_RX_BUF_NUM);
+            DMA2_Stream5->CR |= DMA_SxCR_CT;
+            //清DMA中断标志
+            DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5 | DMA_FLAG_HTIF5);
+            DMA_Cmd(DMA2_Stream5, ENABLE);
+            if(this_time_rx_len == ROS_FRAME_LENGTH)
+            {
+                //处理ROS数据
+				UART_to_ROS_Msg(ROS_rx_buf[0], &ROS_Msg);
+            }
+        }
+        else
+        {
+            //重新设置DMA
+            DMA_Cmd(DMA2_Stream5, DISABLE);
+            this_time_rx_len = ROS_RX_BUF_NUM - DMA_GetCurrDataCounter(DMA2_Stream5); 
+            DMA_SetCurrDataCounter(DMA2_Stream5, ROS_RX_BUF_NUM);
+            DMA2_Stream5->CR &= ~(DMA_SxCR_CT);
+            //清DMA中断标志
+            DMA_ClearFlag(DMA2_Stream5, DMA_FLAG_TCIF5 | DMA_FLAG_HTIF5);
+            DMA_Cmd(DMA2_Stream5, ENABLE);
+            if(this_time_rx_len == ROS_FRAME_LENGTH)
+            {
+                //处理ROS数据
+				UART_to_ROS_Msg(ROS_rx_buf[1], &ROS_Msg);
+            }
+        }
+    }
 }
+
 /**
  * @brief	计算 CRC 校验码
  * @param	_pBuf	待计算的数组指针
@@ -82,48 +131,73 @@ void getModbusCRC16(unsigned char *_pBuf, unsigned short int _usLen)
                 CRCValue >>= 1;
             }           
         }
-    } 
+    }
     *(_pBuf + _usLen) = (CRCValue & 0xFF00) >> 8; 		// CRC 校验码高位
     *(_pBuf + _usLen + 1) = CRCValue & 0x00FF;			// CRC 校验码低位
     return;            
 } 
 
-//串口中断函数
-void USART1_IRQHandler(void)
+void UART_to_ROS_Msg(uint8_t *uart_buf, ROS_Msg_t *ros_msg)
 {
-	static uint8_t RxState = 0;
-	static uint8_t pRxPacket = 0;
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+	if(uart_buf == NULL || ros_msg == NULL || uart_buf[0] != ROS_START_BYTE)
 	{
-		uint8_t RxData = USART_ReceiveData(USART1);
-		if (RxState == 0)
-		{
-			if (RxData == Start_Byte)
-			{
-				RxState = 1;
-				pRxPacket = 0;
-			}
-		}
-		else if (RxState == 1)
-		{
-			Serial_RxPacket[pRxPacket] = RxData;
-			CRC_Data[pRxPacket] = RxData;
-			pRxPacket ++;
-			if (pRxPacket >= Packet_Len)
-			{
-				getModbusCRC16(CRC_Data,Packet_Len - CRC_Len);
-				if((CRC_Data[6] == Serial_RxPacket[6]) && (CRC_Data[7] == Serial_RxPacket[7]))
-				{
-					Pack_Msg();
-					Serial_SendByte(0x00);//正确接收发送 0x00
-				}
-				else
-				{
-					Serial_SendByte(0xFF);//错误接收发送 0xFF
-				}
-				RxState = 0;
-			}
-		}
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+		return;
 	}
+
+	unsigned char sum = 0x00;
+	
+	for(unsigned short i=0;i<uart_buf[2] - 1;i++)
+		sum += uart_buf[i];
+	
+	if(sum == uart_buf[uart_buf[2]-1])
+    {
+        uint8_t* yawDataPtr = &uart_buf[3];
+        uint8_t* pitchDataPtr = &uart_buf[7];
+        uint8_t* depthDataPtr = &uart_buf[11];
+        
+        fp32 set_yaw, set_pitch, depth;
+        memcpy(&set_yaw, yawDataPtr, sizeof(fp32));
+        memcpy(&set_pitch, pitchDataPtr, sizeof(fp32));
+        memcpy(&depth, depthDataPtr, sizeof(fp32));
+
+        ROS_Msg.shoot_yaw = set_yaw;
+        ROS_Msg.shoot_pitch = set_pitch;
+        ROS_Msg.shoot_depth = depth;
+    }
 }
+
+
+//返回ROS数据，通过指针传递方式传递信息
+const ROS_Msg_t *get_ROS_Msg_point(void)
+{
+    return &ROS_Msg;
+}
+
+static void Send_Gimbal_Angle(float yaw, float pitch, uint8_t color)
+{
+    uint8_t sendBuff[13];
+
+    sendBuff[0] = 0x42; // 设置帧头
+    sendBuff[1] = 0x21; // 设置地址
+    sendBuff[2] = 13;   // 设置帧长
+
+    float data_array[] = {yaw, pitch};
+    
+    for (int j = 0; j < 2; j++) 
+    {
+        uint8_t* float_data_ptr = (uint8_t*)&data_array[j];
+        for (int i = 0; i < sizeof(float); i++) 
+        {
+            sendBuff[3 + j * sizeof(float) + i] = float_data_ptr[i];
+        }
+    }
+    sendBuff[11] = color;
+
+    uint8_t check = 0x00;
+    for(int i = 0; i < 12; i++)
+        check += sendBuff[i];
+    sendBuff[12] = check;
+
+    Serial_SendData(sendBuff, 13);
+}
+

@@ -70,6 +70,10 @@ static TaskHandle_t VoltageTask_Handler;
 #define REFEREE_STK_SIZE 512
 static TaskHandle_t RefreeTask_Handler;
 
+#define IMUSEND_TASK_PRIO 19
+#define IMUSEND_STK_SIZE 512
+static TaskHandle_t imuSendTask_Handler;
+
 void start_task(void *pvParameters)
 {
     taskENTER_CRITICAL();//进入临界区
@@ -129,6 +133,13 @@ void start_task(void *pvParameters)
 				(void *)NULL,
 				(UBaseType_t)REFEREE_TASK_PRIO,
 				(TaskHandle_t *)&RefreeTask_Handler);
+
+	xTaskCreate((TaskFunction_t)imuSendTask,
+              (const char *)"imuSendTask",
+              (uint16_t)IMUSEND_STK_SIZE,
+              (void *)NULL,
+              (UBaseType_t)IMUSEND_TASK_PRIO,
+              (TaskHandle_t *)&imuSendTask_Handler);
 
     vTaskDelete(StartTask_Handler); //删除开始任务
     taskEXIT_CRITICAL();            //退出临界区

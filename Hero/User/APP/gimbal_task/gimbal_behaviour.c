@@ -27,6 +27,7 @@
 #include "user_lib.h"
 
 #include "relays.h"
+#include "led.h"
 
 ////云台校准蜂鸣器响声
 //#define GIMBALWarnBuzzerOn() buzzer_on(31, 20000)
@@ -144,8 +145,20 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, Gimbal_Control
   */
 static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set);
 
+/**
+  * @brief          云台进入自瞄控制，电机是相对角度控制，
+  * @author         RM
+  * @param[in]      yaw轴角度控制，为角度的增量 单位 rad
+  * @param[in]      pitch轴角度控制，为角度的增量 单位 rad
+  * @param[in]      云台数据指针
+  * @retval         返回空
+  */
+static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set);
+
+
 //云台行为状态机
 static gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
+static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
 
 /**
   * @brief          云台行为状态机以及电机状态机设置
@@ -168,6 +181,15 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
     {
         
     }
+
+    // 自瞄切换状态平稳过渡
+    if(gimbal_behaviour == GIMBAL_AUTO_SHOOT && last_gimbal_behaviour != GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out = gimbal_mode_set->gimbal_yaw_motor.absolute_angle;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out = gimbal_mode_set->gimbal_pitch_motor.absolute_angle;
+    }
+    last_gimbal_behaviour = gimbal_behaviour;
+
     //根据云台行为状态机设置电机状态机
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE)
     {
@@ -199,12 +221,19 @@ void gimbal_behaviour_mode_set(Gimbal_Control_t *gimbal_mode_set)
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
     }
-    
+    else if (gimbal_behaviour == GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
+    }
+
     if(rotation_cmd_gimbal_absolute())
     {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
     }
+
+    gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }
 
 /**
@@ -257,6 +286,10 @@ void gimbal_behaviour_control_set(fp32 *add_yaw, fp32 *add_pitch, Gimbal_Control
     {
         gimbal_motionless_control(&rc_add_yaw, &rc_add_pit, gimbal_control_set);
     }
+    else if (gimbal_behaviour == GIMBAL_AUTO_SHOOT)
+    {
+        gimbal_autoshoot_control(&rc_add_yaw, &rc_add_pit, gimbal_control_set);
+    }
     //将控制增加量赋值
     *add_yaw = rc_add_yaw;
     *add_pitch = rc_add_pit;
@@ -308,6 +341,8 @@ bool_t gimbal_cmd_to_shoot_stop(void)
   */
 static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
 {
+    static uint8_t countsuper = 0;//超级模式状态计数器
+
     if (gimbal_mode_set == NULL)
     {
         return;
@@ -367,6 +402,8 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     if (switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
         gimbal_behaviour = GIMBAL_ZERO_FORCE;
+        gimbal_mode_set->last_super_channel = gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
+        countsuper = 0;
     }
     else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
     {
@@ -376,6 +413,40 @@ static void gimbal_behavour_set(Gimbal_Control_t *gimbal_mode_set)
     {
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
+
+    //超级模式判断进入
+    {
+        if(switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) 
+            && countsuper == 0 && !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[ModeChannel]))
+        {
+            countsuper += 1;
+        }
+        else if (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL]) && switch_is_mid(gimbal_mode_set->last_super_channel) && countsuper == 1)
+        {
+            countsuper -= 1;
+        }
+        
+        // //底盘小陀螺
+        // if(rotation_cmd_gimbal_absolute() && countsuper < 2)
+        // {
+        //     countsuper += 2;
+        // }
+        // else if(countsuper >= 2)
+        // {
+        //     countsuper -= 2;
+        // }
+        if(countsuper == 0)
+        {
+            led_red_off();
+        }
+        else if(countsuper == 1)
+        {
+            led_red_on();
+            gimbal_behaviour = GIMBAL_AUTO_SHOOT;
+            return;
+        }
+    }
+
 
     // if( toe_is_error(DBUSTOE))
     // {
@@ -621,3 +692,54 @@ static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *
     *yaw = 0.0f;
     *pitch = 0.0f;
 }
+
+/**
+  * @brief          云台进入自瞄控制，电机是相对角度控制，
+  * @author         RM
+  * @param[in]      yaw轴角度控制，为角度的增量 单位 rad
+  * @param[in]      pitch轴角度控制，为角度的增量 单位 rad
+  * @param[in]      云台数据指针
+  * @retval         返回空
+  */
+static void gimbal_autoshoot_control(fp32 *yaw, fp32 *pitch, Gimbal_Control_t *gimbal_control_set)
+{
+    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL)
+    {
+        return;
+    }
+    *yaw = 0.0f;
+    *pitch = 0.0f;
+
+    // fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    // Get_Gimbal_Angle(&add_yaw, &add_pitch);
+
+    // fp32 add_pitch = 0.0f, add_yaw = 0.0f;
+    // if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
+    // {
+    //     add_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+    //     add_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+    // }
+    // *pitch = add_pitch;
+    // *yaw = add_yaw;
+
+    fp32 set_yaw = 0.0f, set_pitch = 0.0f;
+    if(gimbal_control_set->gimbal_ros_msg->shoot_depth != 0)
+    {
+        // Laser_On();
+        set_yaw = gimbal_control_set->gimbal_ros_msg->shoot_yaw;
+        set_pitch = gimbal_control_set->gimbal_ros_msg->shoot_pitch;
+
+        // *yaw = set_yaw - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        // *pitch = set_pitch - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+
+        // 低通滤波
+        first_order_filter_cali(&gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set, set_yaw);
+        first_order_filter_cali(&gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set, set_pitch);
+        *yaw = gimbal_control_set->gimbal_yaw_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_yaw_motor.absolute_angle_set;
+        *pitch = gimbal_control_set->gimbal_pitch_motor.gimbal_cmd_slow_set.out - gimbal_control_set->gimbal_pitch_motor.absolute_angle_set;
+    }
+    else
+    {
+        // Laser_Off();
+    }
+} 

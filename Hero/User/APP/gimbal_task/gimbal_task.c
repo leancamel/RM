@@ -373,6 +373,8 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
 {
     static const fp32 Pitch_speed_pid[3] = {PITCH_SPEED_PID_KP, PITCH_SPEED_PID_KI, PITCH_SPEED_PID_KD};
     static const fp32 Yaw_speed_pid[3] = {YAW_SPEED_PID_KP, YAW_SPEED_PID_KI, YAW_SPEED_PID_KD};
+    const static fp32 gimbal_yaw_order_filter[1] = {GIMBAL_ACCEL_YAW_NUM};
+    const static fp32 gimbal_pitch_order_filter[1] = {GIMBAL_ACCEL_PITCH_NUM};
 
     //使能pitch轴DM电机
     enable_motor_mode(1, MIT_MODE);
@@ -384,9 +386,14 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_INT_gyro_point = get_gyro_data_point();
     //遥控器数据指针获取
     gimbal_init->gimbal_rc_ctrl = get_remote_control_point();
+    //上位机数据指针获取
+    gimbal_init->gimbal_ros_msg = get_ROS_Msg_point();
     //初始化电机模式
     gimbal_init->gimbal_yaw_motor.gimbal_motor_mode = gimbal_init->gimbal_yaw_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     gimbal_init->gimbal_pitch_motor.gimbal_motor_mode = gimbal_init->gimbal_pitch_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+    //初始化自瞄低通滤波
+    first_order_filter_init(&gimbal_init->gimbal_yaw_motor.gimbal_cmd_slow_set, GIMBAL_CONTROL_TIME, gimbal_yaw_order_filter);
+    first_order_filter_init(&gimbal_init->gimbal_pitch_motor.gimbal_cmd_slow_set, GIMBAL_CONTROL_TIME, gimbal_pitch_order_filter);
     //初始化yaw电机pid
     GIMBAL_PID_Init(&gimbal_init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid, YAW_GYRO_ABSOLUTE_PID_MAX_OUT, YAW_GYRO_ABSOLUTE_PID_MAX_IOUT, YAW_GYRO_ABSOLUTE_PID_KP, YAW_GYRO_ABSOLUTE_PID_KI, YAW_GYRO_ABSOLUTE_PID_KD);
     GIMBAL_PID_Init(&gimbal_init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid, YAW_ENCODE_RELATIVE_PID_MAX_OUT, YAW_ENCODE_RELATIVE_PID_MAX_IOUT, YAW_ENCODE_RELATIVE_PID_KP, YAW_ENCODE_RELATIVE_PID_KI, YAW_ENCODE_RELATIVE_PID_KD);
@@ -410,7 +417,7 @@ static void GIMBAL_Init(Gimbal_Control_t *gimbal_init)
     gimbal_init->gimbal_pitch_motor.relative_angle_set = gimbal_init->gimbal_pitch_motor.relative_angle;
     gimbal_init->gimbal_pitch_motor.motor_gyro_set = gimbal_init->gimbal_pitch_motor.motor_gyro;
 
-
+    gimbal_init->last_super_channel = gimbal_init->gimbal_rc_ctrl->rc.s[SUPER_MODE_CHANNEL];
 }
 
 static void GIMBAL_Set_Mode(Gimbal_Control_t *gimbal_set_mode)
@@ -526,11 +533,11 @@ static void GIMBAL_Set_Contorl(Gimbal_Control_t *gimbal_set_control)
     else if (gimbal_set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO)
     {
         //gyro模式下，陀螺仪角度控制
-        if(!rotation_cmd_gimbal_absolute())
-        {
-            GIMBAL_absolute_angle_limit(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
-        }
-        else
+        // if(!rotation_cmd_gimbal_absolute())
+        // {
+        //     GIMBAL_absolute_angle_limit(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
+        // }
+        // else
         {
             GIMBAL_rotation_angle_set(&gimbal_set_control->gimbal_yaw_motor, add_yaw_angle);
         }
