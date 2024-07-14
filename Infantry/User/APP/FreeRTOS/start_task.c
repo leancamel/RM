@@ -30,7 +30,7 @@
 #include "voltage_task.h"
 #include "chassis_task.h"
 
-// #include "detect_task.h"
+#include "detect_task.h"
 #include "calibrate_task.h"
 #include "referee_usart_task.h"
 #include "ROS_Receive.h"
@@ -64,9 +64,9 @@ static TaskHandle_t VoltageTask_Handler;
 #define CALIBRATE_STK_SIZE 256
 static TaskHandle_t CalibrateTask_Handler;
 
-// #define Detect_TASK_PRIO 10
-// #define Detect_STK_SIZE 128
-// static TaskHandle_t DetectTask_Handler;
+#define Detect_TASK_PRIO 10
+#define Detect_STK_SIZE 128
+static TaskHandle_t DetectTask_Handler;
 
 #define REFEREE_TASK_PRIO 15
 #define REFEREE_STK_SIZE 512
@@ -123,12 +123,12 @@ void start_task(void *pvParameters)
                 (UBaseType_t)VOLTAGE_TASK_PRIO,
                 (TaskHandle_t *)&VoltageTask_Handler);
 
-    // xTaskCreate((TaskFunction_t)detect_task,
-    //             (const char *)"DetectTask",
-    //             (uint16_t)Detect_STK_SIZE,
-    //             (void *)NULL,
-    //             (UBaseType_t)Detect_TASK_PRIO,
-    //             (TaskHandle_t *)&DetectTask_Handler);
+    xTaskCreate((TaskFunction_t)detect_task,
+                (const char *)"DetectTask",
+                (uint16_t)Detect_STK_SIZE,
+                (void *)NULL,
+                (UBaseType_t)Detect_TASK_PRIO,
+                (TaskHandle_t *)&DetectTask_Handler);
 
 	xTaskCreate((TaskFunction_t)referee_usart_task,
               (const char *)"RefereeTask",

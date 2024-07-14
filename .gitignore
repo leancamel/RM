@@ -2,3 +2,6 @@
 */.vscode/*
 !*/Project/*.uvprojx
 电路接线图/*.bkp
+rm_vision/build
+rm_vision/.vscode
+rm_vision/.cache

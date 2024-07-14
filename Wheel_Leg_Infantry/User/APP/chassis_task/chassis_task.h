@@ -50,7 +50,9 @@
 // 遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
 #define CHASSIS_VX_RC_SEN 0.0020f
 // 遥控器的yaw遥杆（max 660）增加到车体角度的比例
-#define CHASSIS_WZ_RC_SEN 0.00001f
+#define CHASSIS_WZ_RC_SEN 0.000016f
+#define LEH_LENGTH_RC_SEN 0.0000003f
+#define CHASSIS_ROLL_RC_SEN 0.000264f
 
 #define CHASSIS_ACCEL_X_NUM 0.1666666667f
 #define CHASSIS_SPEED_NUM 0.05f
@@ -98,7 +100,7 @@
 #define LEG_LENGTH_BUFFER 0.10f
 
 #define LEG_LENGTH_MAX 0.12f
-#define LEG_LENGTH_MIN 0.06f
+#define LEG_LENGTH_MIN 0.07f
 
 //电机编码值转化成角度值
 #define Motor_Ecd_to_Rad 0.000766990394f //      2*  PI  /8192
@@ -106,7 +108,7 @@
 // 腿部长度控制PID
 #define LEG_LENGTH_PID_KP 120.0f
 #define LEG_LENGTH_PID_KI 0.5f
-#define LEG_LENGTH_PID_KD 600.0f
+#define LEG_LENGTH_PID_KD 1200.0f
 #define LEG_LENGTH_PID_MAX_OUT 30.0f
 #define LEG_LENGTH_PID_MAX_IOUT 3.0f
 

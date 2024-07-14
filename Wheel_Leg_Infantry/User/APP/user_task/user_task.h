@@ -27,7 +27,9 @@ enum errorType // 机器人状态异常状况，会触发蜂鸣器报警，序�
   MOTOR_LOST = 0,  // 电机离线
   LEG_EXCEED,      // 腿部长度超限
   OFF_GROUND,      // 机器人离地
+  VOLTAGE_LOW,     // 电池电量低
   MOTOR_TEMP_HIGH,
+  LIST_LENGTH
 };
 
 extern void UserTask(void *pvParameters);

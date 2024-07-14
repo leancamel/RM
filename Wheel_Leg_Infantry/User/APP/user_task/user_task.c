@@ -79,6 +79,8 @@ void UserTask(void *pvParameters)
             buzzer_warn(LEG_EXCEED + 1, 10);
         else if(!local_chassis_move->touchingGroung && local_chassis_move->chassis_mode != CHASSIS_FORCE_RAW)
             buzzer_warn(OFF_GROUND + 1, 10);
+        else if(get_battery_voltage() <= 22.8f)
+            buzzer_warn(VOLTAGE_LOW + 1, 10);
         else
             buzzer_off();
 #endif
@@ -93,7 +95,7 @@ void UserTask(void *pvParameters)
         // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //姿态角
-        // printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         // printf("%f, %f, %f\n", *(local_chassis_move->chassis_imu_accel + INS_ACCEL_X_ADDRESS_OFFSET),
         //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Y_ADDRESS_OFFSET),
         //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Z_ADDRESS_OFFSET));
@@ -105,10 +107,10 @@ void UserTask(void *pvParameters)
 
         // printf("%f, %f\n", local_chassis_move->state_ref.theta * 57.3f, local_chassis_move->state_ref.phi * 57.3f);
 
-        printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
-                                    local_chassis_move->left_leg.back_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.front_joint.angle * 57.3f,
-                                    local_chassis_move->right_leg.back_joint.angle * 57.3f);
+        // printf("%.2f, %.2f, %.2f, %.2f\n", local_chassis_move->left_leg.front_joint.angle * 57.3f, 
+        //                             local_chassis_move->left_leg.back_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.front_joint.angle * 57.3f,
+        //                             local_chassis_move->right_leg.back_joint.angle * 57.3f);
         
         // 地面支持力
         // printf("%f, %f, %f\n", local_chassis_move->ground_force, local_chassis_move->state_ref.x, local_chassis_move->leg_length*100);

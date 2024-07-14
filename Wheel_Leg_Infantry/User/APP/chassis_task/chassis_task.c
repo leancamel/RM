@@ -475,12 +475,12 @@ void chassis_rc_to_control_euler(fp32 *l_set, fp32 *roll_set, chassis_move_t *ch
 {
     fp32 add_l, add_l_channel;
     rc_deadline_limit(chassis_move_rc_to_euler->chassis_RC->rc.ch[CHASSIS_L_CHANNEL], add_l_channel, CHASSIS_RC_DEADLINE);
-    add_l = add_l_channel * 0.0000003f;
+    add_l = add_l_channel * LEH_LENGTH_RC_SEN;
     *l_set += add_l;
 
     fp32 roll_channel;
     rc_deadline_limit(chassis_move_rc_to_euler->chassis_RC->rc.ch[CHASSIS_ROLL_CHANNEL], roll_channel, CHASSIS_RC_DEADLINE);
-    *roll_set = roll_channel * 0.000264f;
+    *roll_set = roll_channel * CHASSIS_ROLL_RC_SEN;
 }
 
 

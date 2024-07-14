@@ -40,7 +40,7 @@ void imuSendTask(void *pvParameters)
     {
         vTaskDelayUntil(&IMU_LastWakeTime, 20);
         
-        Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
+        // Send_Gimbal_Angle(local_imu_angle[0], local_imu_angle[1], 0);
     }
 }
 
