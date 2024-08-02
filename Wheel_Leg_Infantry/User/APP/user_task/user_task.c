@@ -95,7 +95,7 @@ void UserTask(void *pvParameters)
         // angle_degree[2] = (*(angle + INS_ROLL_ADDRESS_OFFSET));
 
         //姿态角
-        printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
+        // printf("%f, %f, %f\n", angle_degree[0], angle_degree[1], angle_degree[2]);
         // printf("%f, %f, %f\n", *(local_chassis_move->chassis_imu_accel + INS_ACCEL_X_ADDRESS_OFFSET),
         //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Y_ADDRESS_OFFSET),
         //                         *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Z_ADDRESS_OFFSET));
@@ -143,6 +143,7 @@ void UserTask(void *pvParameters)
         // printf("%f, %f\n", local_chassis_move->state_set.x_dot, local_chassis_move->state_ref.x_dot);
         // printf("%f, %f\n", local_chassis_move->state_set.x, local_chassis_move->state_ref.x);
 
+        printf("%.2f, %.2f, %.2f\r\n", local_chassis_move->estimated_speed*100.0f, local_chassis_move->state_ref.x_dot*100.0f, *(local_chassis_move->chassis_imu_accel + INS_ACCEL_Z_ADDRESS_OFFSET));
         vTaskDelay(10);
 #if INCLUDE_uxTaskGetStackHighWaterMark
         UserTaskStack = uxTaskGetStackHighWaterMark(NULL);

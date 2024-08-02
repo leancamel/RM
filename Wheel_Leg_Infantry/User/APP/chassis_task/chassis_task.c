@@ -21,6 +21,7 @@
 
 #include "pid.h"
 #include "INS_Task.h"
+#include "state_estimate.h"
 
 #include "FreeRTOSConfig.h"
 #include "FreeRTOS.h"
@@ -322,10 +323,12 @@ void chassis_feedback_update(chassis_move_t *chassis_move_update)
     chassis_move_update->wz = 0.5f * (chassis_move_update->right_leg.wheel_motor.speed - chassis_move_update->left_leg.wheel_motor.speed) / MOTOR_DISTANCE_TO_CENTER;
     // TODO: 加入Kalman Filter得到机器人位移和速度
     first_order_filter_cali(&chassis_move_update->state_xdot_filter, (chassis_move_update->right_leg.wheel_motor.speed + chassis_move_update->left_leg.wheel_motor.speed) * 0.5f);
+    SpeedEstimation(chassis_move_update);
     //底盘状态量组装
     chassis_move_update->state_ref.theta = chassis_move_update->leg_angle - PI/2 - chassis_move_update->chassis_pitch; // 注意theta并不是腿与机体的夹角
     chassis_move_update->state_ref.theta_dot = chassis_move_update->leg_angle_dot - *(chassis_move_update->chassis_imu_gyro + INS_GYRO_Y_ADDRESS_OFFSET);
     chassis_move_update->state_ref.x_dot = chassis_move_update->state_xdot_filter.out;
+    // chassis_move_update->state_ref.x_dot = chassis_move_update->estimated_speed;
     chassis_move_update->state_ref.x += chassis_move_update->state_ref.x_dot * CHASSIS_CONTROL_TIME;
     chassis_move_update->state_ref.phi = chassis_move_update->chassis_pitch;
     chassis_move_update->state_ref.phi_dot = *(chassis_move_update->chassis_imu_gyro + INS_GYRO_Y_ADDRESS_OFFSET);

@@ -1,3 +1,5 @@
+#include "chassis_task.h"
+
 #ifndef STATE_ESTIMATE
 #define STATE_ESTIMATE
 
